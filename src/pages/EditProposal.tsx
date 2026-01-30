@@ -153,43 +153,9 @@ export default function EditProposal() {
     navigate('/propostas');
   };
 
-  const handleExportPDF = async () => {
-    if (!previewRef.current) {
-      toast.error('Erro ao gerar PDF. Tente novamente.');
-      return;
-    }
-
-    setIsExporting(true);
-    
-    try {
-      const element = previewRef.current;
-      const fileName = `proposta-${proposal.number}-${client.name || 'cliente'}.pdf`.replace(/\s+/g, '-').toLowerCase();
-      
-      const opt = {
-        margin: 0,
-        filename: fileName,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          letterRendering: true,
-        },
-        jsPDF: { 
-          unit: 'mm', 
-          format: 'a4', 
-          orientation: 'portrait' 
-        },
-        pagebreak: { mode: ['css', 'legacy'], before: '.pdf-page' }
-      };
-
-      await html2pdf().set(opt).from(element).save();
-      toast.success('PDF exportado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao exportar PDF:', error);
-      toast.error('Erro ao exportar PDF. Tente novamente.');
-    } finally {
-      setIsExporting(false);
-    }
+  const handlePrint = () => {
+    openPrintWindow(proposalData, company);
+    toast.success('Janela de impressão aberta! Use "Salvar como PDF" para exportar.');
   };
 
   return (
