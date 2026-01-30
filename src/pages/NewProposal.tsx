@@ -92,6 +92,21 @@ export default function NewProposal() {
     if (!description) {
       setDescription(template.defaultDescription);
     }
+    // Pre-fill products based on template
+    if (products.length === 0 && template.defaultProducts.length > 0) {
+      const defaultProducts: Product[] = template.defaultProducts.map((dp) => ({
+        id: crypto.randomUUID(),
+        name: dp.name,
+        description: dp.description,
+        unit: dp.unit,
+        quantity: 1,
+        unitPrice: 0,
+        totalPrice: 0,
+        discount: 0,
+        discountNote: '',
+      }));
+      setProducts(defaultProducts);
+    }
   };
 
   const handleSave = () => {
