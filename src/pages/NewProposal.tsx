@@ -26,8 +26,10 @@ import {
   Calendar,
   Settings,
   ArrowLeft,
-  ArrowRight
+  Download,
+  Loader2
 } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 import {
   Dialog,
   DialogContent,
@@ -46,6 +48,7 @@ export default function NewProposal() {
   const [selectedTemplate, setSelectedTemplate] = useState<ProposalTemplate | null>(null);
   const [activeTab, setActiveTab] = useState('info');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Form state
   const [proposalNumber] = useState(() => generateProposalNumber());
@@ -143,6 +146,45 @@ export default function NewProposal() {
     navigate('/propostas');
   };
 
+  const handleExportPDF = async () => {
+    if (!previewRef.current) {
+      toast.error('Erro ao gerar PDF. Tente novamente.');
+      return;
+    }
+
+    setIsExporting(true);
+    
+    try {
+      const element = previewRef.current;
+      const fileName = `proposta-${proposalNumber}-${client.name || 'cliente'}.pdf`.replace(/\s+/g, '-').toLowerCase();
+      
+      const opt = {
+        margin: 0,
+        filename: fileName,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          letterRendering: true,
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait' 
+        },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+      toast.success('PDF exportado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao exportar PDF:', error);
+      toast.error('Erro ao exportar PDF. Tente novamente.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   // Show template selector if no template selected
   if (!selectedTemplate) {
     return (
@@ -201,11 +243,26 @@ export default function NewProposal() {
             </DialogTrigger>
             <DialogContent className="max-w-4xl h-[90vh]">
               <DialogHeader>
-                <DialogTitle>Preview da Proposta</DialogTitle>
+                <DialogTitle className="flex items-center justify-between pr-8">
+                  Preview da Proposta
+                  <Button 
+                    onClick={handleExportPDF} 
+                    size="sm" 
+                    className="gap-2"
+                    disabled={isExporting}
+                  >
+                    {isExporting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                    {isExporting ? 'Gerando...' : 'Exportar PDF'}
+                  </Button>
+                </DialogTitle>
               </DialogHeader>
               <ScrollArea className="h-full">
-                <div className="p-4 bg-muted rounded-lg">
-                  <div className="transform scale-50 origin-top-left" style={{ width: '200%' }}>
+                <div className="p-4 bg-muted rounded-lg overflow-auto">
+                  <div className="transform scale-[0.4] origin-top-left" style={{ width: '250%' }}>
                     <ProposalPreview ref={previewRef} proposal={proposalData} company={company} />
                   </div>
                 </div>

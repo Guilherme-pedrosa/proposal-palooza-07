@@ -36,16 +36,16 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
     return (
       <div
         ref={ref}
-        className="bg-white text-foreground"
-        style={{ width: '210mm', minHeight: '297mm' }}
+        className="bg-white text-foreground proposal-preview"
+        style={{ width: '210mm' }}
       >
         {/* Cover Page */}
-        <div className="relative min-h-[297mm] overflow-hidden" style={{ backgroundColor: '#1a1a1a' }}>
+        <div className="relative overflow-hidden pdf-page" style={{ backgroundColor: '#1a1a1a', height: '297mm', pageBreakAfter: 'always' }}>
           {/* Background with gradient overlay */}
           <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.6))' }} />
           
           {/* Content */}
-          <div className="relative z-10 flex min-h-[297mm] flex-col p-12 text-white">
+          <div className="relative z-10 flex flex-col p-12 text-white" style={{ height: '297mm' }}>
             {/* Title */}
             <div className="mb-8">
               <h1 className="text-5xl font-bold tracking-tight">Proposta</h1>
@@ -88,7 +88,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         </div>
 
         {/* Company Presentation Page - O que nos move */}
-        <div className="relative min-h-[297mm] bg-white p-12">
+        <div className="relative bg-white p-12 pdf-page" style={{ height: '297mm', pageBreakAfter: 'always' }}>
           {/* Logo no topo */}
           <div className="absolute top-8 right-12">
             <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -188,7 +188,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         {isPreventiva && (
           <>
             {/* Objectives Page - Objetivos da Manutenção Preventiva */}
-            <div className="relative min-h-[297mm] bg-white p-12">
+            <div className="relative bg-white p-12 pdf-page" style={{ height: '297mm', pageBreakAfter: 'always' }}>
           {/* Logo no topo */}
           <div className="absolute top-8 right-12">
             <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -270,7 +270,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         </div>
 
         {/* Equipment Details Page - Detalhamento por Equipamento */}
-        <div className="relative min-h-[297mm] bg-white p-12">
+        <div className="relative bg-white p-12 pdf-page" style={{ height: '297mm', pageBreakAfter: 'always' }}>
           {/* Logo no topo */}
           <div className="absolute top-8 right-12">
             <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -379,7 +379,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         </div>
 
         {/* Results Page - Resultados Comprovados */}
-        <div className="relative min-h-[297mm] bg-white p-12">
+        <div className="relative bg-white p-12 pdf-page" style={{ height: '297mm', pageBreakAfter: 'always' }}>
           {/* Logo no topo */}
           <div className="absolute top-8 right-12">
             <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -486,7 +486,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
         {/* Proposal Details Page */}
         {proposal.title && (
-          <div className="relative min-h-[297mm] bg-white p-12">
+          <div className="relative bg-white p-12 pdf-page" style={{ height: '297mm', pageBreakAfter: 'always' }}>
             {/* Logo no topo */}
             <div className="absolute top-8 right-12">
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -520,7 +520,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
         {/* Products Page */}
         {proposal.products && proposal.products.length > 0 && (
-          <div className="relative min-h-[297mm] bg-white p-12">
+          <div className="relative bg-white p-12 pdf-page" style={{ height: '297mm', pageBreakAfter: 'always' }}>
             {/* Logo no topo */}
             <div className="absolute top-8 right-12">
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -590,7 +590,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
         {/* Terms and Conditions Page */}
         {proposal.termsConditions && proposal.termsConditions.length > 0 && (
-          <div className="relative min-h-[297mm] bg-white p-12">
+          <div className="relative bg-white p-12 pdf-page" style={{ height: '297mm', pageBreakAfter: 'always' }}>
             {/* Logo no topo */}
             <div className="absolute top-8 right-12">
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -629,7 +629,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
         {/* Images Page */}
         {proposal.images && proposal.images.length > 0 && (
-          <div className="relative min-h-[297mm] bg-white p-12">
+          <div className="relative bg-white p-12 pdf-page" style={{ height: '297mm', pageBreakAfter: 'always' }}>
             {/* Logo no topo */}
             <div className="absolute top-8 right-12">
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -660,7 +660,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         )}
 
         {/* Signature Page */}
-        <div className="relative min-h-[297mm] bg-white p-12">
+        <div className="relative bg-white p-12 pdf-page" style={{ height: '297mm' }}>
           {/* Logo no topo */}
           <div className="absolute top-8 right-12">
             <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
