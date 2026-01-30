@@ -200,23 +200,23 @@ export function generatePrintHTML(proposal: Partial<Proposal>, company: CompanyS
     </div>
   `;
 
-  // Clients & Brands page - SEPARATE PAGE
+  // Clients & Brands page - SEPARATE PAGE com títulos bem visíveis
   const hasClients = company.clients && company.clients.length > 0;
   const hasBrands = company.brands && company.brands.length > 0;
   
   const clientsBrandsPage = (hasClients || hasBrands) ? `
-    <div class="page" style="background: white;">
-      <div class="page-content">
-        ${company.logo ? `<img src="${company.logo}" class="logo-top" alt="${company.name}">` : ''}
+    <div class="page" style="background: white; width: 210mm; min-height: 297mm; position: relative; page-break-after: always; page-break-inside: avoid;">
+      <div class="page-content" style="padding: 48px; height: 100%; position: relative;">
+        ${company.logo ? `<img src="${company.logo}" style="position: absolute; top: 32px; right: 48px; height: 48px;" alt="${company.name}">` : ''}
         
         ${hasClients ? `
-          <div style="margin-bottom: 32px;">
-            <h2 class="title">Principais Clientes</h2>
-            <p class="subtitle">Empresas que confiam em nossos serviços.</p>
-            <div class="clients-grid" style="grid-template-columns: repeat(4, 1fr); gap: 12px;">
+          <div style="margin-bottom: 40px; margin-top: 20px;">
+            <h2 style="font-size: 28px; font-weight: 700; color: #111827; margin-bottom: 8px;">Principais Clientes</h2>
+            <p style="font-size: 14px; color: #4b5563; margin-bottom: 24px;">Empresas que confiam em nossos serviços.</p>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
               ${company.clients!.slice(0, 12).map(c => `
-                <div class="client-box" style="height: 64px; padding: 12px;">
-                  ${c.logo ? `<img src="${c.logo}" class="client-logo" style="max-height: 48px;" alt="${c.name}">` : `<span class="client-name">${c.name}</span>`}
+                <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                  ${c.logo ? `<img src="${c.logo}" style="max-height: 56px; max-width: 100%; object-fit: contain;" alt="${c.name}">` : `<span style="font-size: 12px; color: #6b7280; text-align: center;">${c.name}</span>`}
                 </div>
               `).join('')}
             </div>
@@ -224,22 +224,22 @@ export function generatePrintHTML(proposal: Partial<Proposal>, company: CompanyS
         ` : ''}
         
         ${hasBrands ? `
-          <div>
-            <h2 class="title">Marcas que Trabalhamos</h2>
-            <p class="subtitle">Parceiros de qualidade para nossos serviços.</p>
-            <div class="clients-grid" style="grid-template-columns: repeat(4, 1fr); gap: 12px;">
+          <div style="margin-top: 40px;">
+            <h2 style="font-size: 28px; font-weight: 700; color: #111827; margin-bottom: 8px;">Marcas que Trabalhamos</h2>
+            <p style="font-size: 14px; color: #4b5563; margin-bottom: 24px;">Parceiros de qualidade para nossos serviços.</p>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
               ${company.brands!.slice(0, 12).map(b => `
-                <div class="client-box" style="height: 64px; padding: 12px;">
-                  ${b.logo ? `<img src="${b.logo}" class="client-logo" style="max-height: 48px;" alt="${b.name}">` : `<span class="client-name">${b.name}</span>`}
+                <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                  ${b.logo ? `<img src="${b.logo}" style="max-height: 56px; max-width: 100%; object-fit: contain;" alt="${b.name}">` : `<span style="font-size: 12px; color: #6b7280; text-align: center;">${b.name}</span>`}
                 </div>
               `).join('')}
             </div>
           </div>
         ` : ''}
         
-        <div class="corner-decoration"></div>
-        <div class="corner-decoration-small"></div>
-        <div class="footer-info">${proposal.number} de ${formatDate(proposal.createdAt as Date)}</div>
+        <div style="position: absolute; bottom: 0; right: 0; width: 128px; height: 128px; background-color: #22c55e; clip-path: polygon(100% 0, 100% 100%, 0 100%);"></div>
+        <div style="position: absolute; bottom: 0; right: 64px; width: 80px; height: 80px; background-color: #16a34a; clip-path: polygon(100% 0, 100% 100%, 0 100%);"></div>
+        <div style="position: absolute; bottom: 32px; left: 48px; font-size: 12px; color: #9ca3af;">${proposal.number} de ${formatDate(proposal.createdAt as Date)}</div>
       </div>
     </div>
   ` : '';
