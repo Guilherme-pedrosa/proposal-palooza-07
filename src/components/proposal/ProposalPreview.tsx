@@ -156,13 +156,14 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }}></div>
                 <h3 className="text-sm font-semibold uppercase tracking-wide" style={{ color: '#111827' }}>Valores</h3>
               </div>
-              <div className="flex flex-wrap gap-1">
+              <ul className="space-y-1">
                 {company.values.map((value, index) => (
-                  <span key={index} className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: '#f0fdf4', color: '#15803d' }}>
-                    {value}
-                  </span>
+                  <li key={index} className="flex items-start gap-2 text-xs" style={{ color: '#4b5563' }}>
+                    <span className="mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: '#22c55e' }}></span>
+                    <span>{value}</span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           </div>
 
