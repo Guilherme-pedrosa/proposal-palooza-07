@@ -4,6 +4,12 @@ export interface CompanyClient {
   logo: string | null;
 }
 
+export interface CompanyBrand {
+  id: string;
+  name: string;
+  logo: string | null;
+}
+
 export interface CompanySettings {
   name: string;
   phone: string;
@@ -15,6 +21,7 @@ export interface CompanySettings {
   mission: string;
   values: string[];
   clients: CompanyClient[];
+  brands: CompanyBrand[];
 }
 
 export const defaultCompanySettings: CompanySettings = {
@@ -28,4 +35,5 @@ export const defaultCompanySettings: CompanySettings = {
   mission: 'Dar suporte nas fases essenciais da cadeia de suprimento dos clientes, prestando serviços de qualidade para resolução de problemas adequados à realidade do processo no qual estivermos inseridos.',
   values: ['Segurança', 'Pessoas', 'Meio Ambiente', 'Qualidade', 'Foco no cliente', 'Melhoria Contínua'],
   clients: [],
+  brands: [],
 };
