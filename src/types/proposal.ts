@@ -15,6 +15,8 @@ export interface Product {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+  discount?: number;
+  discountNote?: string;
 }
 
 export interface TermCondition {

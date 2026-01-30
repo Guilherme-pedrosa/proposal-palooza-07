@@ -21,6 +21,8 @@ export function ProductsForm({ products, onChange }: ProductsFormProps) {
       quantity: 1,
       unitPrice: 0,
       totalPrice: 0,
+      discount: 0,
+      discountNote: '',
     };
     onChange([...products, newProduct]);
   };
@@ -30,9 +32,11 @@ export function ProductsForm({ products, onChange }: ProductsFormProps) {
       products.map((p) => {
         if (p.id === id) {
           const updated = { ...p, [field]: value };
-          // Recalculate total when quantity or unit price changes
-          if (field === 'quantity' || field === 'unitPrice') {
-            updated.totalPrice = updated.quantity * updated.unitPrice;
+          // Recalculate total when quantity, unit price or discount changes
+          if (field === 'quantity' || field === 'unitPrice' || field === 'discount') {
+            const subtotal = updated.quantity * updated.unitPrice;
+            const discountValue = updated.discount || 0;
+            updated.totalPrice = subtotal - discountValue;
           }
           return updated;
         }
@@ -147,10 +151,30 @@ export function ProductsForm({ products, onChange }: ProductsFormProps) {
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label>Desconto (R$)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={product.discount || 0}
+                      onChange={(e) =>
+                        updateProduct(product.id, 'discount', parseFloat(e.target.value) || 0)
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <Label>Valor Total</Label>
                     <div className="flex h-10 items-center rounded-md bg-secondary px-3 text-sm font-medium text-secondary-foreground">
                       {formatCurrency(product.totalPrice)}
                     </div>
+                  </div>
+                  <div className="space-y-2 sm:col-span-2 lg:col-span-4">
+                    <Label>Observação do Desconto</Label>
+                    <Input
+                      value={product.discountNote || ''}
+                      onChange={(e) => updateProduct(product.id, 'discountNote', e.target.value)}
+                      placeholder="Ex: Desconto promocional, cliente fidelidade..."
+                    />
                   </div>
                 </div>
               </div>
