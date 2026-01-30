@@ -3,9 +3,11 @@ import {
   FileText, 
   PlusCircle, 
   ClipboardList,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import logoWedo from '@/assets/logo-wedo.png';
+import { useCompany } from '@/contexts/CompanyContext';
+import logoWedoDefault from '@/assets/logo-wedo.png';
 
 const menuItems = [
   {
@@ -23,10 +25,16 @@ const menuItems = [
     href: '/termos',
     icon: ClipboardList,
   },
+  {
+    title: 'Configurações',
+    href: '/configuracoes',
+    icon: Settings,
+  },
 ];
 
 export function Sidebar() {
   const location = useLocation();
+  const { company } = useCompany();
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 gradient-primary">
@@ -34,9 +42,9 @@ export function Sidebar() {
         {/* Logo */}
         <div className="mb-8 px-2 bg-white rounded-lg p-3">
           <img 
-            src={logoWedo} 
-            alt="WeDo Cozinhas" 
-            className="h-12 w-auto"
+            src={company.logo || logoWedoDefault} 
+            alt={company.name} 
+            className="h-12 w-auto max-w-full object-contain"
           />
           <p className="text-xs text-muted-foreground mt-1">Sistema de Propostas</p>
         </div>
@@ -68,7 +76,7 @@ export function Sidebar() {
         {/* Footer */}
         <div className="border-t border-white/20 pt-4">
           <p className="px-2 text-xs text-white/60">
-            © 2025 WeDo Cozinhas
+            © 2025 {company.name}
           </p>
         </div>
       </div>
