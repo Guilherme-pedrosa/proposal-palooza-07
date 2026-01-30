@@ -3,6 +3,7 @@ import { Proposal } from '@/types/proposal';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import logoWedo from '@/assets/logo-wedo.png';
+import logoWedoWhite from '@/assets/logo-wedo-white.png';
 
 interface ProposalPreviewProps {
   proposal: Partial<Proposal>;
@@ -64,10 +65,9 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 <p style={{ color: '#9ca3af' }}>Tel: {proposal.companyPhone || '(62) 99446-6458'}</p>
               </div>
               <img 
-                src={logoWedo} 
+                src={logoWedoWhite} 
                 alt="Logo WeDo" 
                 className="h-16 w-auto ml-auto"
-                style={{ filter: 'brightness(0) invert(1)' }}
               />
             </div>
 

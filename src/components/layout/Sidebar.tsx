@@ -5,7 +5,7 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import logoWedo from '@/assets/logo-wedo.png';
+import logoWedoWhite from '@/assets/logo-wedo-white.png';
 
 const menuItems = [
   {
@@ -32,12 +32,11 @@ export function Sidebar() {
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 gradient-primary">
       <div className="flex h-full flex-col px-4 py-6">
         {/* Logo */}
-        <div className="mb-8 px-2">
+        <div className="mb-8 px-2 bg-white/10 rounded-lg p-3">
           <img 
-            src={logoWedo} 
+            src={logoWedoWhite} 
             alt="WeDo Cozinhas" 
-            className="h-12 w-auto"
-            style={{ filter: 'brightness(0) invert(1)' }}
+            className="h-10 w-auto"
           />
           <p className="text-xs text-white/70 mt-2">Sistema de Propostas</p>
         </div>
@@ -69,7 +68,7 @@ export function Sidebar() {
         {/* Footer */}
         <div className="border-t border-white/20 pt-4">
           <p className="px-2 text-xs text-white/60">
-            © 2025 PropostaPro
+            © 2025 WeDo Cozinhas
           </p>
         </div>
       </div>
