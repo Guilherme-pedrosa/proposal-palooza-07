@@ -163,7 +163,7 @@ export function generatePrintHTML(proposal: Partial<Proposal>, company: CompanyS
     </div>
   `;
 
-  // Company presentation page
+  // Company presentation page - Vision, Mission, Values ONLY
   const companyPage = `
     <div class="page" style="background: white;">
       <div class="page-content">
@@ -193,26 +193,44 @@ export function generatePrintHTML(proposal: Partial<Proposal>, company: CompanyS
           </div>
         </div>
         
-        ${(company.clients && company.clients.length > 0) ? `
-          <div style="margin-top: 24px;">
-            <h3 style="font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 16px;">Principais Clientes</h3>
-            <div class="clients-grid">
-              ${company.clients.map(c => `
-                <div class="client-box">
-                  ${c.logo ? `<img src="${c.logo}" class="client-logo" alt="${c.name}">` : `<span class="client-name">${c.name}</span>`}
+        <div class="corner-decoration"></div>
+        <div class="corner-decoration-small"></div>
+        <div class="footer-info">${proposal.number} de ${formatDate(proposal.createdAt as Date)}</div>
+      </div>
+    </div>
+  `;
+
+  // Clients & Brands page - SEPARATE PAGE
+  const hasClients = company.clients && company.clients.length > 0;
+  const hasBrands = company.brands && company.brands.length > 0;
+  
+  const clientsBrandsPage = (hasClients || hasBrands) ? `
+    <div class="page" style="background: white;">
+      <div class="page-content">
+        ${company.logo ? `<img src="${company.logo}" class="logo-top" alt="${company.name}">` : ''}
+        
+        ${hasClients ? `
+          <div style="margin-bottom: 32px;">
+            <h2 class="title">Principais Clientes</h2>
+            <p class="subtitle">Empresas que confiam em nossos serviços.</p>
+            <div class="clients-grid" style="grid-template-columns: repeat(4, 1fr); gap: 12px;">
+              ${company.clients!.slice(0, 12).map(c => `
+                <div class="client-box" style="height: 64px; padding: 12px;">
+                  ${c.logo ? `<img src="${c.logo}" class="client-logo" style="max-height: 48px;" alt="${c.name}">` : `<span class="client-name">${c.name}</span>`}
                 </div>
               `).join('')}
             </div>
           </div>
         ` : ''}
         
-        ${(company.brands && company.brands.length > 0) ? `
-          <div style="margin-top: 24px;">
-            <h3 style="font-size: 18px; font-weight: 700; color: #111827; margin-bottom: 16px;">Marcas que Trabalhamos</h3>
-            <div class="clients-grid">
-              ${company.brands.map(b => `
-                <div class="client-box">
-                  ${b.logo ? `<img src="${b.logo}" class="client-logo" alt="${b.name}">` : `<span class="client-name">${b.name}</span>`}
+        ${hasBrands ? `
+          <div>
+            <h2 class="title">Marcas que Trabalhamos</h2>
+            <p class="subtitle">Parceiros de qualidade para nossos serviços.</p>
+            <div class="clients-grid" style="grid-template-columns: repeat(4, 1fr); gap: 12px;">
+              ${company.brands!.slice(0, 12).map(b => `
+                <div class="client-box" style="height: 64px; padding: 12px;">
+                  ${b.logo ? `<img src="${b.logo}" class="client-logo" style="max-height: 48px;" alt="${b.name}">` : `<span class="client-name">${b.name}</span>`}
                 </div>
               `).join('')}
             </div>
@@ -224,7 +242,7 @@ export function generatePrintHTML(proposal: Partial<Proposal>, company: CompanyS
         <div class="footer-info">${proposal.number} de ${formatDate(proposal.createdAt as Date)}</div>
       </div>
     </div>
-  `;
+  ` : '';
 
   // Products page
   const productsPage = proposal.products && proposal.products.length > 0 ? `
@@ -354,6 +372,7 @@ export function generatePrintHTML(proposal: Partial<Proposal>, company: CompanyS
       <body>
         ${coverPage}
         ${companyPage}
+        ${clientsBrandsPage}
         ${productsPage}
         ${termsPage}
         ${signaturePage}
