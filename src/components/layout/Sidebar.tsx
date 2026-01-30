@@ -2,12 +2,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   FileText, 
   PlusCircle, 
-  List, 
-  Settings, 
   ClipboardList,
-  Building2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import logoWedo from '@/assets/logo-wedo.png';
 
 const menuItems = [
   {
@@ -34,14 +32,14 @@ export function Sidebar() {
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 gradient-primary">
       <div className="flex h-full flex-col px-4 py-6">
         {/* Logo */}
-        <div className="mb-8 flex items-center gap-3 px-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20">
-            <Building2 className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-white">PropostaPro</h1>
-            <p className="text-xs text-white/70">Sistema de Propostas</p>
-          </div>
+        <div className="mb-8 px-2">
+          <img 
+            src={logoWedo} 
+            alt="WeDo Cozinhas" 
+            className="h-12 w-auto"
+            style={{ filter: 'brightness(0) invert(1)' }}
+          />
+          <p className="text-xs text-white/70 mt-2">Sistema de Propostas</p>
         </div>
 
         {/* Navigation */}
