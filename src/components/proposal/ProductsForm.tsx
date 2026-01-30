@@ -3,6 +3,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { CurrencyInput } from '@/components/ui/currency-input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Product } from '@/types/proposal';
 import { Package, Plus, Trash2 } from 'lucide-react';
 
@@ -119,14 +121,9 @@ export function ProductsForm({ products, onChange }: ProductsFormProps) {
                   </div>
                   <div className="space-y-2">
                     <Label>Quantidade</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
+                    <NumberInput
                       value={product.quantity}
-                      onChange={(e) =>
-                        updateProduct(product.id, 'quantity', parseFloat(e.target.value) || 0)
-                      }
+                      onChange={(value) => updateProduct(product.id, 'quantity', value)}
                     />
                   </div>
                   <div className="space-y-2 sm:col-span-2 lg:col-span-4">
@@ -140,26 +137,16 @@ export function ProductsForm({ products, onChange }: ProductsFormProps) {
                   </div>
                   <div className="space-y-2">
                     <Label>Valor Unitário</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
+                    <CurrencyInput
                       value={product.unitPrice}
-                      onChange={(e) =>
-                        updateProduct(product.id, 'unitPrice', parseFloat(e.target.value) || 0)
-                      }
+                      onChange={(value) => updateProduct(product.id, 'unitPrice', value)}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Desconto (R$)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
+                    <Label>Desconto</Label>
+                    <CurrencyInput
                       value={product.discount || 0}
-                      onChange={(e) =>
-                        updateProduct(product.id, 'discount', parseFloat(e.target.value) || 0)
-                      }
+                      onChange={(value) => updateProduct(product.id, 'discount', value)}
                     />
                   </div>
                   <div className="space-y-2">
