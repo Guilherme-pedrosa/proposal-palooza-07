@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ClientForm } from '@/components/proposal/ClientForm';
 import { ProductsForm } from '@/components/proposal/ProductsForm';
@@ -26,10 +26,9 @@ import {
   Calendar,
   Settings,
   ArrowLeft,
-  Download,
-  Loader2
+  Printer
 } from 'lucide-react';
-import html2pdf from 'html2pdf.js';
+import { openPrintWindow } from '@/lib/printProposal';
 import {
   Dialog,
   DialogContent,
@@ -43,12 +42,10 @@ export default function NewProposal() {
   const navigate = useNavigate();
   const { addProposal, generateProposalNumber } = useProposal();
   const { company } = useCompany();
-  const previewRef = useRef<HTMLDivElement>(null);
 
   const [selectedTemplate, setSelectedTemplate] = useState<ProposalTemplate | null>(null);
   const [activeTab, setActiveTab] = useState('info');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
 
   // Form state
   const [proposalNumber] = useState(() => generateProposalNumber());
@@ -146,43 +143,9 @@ export default function NewProposal() {
     navigate('/propostas');
   };
 
-  const handleExportPDF = async () => {
-    if (!previewRef.current) {
-      toast.error('Erro ao gerar PDF. Tente novamente.');
-      return;
-    }
-
-    setIsExporting(true);
-    
-    try {
-      const element = previewRef.current;
-      const fileName = `proposta-${proposalNumber}-${client.name || 'cliente'}.pdf`.replace(/\s+/g, '-').toLowerCase();
-      
-      const opt = {
-        margin: 0,
-        filename: fileName,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          letterRendering: true,
-        },
-        jsPDF: { 
-          unit: 'mm', 
-          format: 'a4', 
-          orientation: 'portrait' 
-        },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      };
-
-      await html2pdf().set(opt).from(element).save();
-      toast.success('PDF exportado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao exportar PDF:', error);
-      toast.error('Erro ao exportar PDF. Tente novamente.');
-    } finally {
-      setIsExporting(false);
-    }
+  const handlePrint = () => {
+    openPrintWindow(proposalData, company);
+    toast.success('Janela de impressão aberta! Use "Salvar como PDF" para exportar.');
   };
 
   // Show template selector if no template selected
@@ -246,24 +209,19 @@ export default function NewProposal() {
                 <DialogTitle className="flex items-center justify-between pr-8">
                   Preview da Proposta
                   <Button 
-                    onClick={handleExportPDF} 
+                    onClick={handlePrint} 
                     size="sm" 
                     className="gap-2"
-                    disabled={isExporting}
                   >
-                    {isExporting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Download className="h-4 w-4" />
-                    )}
-                    {isExporting ? 'Gerando...' : 'Exportar PDF'}
+                    <Printer className="h-4 w-4" />
+                    Imprimir / PDF
                   </Button>
                 </DialogTitle>
               </DialogHeader>
               <ScrollArea className="h-full">
                 <div className="p-4 bg-muted rounded-lg overflow-auto">
                   <div className="transform scale-[0.4] origin-top-left" style={{ width: '250%' }}>
-                    <ProposalPreview ref={previewRef} proposal={proposalData} company={company} />
+                    <ProposalPreview proposal={proposalData} company={company} />
                   </div>
                 </div>
               </ScrollArea>

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useProposal } from '@/contexts/ProposalContext';
 import { useCompany } from '@/contexts/CompanyContext';
@@ -15,8 +15,7 @@ import {
   Calendar,
   Building2,
   DollarSign,
-  Download,
-  Loader2,
+  Printer,
   Edit
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -44,7 +43,7 @@ import {
 import { ProposalPreview } from '@/components/proposal/ProposalPreview';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Proposal } from '@/types/proposal';
-import html2pdf from 'html2pdf.js';
+import { openPrintWindow } from '@/lib/printProposal';
 
 const statusLabels = {
   draft: { label: 'Rascunho', variant: 'secondary' as const },
@@ -58,46 +57,14 @@ export default function Proposals() {
   const { company } = useCompany();
   const [search, setSearch] = useState('');
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
-  const previewRef = useRef<HTMLDivElement>(null);
 
-  const handleExportPDF = async () => {
-    if (!previewRef.current || !selectedProposal) {
-      toast.error('Erro ao gerar PDF. Tente novamente.');
+  const handlePrint = () => {
+    if (!selectedProposal) {
+      toast.error('Selecione uma proposta para imprimir.');
       return;
     }
-
-    setIsExporting(true);
-    
-    try {
-      const element = previewRef.current;
-      const fileName = `proposta-${selectedProposal.number}-${selectedProposal.client.name || 'cliente'}.pdf`.replace(/\s+/g, '-').toLowerCase();
-      
-      const opt = {
-        margin: 0,
-        filename: fileName,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          letterRendering: true,
-        },
-        jsPDF: { 
-          unit: 'mm', 
-          format: 'a4', 
-          orientation: 'portrait' 
-        },
-        pagebreak: { mode: ['css', 'legacy'], before: '.pdf-page' }
-      };
-
-      await html2pdf().set(opt).from(element).save();
-      toast.success('PDF exportado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao exportar PDF:', error);
-      toast.error('Erro ao exportar PDF. Tente novamente.');
-    } finally {
-      setIsExporting(false);
-    }
+    openPrintWindow(selectedProposal, company);
+    toast.success('Janela de impressão aberta! Use "Salvar como PDF" para exportar.');
   };
 
   const formatCurrency = (value: number) => {
@@ -274,17 +241,12 @@ export default function Proposals() {
             <DialogTitle className="flex items-center justify-between pr-8">
               <span>{selectedProposal?.number} - {selectedProposal?.client.name}</span>
               <Button 
-                onClick={handleExportPDF} 
+                onClick={handlePrint} 
                 size="sm" 
                 className="gap-2"
-                disabled={isExporting}
               >
-                {isExporting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="h-4 w-4" />
-                )}
-                {isExporting ? 'Gerando...' : 'Baixar PDF'}
+                <Printer className="h-4 w-4" />
+                Imprimir / PDF
               </Button>
             </DialogTitle>
             <DialogDescription id="proposal-preview-description">
@@ -294,7 +256,7 @@ export default function Proposals() {
           <ScrollArea className="h-full">
             <div className="p-4 bg-muted rounded-lg overflow-auto">
               <div className="transform scale-[0.35] origin-top-left" style={{ width: '285%' }}>
-                {selectedProposal && <ProposalPreview ref={previewRef} proposal={selectedProposal} company={company} />}
+                {selectedProposal && <ProposalPreview proposal={selectedProposal} company={company} />}
               </div>
             </div>
           </ScrollArea>
