@@ -249,64 +249,59 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             Nossa manutenção preventiva garante que todos os seus equipamentos operem no máximo desempenho, com segurança e durabilidade.
           </p>
 
-          <div className="grid grid-cols-1 gap-6">
-            <div className="rounded-lg p-6" style={{ backgroundColor: '#fef3c7', border: '1px solid #fde68a' }}>
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#f59e0b' }}>
-                  <span className="text-white font-bold text-lg">1</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold mb-2" style={{ color: '#92400e' }}>Evitar Paradas Imprevistas</h3>
-                  <p style={{ color: '#78350f' }}>Eliminamos interrupções operacionais que podem comprometer seu serviço e gerar prejuízos financeiros significativos.</p>
-                </div>
+          <div className="space-y-0">
+            {/* Item 1 */}
+            <div className="flex items-start gap-5 py-5" style={{ borderBottom: '1px solid #e5e7eb' }}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#fef3c7' }}>
+                <span className="font-bold text-base" style={{ color: '#d97706' }}>1</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-semibold mb-1" style={{ color: '#111827' }}>Evitar Paradas Imprevistas</h3>
+                <p className="text-sm leading-relaxed" style={{ color: '#4b5563' }}>Eliminamos interrupções operacionais que podem comprometer seu serviço e gerar prejuízos financeiros significativos.</p>
               </div>
             </div>
 
-            <div className="rounded-lg p-6" style={{ backgroundColor: '#dcfce7', border: '1px solid #bbf7d0' }}>
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#22c55e' }}>
-                  <span className="text-white font-bold text-lg">2</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold mb-2" style={{ color: '#166534' }}>Reduzir Custos com Reparos</h3>
-                  <p style={{ color: '#15803d' }}>Prevenir falhas é muito mais econômico do que realizar reparos emergenciais ou substituir equipamentos prematuramente.</p>
-                </div>
+            {/* Item 2 */}
+            <div className="flex items-start gap-5 py-5" style={{ borderBottom: '1px solid #e5e7eb' }}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#dcfce7' }}>
+                <span className="font-bold text-base" style={{ color: '#16a34a' }}>2</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-semibold mb-1" style={{ color: '#111827' }}>Reduzir Custos com Reparos</h3>
+                <p className="text-sm leading-relaxed" style={{ color: '#4b5563' }}>Prevenir falhas é muito mais econômico do que realizar reparos emergenciais ou substituir equipamentos prematuramente.</p>
               </div>
             </div>
 
-            <div className="rounded-lg p-6" style={{ backgroundColor: '#dbeafe', border: '1px solid #bfdbfe' }}>
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#3b82f6' }}>
-                  <span className="text-white font-bold text-lg">3</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold mb-2" style={{ color: '#1e40af' }}>Garantir Conformidade Técnica</h3>
-                  <p style={{ color: '#1d4ed8' }}>Mantemos seus equipamentos em conformidade com as normas NR10, NR12 e ABNT, evitando problemas legais e garantindo a segurança.</p>
-                </div>
+            {/* Item 3 */}
+            <div className="flex items-start gap-5 py-5" style={{ borderBottom: '1px solid #e5e7eb' }}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#dbeafe' }}>
+                <span className="font-bold text-base" style={{ color: '#2563eb' }}>3</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-semibold mb-1" style={{ color: '#111827' }}>Garantir Conformidade Técnica</h3>
+                <p className="text-sm leading-relaxed" style={{ color: '#4b5563' }}>Mantemos seus equipamentos em conformidade com as normas NR10, NR12 e ABNT, evitando problemas legais e garantindo a segurança.</p>
               </div>
             </div>
 
-            <div className="rounded-lg p-6" style={{ backgroundColor: '#f3e8ff', border: '1px solid #e9d5ff' }}>
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#a855f7' }}>
-                  <span className="text-white font-bold text-lg">4</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold mb-2" style={{ color: '#6b21a8' }}>Preservar Investimentos</h3>
-                  <p style={{ color: '#7e22ce' }}>Prolongamos a vida útil dos seus equipamentos, protegendo seu investimento e maximizando o retorno.</p>
-                </div>
+            {/* Item 4 */}
+            <div className="flex items-start gap-5 py-5" style={{ borderBottom: '1px solid #e5e7eb' }}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#f3e8ff' }}>
+                <span className="font-bold text-base" style={{ color: '#9333ea' }}>4</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-semibold mb-1" style={{ color: '#111827' }}>Preservar Investimentos</h3>
+                <p className="text-sm leading-relaxed" style={{ color: '#4b5563' }}>Prolongamos a vida útil dos seus equipamentos, protegendo seu investimento e maximizando o retorno.</p>
               </div>
             </div>
 
-            <div className="rounded-lg p-6" style={{ backgroundColor: '#fce7f3', border: '1px solid #fbcfe8' }}>
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#ec4899' }}>
-                  <span className="text-white font-bold text-lg">5</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold mb-2" style={{ color: '#9d174d' }}>Assegurar Qualidade Alimentar</h3>
-                  <p style={{ color: '#be185d' }}>Garantimos que seus equipamentos mantenham condições ideais para a produção segura e de alta qualidade dos alimentos.</p>
-                </div>
+            {/* Item 5 */}
+            <div className="flex items-start gap-5 py-5">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#fce7f3' }}>
+                <span className="font-bold text-base" style={{ color: '#db2777' }}>5</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-semibold mb-1" style={{ color: '#111827' }}>Assegurar Qualidade Alimentar</h3>
+                <p className="text-sm leading-relaxed" style={{ color: '#4b5563' }}>Garantimos que seus equipamentos mantenham condições ideais para a produção segura e de alta qualidade dos alimentos.</p>
               </div>
             </div>
           </div>
@@ -315,8 +310,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
             {proposal.number} de {formatDate(proposal.createdAt as Date)}
           </div>
-          <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
-          <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+          <div className="absolute bottom-0 right-0 h-24 w-24" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.8 }} />
         </div>
 
         {/* Equipment Details Page - Detalhamento por Equipamento */}
@@ -326,16 +320,22 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
           </div>
 
-          <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Nossa Abordagem por Equipamento</h2>
-          <p className="mb-6" style={{ color: '#4b5563' }}>
-            Desenvolvemos protocolos específicos para cada categoria de equipamento, garantindo que nenhum detalhe seja negligenciado.
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-1 h-8 rounded-full" style={{ backgroundColor: '#22c55e' }}></div>
+            <h2 className="text-2xl font-semibold tracking-tight" style={{ color: '#111827' }}>Nossa Abordagem por Equipamento</h2>
+          </div>
+          <p className="mb-6 ml-4 text-sm" style={{ color: '#6b7280' }}>
+            Protocolos específicos para cada categoria, garantindo que nenhum detalhe seja negligenciado.
           </p>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
             {/* Fogões Industriais */}
-            <div className="rounded-lg p-4" style={{ backgroundColor: '#fff7ed', border: '1px solid #fed7aa' }}>
-              <h3 className="text-base font-bold mb-2" style={{ color: '#c2410c' }}>🔥 Fogões Industriais</h3>
-              <ul className="text-xs space-y-1" style={{ color: '#9a3412' }}>
+            <div className="py-3" style={{ borderBottom: '1px solid #f3f4f6' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-base">🔥</span>
+                <h3 className="text-sm font-semibold" style={{ color: '#111827' }}>Fogões Industriais</h3>
+              </div>
+              <ul className="text-xs space-y-1 pl-6" style={{ color: '#4b5563' }}>
                 <li>• Verificação de mangueiras, regulador e válvulas</li>
                 <li>• Limpeza e descarbonização dos queimadores</li>
                 <li>• Calibração de bicos injetores</li>
@@ -344,9 +344,12 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             </div>
 
             {/* Sistemas de Refrigeração */}
-            <div className="rounded-lg p-4" style={{ backgroundColor: '#ecfeff', border: '1px solid #a5f3fc' }}>
-              <h3 className="text-base font-bold mb-2" style={{ color: '#0e7490' }}>❄️ Refrigeração</h3>
-              <ul className="text-xs space-y-1" style={{ color: '#155e75' }}>
+            <div className="py-3" style={{ borderBottom: '1px solid #f3f4f6' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-base">❄️</span>
+                <h3 className="text-sm font-semibold" style={{ color: '#111827' }}>Refrigeração</h3>
+              </div>
+              <ul className="text-xs space-y-1 pl-6" style={{ color: '#4b5563' }}>
                 <li>• Ajuste de portas e borrachas de vedação</li>
                 <li>• Higienização de condensadora e evaporadora</li>
                 <li>• Verificação de controlador e sensores</li>
@@ -355,9 +358,12 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             </div>
 
             {/* Câmaras Frias */}
-            <div className="rounded-lg p-4" style={{ backgroundColor: '#f0f9ff', border: '1px solid #bae6fd' }}>
-              <h3 className="text-base font-bold mb-2" style={{ color: '#0369a1' }}>🧊 Câmaras Frias</h3>
-              <ul className="text-xs space-y-1" style={{ color: '#0c4a6e' }}>
+            <div className="py-3" style={{ borderBottom: '1px solid #f3f4f6' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-base">🧊</span>
+                <h3 className="text-sm font-semibold" style={{ color: '#111827' }}>Câmaras Frias</h3>
+              </div>
+              <ul className="text-xs space-y-1 pl-6" style={{ color: '#4b5563' }}>
                 <li>• Limpeza e desobstrução de componentes</li>
                 <li>• Verificação de pressostatos e degelo</li>
                 <li>• Teste de sistemas de alarme</li>
@@ -366,9 +372,12 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             </div>
 
             {/* Lava-Louças */}
-            <div className="rounded-lg p-4" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-              <h3 className="text-base font-bold mb-2" style={{ color: '#15803d' }}>🍽️ Lava-Louças</h3>
-              <ul className="text-xs space-y-1" style={{ color: '#166534' }}>
+            <div className="py-3" style={{ borderBottom: '1px solid #f3f4f6' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-base">🍽️</span>
+                <h3 className="text-sm font-semibold" style={{ color: '#111827' }}>Lava-Louças</h3>
+              </div>
+              <ul className="text-xs space-y-1 pl-6" style={{ color: '#4b5563' }}>
                 <li>• Inspeção visual de corrosão e nivelamento</li>
                 <li>• Testes elétricos e de placas eletrônicas</li>
                 <li>• Limpeza de braços e filtros</li>
@@ -377,9 +386,12 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             </div>
 
             {/* Fornos e Estufas */}
-            <div className="rounded-lg p-4" style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca' }}>
-              <h3 className="text-base font-bold mb-2" style={{ color: '#b91c1c' }}>🔥 Fornos e Estufas</h3>
-              <ul className="text-xs space-y-1" style={{ color: '#991b1b' }}>
+            <div className="py-3" style={{ borderBottom: '1px solid #f3f4f6' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-base">🔥</span>
+                <h3 className="text-sm font-semibold" style={{ color: '#111827' }}>Fornos e Estufas</h3>
+              </div>
+              <ul className="text-xs space-y-1 pl-6" style={{ color: '#4b5563' }}>
                 <li>• Teste de resistências e termostatos</li>
                 <li>• Verificação de fiação e isolamento</li>
                 <li>• Limpeza técnica especializada</li>
@@ -388,9 +400,12 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             </div>
 
             {/* Equipamentos de Bancada */}
-            <div className="rounded-lg p-4" style={{ backgroundColor: '#faf5ff', border: '1px solid #e9d5ff' }}>
-              <h3 className="text-base font-bold mb-2" style={{ color: '#7e22ce' }}>🔧 Equipamentos de Bancada</h3>
-              <ul className="text-xs space-y-1" style={{ color: '#6b21a8' }}>
+            <div className="py-3" style={{ borderBottom: '1px solid #f3f4f6' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-base">🔧</span>
+                <h3 className="text-sm font-semibold" style={{ color: '#111827' }}>Equipamentos de Bancada</h3>
+              </div>
+              <ul className="text-xs space-y-1 pl-6" style={{ color: '#4b5563' }}>
                 <li>• Verificação elétrica completa</li>
                 <li>• Lubrificação de partes móveis</li>
                 <li>• Ajuste de correias e retentores</li>
@@ -400,22 +415,34 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           </div>
 
           {/* Approach Summary */}
-          <div className="mt-6 rounded-lg p-4" style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}>
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <p className="text-2xl font-bold" style={{ color: '#22c55e' }}>✓</p>
-                <p className="text-xs font-medium" style={{ color: '#374151' }}>Checklists Técnicos</p>
-                <p className="text-xs" style={{ color: '#6b7280' }}>Protocolos específicos</p>
+          <div className="mt-6 pt-5" style={{ borderTop: '1px solid #e5e7eb' }}>
+            <div className="grid grid-cols-3 gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f0fdf4' }}>
+                  <span style={{ color: '#22c55e' }}>✓</span>
+                </div>
+                <div>
+                  <p className="text-xs font-medium" style={{ color: '#111827' }}>Checklists Técnicos</p>
+                  <p className="text-xs" style={{ color: '#6b7280' }}>Protocolos específicos</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold" style={{ color: '#22c55e' }}>✓</p>
-                <p className="text-xs font-medium" style={{ color: '#374151' }}>Inspeção Minuciosa</p>
-                <p className="text-xs" style={{ color: '#6b7280' }}>Identificação precoce</p>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f0fdf4' }}>
+                  <span style={{ color: '#22c55e' }}>✓</span>
+                </div>
+                <div>
+                  <p className="text-xs font-medium" style={{ color: '#111827' }}>Inspeção Minuciosa</p>
+                  <p className="text-xs" style={{ color: '#6b7280' }}>Identificação precoce</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold" style={{ color: '#22c55e' }}>✓</p>
-                <p className="text-xs font-medium" style={{ color: '#374151' }}>Ajustes Preventivos</p>
-                <p className="text-xs" style={{ color: '#6b7280' }}>Calibrações precisas</p>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f0fdf4' }}>
+                  <span style={{ color: '#22c55e' }}>✓</span>
+                </div>
+                <div>
+                  <p className="text-xs font-medium" style={{ color: '#111827' }}>Ajustes Preventivos</p>
+                  <p className="text-xs" style={{ color: '#6b7280' }}>Calibrações precisas</p>
+                </div>
               </div>
             </div>
           </div>
@@ -424,8 +451,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
             {proposal.number} de {formatDate(proposal.createdAt as Date)}
           </div>
-          <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
-          <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+          <div className="absolute bottom-0 right-0 h-24 w-24" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.8 }} />
         </div>
 
         {/* Results Page - Resultados Comprovados */}
@@ -435,92 +461,116 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
           </div>
 
-          <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Resultados Comprovados</h2>
-          <p className="mb-8" style={{ color: '#4b5563' }}>
-            Nosso programa de manutenção preventiva demonstra resultados significativos em clientes reais.
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-1 h-8 rounded-full" style={{ backgroundColor: '#22c55e' }}></div>
+            <h2 className="text-2xl font-semibold tracking-tight" style={{ color: '#111827' }}>Resultados Comprovados</h2>
+          </div>
+          <p className="mb-6 ml-4 text-sm" style={{ color: '#6b7280' }}>
+            Nosso programa demonstra resultados significativos em clientes reais.
           </p>
 
-          {/* Main Stats */}
+          {/* Main Stats - Clean design */}
           <div className="grid grid-cols-3 gap-6 mb-8">
-            <div className="rounded-lg p-6 text-center" style={{ backgroundColor: '#dcfce7', border: '1px solid #bbf7d0' }}>
-              <p className="text-4xl font-bold" style={{ color: '#15803d' }}>76,2%</p>
+            <div className="text-center py-6 rounded-xl" style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)' }}>
+              <p className="text-4xl font-bold tracking-tight" style={{ color: '#16a34a' }}>76,2%</p>
               <p className="text-sm font-medium mt-2" style={{ color: '#166534' }}>Redução de Custos</p>
-              <p className="text-xs mt-1" style={{ color: '#22c55e' }}>em manutenção</p>
+              <p className="text-xs mt-1" style={{ color: '#4ade80' }}>em manutenção</p>
             </div>
-            <div className="rounded-lg p-6 text-center" style={{ backgroundColor: '#dbeafe', border: '1px solid #bfdbfe' }}>
-              <p className="text-4xl font-bold" style={{ color: '#1d4ed8' }}>68%</p>
-              <p className="text-sm font-medium mt-2" style={{ color: '#1e40af' }}>Menos Emergências</p>
-              <p className="text-xs mt-1" style={{ color: '#3b82f6' }}>chamados urgentes</p>
+            <div className="text-center py-6 rounded-xl" style={{ border: '2px solid #e5e7eb' }}>
+              <p className="text-4xl font-bold tracking-tight" style={{ color: '#111827' }}>68%</p>
+              <p className="text-sm font-medium mt-2" style={{ color: '#374151' }}>Menos Emergências</p>
+              <p className="text-xs mt-1" style={{ color: '#9ca3af' }}>chamados urgentes</p>
             </div>
-            <div className="rounded-lg p-6 text-center" style={{ backgroundColor: '#f3e8ff', border: '1px solid #e9d5ff' }}>
-              <p className="text-4xl font-bold" style={{ color: '#7e22ce' }}>+35%</p>
-              <p className="text-sm font-medium mt-2" style={{ color: '#6b21a8' }}>Vida Útil</p>
-              <p className="text-xs mt-1" style={{ color: '#a855f7' }}>dos equipamentos</p>
-            </div>
-          </div>
-
-          {/* Case Study */}
-          <div className="rounded-lg p-6 mb-8" style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}>
-            <h3 className="text-lg font-bold mb-4" style={{ color: '#111827' }}>📊 Case de Sucesso: Rede de Restaurantes</h3>
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <p className="text-sm font-medium mb-2" style={{ color: '#374151' }}>Evolução do Programa:</p>
-                <ul className="text-sm space-y-2" style={{ color: '#4b5563' }}>
-                  <li className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#ef4444' }} />
-                    <span><strong>Fase Reativa:</strong> Custos de R$ 9.198/mês</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#f59e0b' }} />
-                    <span><strong>Fase Transição:</strong> Custos de R$ 5.812/mês</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }} />
-                    <span><strong>Fase Consolidada:</strong> Custos de R$ 2.191/mês</span>
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <p className="text-sm font-medium mb-2" style={{ color: '#374151' }}>Resultados da Rede:</p>
-                <ul className="text-sm space-y-2" style={{ color: '#4b5563' }}>
-                  <li>• 6 restaurantes atendidos</li>
-                  <li>• R$ 9.604 de economia mensal</li>
-                  <li>• 118 serviços contratuais executados</li>
-                  <li>• 32,6% das operações preventivas</li>
-                </ul>
-              </div>
+            <div className="text-center py-6 rounded-xl" style={{ background: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)' }}>
+              <p className="text-4xl font-bold tracking-tight" style={{ color: '#9333ea' }}>+35%</p>
+              <p className="text-sm font-medium mt-2" style={{ color: '#7e22ce' }}>Vida Útil</p>
+              <p className="text-xs mt-1" style={{ color: '#c084fc' }}>dos equipamentos</p>
             </div>
           </div>
 
-          {/* Benefits Beyond Savings */}
-          <div className="rounded-lg p-6" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-            <h3 className="text-lg font-bold mb-4" style={{ color: '#15803d' }}>✨ Benefícios Além da Economia</h3>
+          {/* Case Study - Minimal */}
+          <div className="mb-6 p-5 rounded-xl" style={{ backgroundColor: '#fafafa' }}>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-lg">📊</span>
+              <h3 className="text-base font-semibold" style={{ color: '#111827' }}>Case de Sucesso: Rede de Restaurantes</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-8">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: '#6b7280' }}>Evolução do Programa</p>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#ef4444' }} />
+                      <span style={{ color: '#374151' }}>Fase Reativa</span>
+                    </span>
+                    <span className="font-medium" style={{ color: '#111827' }}>R$ 9.198/mês</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#f59e0b' }} />
+                      <span style={{ color: '#374151' }}>Fase Transição</span>
+                    </span>
+                    <span className="font-medium" style={{ color: '#111827' }}>R$ 5.812/mês</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }} />
+                      <span style={{ color: '#374151' }}>Fase Consolidada</span>
+                    </span>
+                    <span className="font-medium" style={{ color: '#16a34a' }}>R$ 2.191/mês</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: '#6b7280' }}>Resultados da Rede</p>
+                <div className="space-y-2 text-sm" style={{ color: '#374151' }}>
+                  <p>• 6 restaurantes atendidos</p>
+                  <p>• <strong style={{ color: '#16a34a' }}>R$ 9.604</strong> de economia mensal</p>
+                  <p>• 118 serviços contratuais executados</p>
+                  <p>• 32,6% das operações preventivas</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Benefits - Clean icons */}
+          <div className="p-5 rounded-xl" style={{ border: '1px solid #e5e7eb' }}>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-lg">✨</span>
+              <h3 className="text-base font-semibold" style={{ color: '#111827' }}>Benefícios Além da Economia</h3>
+            </div>
             <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style={{ backgroundColor: '#22c55e' }}>
-                  <span className="text-white text-xl">📈</span>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f0fdf4' }}>
+                  <span className="text-lg">📈</span>
                 </div>
-                <p className="text-sm font-medium" style={{ color: '#166534' }}>Previsibilidade Financeira</p>
-                <p className="text-xs mt-1" style={{ color: '#15803d' }}>Custos fixos e planejáveis</p>
+                <div>
+                  <p className="text-sm font-medium" style={{ color: '#111827' }}>Previsibilidade Financeira</p>
+                  <p className="text-xs" style={{ color: '#6b7280' }}>Custos fixos e planejáveis</p>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style={{ backgroundColor: '#22c55e' }}>
-                  <span className="text-white text-xl">⚡</span>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#fef3c7' }}>
+                  <span className="text-lg">⚡</span>
                 </div>
-                <p className="text-sm font-medium" style={{ color: '#166534' }}>Menos Emergências</p>
-                <p className="text-xs mt-1" style={{ color: '#15803d' }}>Operação sem interrupções</p>
+                <div>
+                  <p className="text-sm font-medium" style={{ color: '#111827' }}>Menos Emergências</p>
+                  <p className="text-xs" style={{ color: '#6b7280' }}>Operação sem interrupções</p>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style={{ backgroundColor: '#22c55e' }}>
-                  <span className="text-white text-xl">🔧</span>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#dbeafe' }}>
+                  <span className="text-lg">🔧</span>
                 </div>
-                <p className="text-sm font-medium" style={{ color: '#166534' }}>Maior Durabilidade</p>
-                <p className="text-xs mt-1" style={{ color: '#15803d' }}>Equipamentos duradouros</p>
+                <div>
+                  <p className="text-sm font-medium" style={{ color: '#111827' }}>Maior Durabilidade</p>
+                  <p className="text-xs" style={{ color: '#6b7280' }}>Equipamentos duradouros</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <p className="mt-6 text-sm italic text-center" style={{ color: '#6b7280' }}>
+          <p className="mt-5 text-xs italic text-center px-8" style={{ color: '#6b7280' }}>
             "A estabilidade financeira proporcionada pelo programa nos permitiu realocar recursos antes destinados a contingências para investimentos em expansão."
           </p>
 
@@ -528,9 +578,8 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
             {proposal.number} de {formatDate(proposal.createdAt as Date)}
           </div>
-          <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
-          <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
-          </div>
+          <div className="absolute bottom-0 right-0 h-24 w-24" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.8 }} />
+        </div>
           </>
         )}
 
