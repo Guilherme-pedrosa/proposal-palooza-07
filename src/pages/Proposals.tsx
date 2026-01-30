@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useProposal } from '@/contexts/ProposalContext';
 import { useCompany } from '@/contexts/CompanyContext';
@@ -14,7 +14,9 @@ import {
   Trash2,
   Calendar,
   Building2,
-  DollarSign
+  DollarSign,
+  Download,
+  Loader2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -36,10 +38,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { ProposalPreview } from '@/components/proposal/ProposalPreview';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Proposal } from '@/types/proposal';
+import html2pdf from 'html2pdf.js';
 
 const statusLabels = {
   draft: { label: 'Rascunho', variant: 'secondary' as const },
@@ -53,6 +57,47 @@ export default function Proposals() {
   const { company } = useCompany();
   const [search, setSearch] = useState('');
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPDF = async () => {
+    if (!previewRef.current || !selectedProposal) {
+      toast.error('Erro ao gerar PDF. Tente novamente.');
+      return;
+    }
+
+    setIsExporting(true);
+    
+    try {
+      const element = previewRef.current;
+      const fileName = `proposta-${selectedProposal.number}-${selectedProposal.client.name || 'cliente'}.pdf`.replace(/\s+/g, '-').toLowerCase();
+      
+      const opt = {
+        margin: 0,
+        filename: fileName,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          letterRendering: true,
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait' 
+        },
+        pagebreak: { mode: ['css', 'legacy'], before: '.pdf-page' }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+      toast.success('PDF exportado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao exportar PDF:', error);
+      toast.error('Erro ao exportar PDF. Tente novamente.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -214,16 +259,32 @@ export default function Proposals() {
 
       {/* Preview Dialog */}
       <Dialog open={!!selectedProposal} onOpenChange={() => setSelectedProposal(null)}>
-        <DialogContent className="max-w-4xl h-[90vh]">
+        <DialogContent className="max-w-4xl h-[90vh]" aria-describedby="proposal-preview-description">
           <DialogHeader>
-            <DialogTitle>
-              {selectedProposal?.number} - {selectedProposal?.client.name}
+            <DialogTitle className="flex items-center justify-between pr-8">
+              <span>{selectedProposal?.number} - {selectedProposal?.client.name}</span>
+              <Button 
+                onClick={handleExportPDF} 
+                size="sm" 
+                className="gap-2"
+                disabled={isExporting}
+              >
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                {isExporting ? 'Gerando...' : 'Baixar PDF'}
+              </Button>
             </DialogTitle>
+            <DialogDescription id="proposal-preview-description">
+              Visualização da proposta comercial
+            </DialogDescription>
           </DialogHeader>
           <ScrollArea className="h-full">
-            <div className="p-4 bg-muted rounded-lg">
-              <div className="transform scale-50 origin-top-left" style={{ width: '200%' }}>
-                {selectedProposal && <ProposalPreview proposal={selectedProposal} company={company} />}
+            <div className="p-4 bg-muted rounded-lg overflow-auto">
+              <div className="transform scale-[0.35] origin-top-left" style={{ width: '285%' }}>
+                {selectedProposal && <ProposalPreview ref={previewRef} proposal={selectedProposal} company={company} />}
               </div>
             </div>
           </ScrollArea>
