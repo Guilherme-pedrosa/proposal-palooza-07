@@ -51,22 +51,22 @@ const generalTerms: SavedTermCondition[] = [
   },
 ];
 
-// Termos específicos para Manutenção Preventiva de Cozinha
+// Termos específicos para Manutenção Preventiva de Cozinha (equipamentos de cocção)
 const preventivaTerms: SavedTermCondition[] = [
   {
     id: 'prev-1',
-    title: 'Escopo Técnico - Manutenção Preventiva',
-    description: 'Elaboração de manutenção preventiva mensal, com todas as revisões e procedimentos para manter os equipamentos em devidas condições de uso; Limpeza de evaporadores e condensadores; Aferição de temperaturas por equipamentos (quente e frio) bem como pressão em equipamentos de pressão; Verificar e corrigir ruídos e vibrações mecânicas; Reaperto de mancais e suportes; Verificação de tensões e correntes efetivas; Reaperto das conexões elétricas de alimentação e comandos.',
+    title: 'Escopo Técnico - Equipamentos de Cocção',
+    description: 'Manutenção preventiva em fogões industriais, fornos convencionais, fornos combinados, chapas, fritadeiras, banhos-maria e equipamentos de aquecimento. Inclui verificação de queimadores, válvulas de gás, termostatos, resistências elétricas e sistemas de ignição.',
   },
   {
     id: 'prev-2',
-    title: 'Escopo Técnico - Verificações Complementares',
-    description: 'Verificação do comando e termostato de controle; Verificar a serpentina quanto a danos físicos e restrições do fluxo de ar; Verificar a temperatura do motor de ventilação, testes de atuação e ajustes dos relés térmicos; Verificar pressões de compressores e cargas de gás refrigerante; Limpeza e manutenção preventiva dos fogões e fornos a gás; Verificação e troca de tomadas e interruptores; Correção de torque em conexões e terminais elétricos.',
+    title: 'Escopo Técnico - Equipamentos de Preparação',
+    description: 'Manutenção preventiva em liquidificadores industriais, processadores, batedeiras, cortadores de frios, moedores de carne e descascadores. Inclui verificação de motores, correias, lâminas, sistemas de segurança e componentes elétricos.',
   },
   {
     id: 'prev-3',
-    title: 'Preventiva em Câmaras e Fornos',
-    description: 'O valor do contrato contempla manutenções trimestrais em fornos inteligentes e semestrais em câmaras frias. As horas demandadas para a atuação em tais serviços serão contabilizadas normalmente conforme contrato.',
+    title: 'Escopo Técnico - Refrigeração de Cozinha',
+    description: 'Manutenção preventiva em balcões refrigerados, refrigeradores verticais, freezers e pass-through. Inclui limpeza de condensadores, verificação de temperaturas, gaxetas, termostatos e sistemas de degelo.',
   },
   {
     id: 'prev-4',
