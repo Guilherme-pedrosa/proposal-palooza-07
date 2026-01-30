@@ -8,6 +8,7 @@ import { CompanyProvider } from "@/contexts/CompanyContext";
 import Index from "./pages/Index";
 import NewProposal from "./pages/NewProposal";
 import Proposals from "./pages/Proposals";
+import Clients from "./pages/Clients";
 import TermsConditions from "./pages/TermsConditions";
 import CompanySettings from "./pages/CompanySettings";
 import NotFound from "./pages/NotFound";
@@ -26,6 +27,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/nova-proposta" element={<NewProposal />} />
               <Route path="/propostas" element={<Proposals />} />
+              <Route path="/clientes" element={<Clients />} />
               <Route path="/termos" element={<TermsConditions />} />
               <Route path="/configuracoes" element={<CompanySettings />} />
               <Route path="*" element={<NotFound />} />

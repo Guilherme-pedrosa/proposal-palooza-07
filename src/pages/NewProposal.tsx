@@ -63,6 +63,7 @@ export default function NewProposal() {
   const [products, setProducts] = useState<Product[]>([]);
   const [termsConditions, setTermsConditions] = useState<TermCondition[]>([]);
   const [images, setImages] = useState<ProposalImage[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string | undefined>();
 
   const proposalData: Partial<Proposal> & { templateId?: string } = {
     number: proposalNumber,
@@ -291,7 +292,12 @@ export default function NewProposal() {
         </TabsContent>
 
         <TabsContent value="client">
-          <ClientForm client={client} onChange={setClient} />
+          <ClientForm 
+            client={client} 
+            onChange={setClient}
+            selectedClientId={selectedClientId}
+            onClientIdChange={setSelectedClientId}
+          />
         </TabsContent>
 
         <TabsContent value="products">

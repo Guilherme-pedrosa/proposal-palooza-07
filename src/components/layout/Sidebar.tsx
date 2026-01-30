@@ -4,6 +4,7 @@ import {
   PlusCircle, 
   ClipboardList,
   Settings,
+  Building2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCompany } from '@/contexts/CompanyContext';
@@ -19,6 +20,11 @@ const menuItems = [
     title: 'Propostas',
     href: '/propostas',
     icon: FileText,
+  },
+  {
+    title: 'Clientes',
+    href: '/clientes',
+    icon: Building2,
   },
   {
     title: 'Termos e Condições',
