@@ -84,9 +84,12 @@ export default function NewProposal() {
 
   const handleSelectTemplate = (template: ProposalTemplate) => {
     setSelectedTemplate(template);
-    // Pre-fill title based on template
+    // Pre-fill title and description based on template
     if (!title) {
-      setTitle(`Proposta de ${template.name}`);
+      setTitle(template.defaultTitle);
+    }
+    if (!description) {
+      setDescription(template.defaultDescription);
     }
   };
 
