@@ -170,24 +170,36 @@ export function generatePrintHTML(proposal: Partial<Proposal>, company: CompanyS
         ${company.logo ? `<img src="${company.logo}" style="position: absolute; top: 32px; right: 48px; height: 48px;" alt="${company.name}">` : ''}
         
         <h2 style="font-size: 28px; font-weight: 700; color: #111827; margin-bottom: 8px;">Sobre a ${company.name}</h2>
-        <p style="font-size: 14px; color: #4b5563; margin-bottom: 24px;">Nossa visão, missão e valores que guiam nosso trabalho.</p>
+        <p style="font-size: 14px; color: #4b5563; margin-bottom: 24px;">Conheça nossa empresa e os valores que guiam nosso trabalho.</p>
         
-        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 24px; margin-bottom: 16px;">
-          <h3 style="font-size: 18px; font-weight: 700; color: #15803d; margin-bottom: 12px;">Visão</h3>
-          <p style="font-size: 14px; color: #374151; line-height: 1.6;">${company.vision || ''}</p>
+        <div style="background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; margin-bottom: 20px;">
+          <p style="font-size: 14px; color: #374151; line-height: 1.8; text-align: justify;">
+            A WeDo é uma empresa especializada em soluções técnicas para cozinhas profissionais, atuando na especificação, fornecimento e manutenção preventiva de equipamentos, com foco em continuidade operacional, controle de custos e redução de riscos.
+          </p>
+          <p style="font-size: 14px; color: #374151; line-height: 1.8; text-align: justify; margin-top: 12px;">
+            Nossa atuação é baseada em programas estruturados de manutenção preventiva, com protocolos técnicos definidos por tipo de equipamento, gestão de ativos e acompanhamento contínuo da operação, permitindo a substituição do modelo corretivo reativo por um modelo previsível, planejado e financeiramente controlado.
+          </p>
+          <p style="font-size: 14px; color: #374151; line-height: 1.8; text-align: justify; margin-top: 12px;">
+            Com histórico comprovado de redução significativa de falhas, emergências e custos de manutenção, a WeDo se posiciona como parceira técnica da operação, apoiando decisões, sustentando o desempenho dos equipamentos e garantindo previsibilidade ao longo de todo o ciclo operacional.
+          </p>
         </div>
         
-        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 24px; margin-bottom: 16px;">
-          <h3 style="font-size: 18px; font-weight: 700; color: #15803d; margin-bottom: 12px;">Missão</h3>
-          <p style="font-size: 14px; color: #374151; line-height: 1.6;">${company.mission || ''}</p>
+        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin-bottom: 12px;">
+          <h3 style="font-size: 16px; font-weight: 700; color: #15803d; margin-bottom: 8px;">Visão</h3>
+          <p style="font-size: 13px; color: #374151; line-height: 1.6;">${company.vision || ''}</p>
         </div>
         
-        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 24px; margin-bottom: 16px;">
-          <h3 style="font-size: 18px; font-weight: 700; color: #15803d; margin-bottom: 12px;">Valores</h3>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin-bottom: 12px;">
+          <h3 style="font-size: 16px; font-weight: 700; color: #15803d; margin-bottom: 8px;">Missão</h3>
+          <p style="font-size: 13px; color: #374151; line-height: 1.6;">${company.mission || ''}</p>
+        </div>
+        
+        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin-bottom: 12px;">
+          <h3 style="font-size: 16px; font-weight: 700; color: #15803d; margin-bottom: 8px;">Valores</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
             ${(company.values || []).map(v => `
-              <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #374151;">
-                <div style="width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; flex-shrink: 0;"></div>
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #374151;">
+                <div style="width: 6px; height: 6px; background-color: #22c55e; border-radius: 50%; flex-shrink: 0;"></div>
                 <span>${v}</span>
               </div>
             `).join('')}
