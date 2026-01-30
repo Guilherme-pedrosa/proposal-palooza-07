@@ -171,61 +171,20 @@ O serviço inclui:
     ],
   },
   {
-    id: 'camaras-frias',
-    name: 'Câmaras Frias',
-    description: 'Manutenção preventiva e corretiva de câmaras frias e refrigeração',
-    icon: '❄️',
-    color: '#06b6d4',
-    sections: [
-      { id: 'scope', name: 'Escopo Técnico', description: 'Atividades de manutenção detalhadas', enabled: true },
-      { id: 'equipment', name: 'Detalhamento de Equipamentos', description: 'Lista de câmaras e especificações', enabled: true },
-      { id: 'schedule', name: 'Cronograma de Visitas', description: 'Frequência e horários das manutenções', enabled: true },
-    ],
-    defaultTitle: 'Proposta Técnico Comercial - Câmaras Frias',
-    defaultDescription: `A presente proposta tem como objetivo o fornecimento de serviços estruturados de manutenção preventiva e corretiva em câmaras frias e sistemas de refrigeração, com foco na continuidade operacional, segurança alimentar e eficiência energética.
-
-Os serviços serão executados por profissionais devidamente qualificados e habilitados para execução das atividades propostas. Todos os profissionais WeDo são registrados CLT, possuem contrato de confidencialidade, seguro de vida e todas as obrigatoriedades legais.
-
-O modelo de manutenção proposto visa garantir o funcionamento adequado dos equipamentos de refrigeração, evitando perdas de produtos, paradas não programadas e custos emergenciais.`,
-    defaultProducts: [
-      {
-        name: 'Manutenção Preventiva de Câmaras Frias',
-        description: `Serviço estruturado de manutenção preventiva incluindo:
-• Limpeza da carenagem e condensador
-• Verificação de pontos de oxidação
-• Verificação e aperto de fixação de terminais, cabos e conexões
-• Verificação de ruídos e vibrações anormais
-• Verificação de pressões de alta e baixa
-• Verificação de temperaturas na unidade condensadora
-• Verificação do filtro secador da linha de líquido
-• Verificação de separador de óleo e acumulador de sucção
-• Verificação de condição do óleo do compressor
-• Verificação e ajuste de pressostatos
-• Verificação de motor ventilador
-• Limpeza de serpentina, bandeja, difusores e ventiladores
-• Verificação do sistema de degelo
-• Verificação de gaxetas e vedações
-• Verificação de borracha varredora e cortinas de PVC
-• Verificação de dobradiças, fechaduras e mancais
-• Verificação de painéis isotérmicos
-• Relatório técnico digital com fotos`,
-        unit: 'SV',
-      },
-    ],
-  },
-  {
     id: 'climatizacao',
     name: 'Climatização / Câmaras Frias',
     description: 'Manutenção preventiva de climatização, ar condicionado e câmaras frias com PMOC',
-    icon: '🌡️',
-    color: '#0ea5e9',
+    icon: '❄️',
+    color: '#06b6d4',
     sections: [
       { id: 'scope', name: 'Escopo Técnico', description: 'Atividades de manutenção conforme PMOC', enabled: true },
-      { id: 'equipment', name: 'Inventário de Equipamentos', description: 'Lista de aparelhos por potência', enabled: true },
-      { id: 'team', name: 'Estrutura de Atendimento', description: 'Equipe técnica e suporte', enabled: true },
+      { id: 'equipment', name: 'Inventário de Equipamentos', description: 'Lista de aparelhos por potência e câmaras', enabled: true },
+      { id: 'schedule', name: 'Cronograma de Visitas', description: 'Frequência e horários das manutenções', enabled: true },
     ],
-    defaultTitle: 'Proposta Técnico Comercial - Ar Condicionado e Climatização',
-    defaultDescription: `A presente proposta tem como objetivo o fornecimento de serviços estruturados de manutenção preventiva em aparelhos de ar condicionado e sistemas de climatização, com todas as revisões e procedimentos de acordo com o PMOC (Plano de Manutenção, Operação e Controle).
+    defaultTitle: 'Proposta Técnico Comercial - Climatização e Câmaras Frias',
+    defaultDescription: `A presente proposta tem como objetivo o fornecimento de serviços estruturados de manutenção preventiva em sistemas de climatização (ar condicionado) e câmaras frias, com foco na continuidade operacional, segurança alimentar e eficiência energética.
+
+Os serviços de climatização serão executados conforme PMOC (Plano de Manutenção, Operação e Controle), atendendo às exigências da Lei Federal nº 13.589/2018 e Portaria nº 3.523/GM.
 
 Os serviços serão executados por profissionais devidamente qualificados e habilitados para execução das atividades propostas. Todos os profissionais WeDo são registrados CLT, possuem contrato de confidencialidade, seguro de vida e todas as obrigatoriedades legais.
 
@@ -242,14 +201,26 @@ A WeDo atua com gestão técnica de ativos, assegurando rastreabilidade completa
 • Reaperto das conexões elétricas de alimentação e comandos
 • Verificação do comando e termostato de controle
 • Verificação da serpentina quanto a danos físicos e restrições de fluxo
-• Verificação de temperatura do motor de ventilação
-• Verificação de pressões de compressores e cargas de gás refrigerante
 • Limpeza química das serpentinas
-• Verificação de tomadas e interruptores
-• Verificação de dimensionamento de circuitos
-• Organização e limpeza de quadros elétricos
-• Correção de torque em conexões e terminais elétricos
 • Higienização do equipamento
+• Relatório técnico digital com fotos`,
+        unit: 'SV',
+      },
+      {
+        name: 'Manutenção Preventiva de Câmaras Frias',
+        description: `Serviço estruturado de manutenção preventiva incluindo:
+• Limpeza da carenagem e condensador
+• Verificação de pontos de oxidação
+• Verificação e aperto de fixação de terminais, cabos e conexões
+• Verificação de ruídos e vibrações anormais
+• Verificação de pressões de alta e baixa
+• Verificação de temperaturas na unidade condensadora
+• Verificação do filtro secador da linha de líquido
+• Verificação de separador de óleo e acumulador de sucção
+• Verificação e ajuste de pressostatos
+• Limpeza de serpentina, bandeja, difusores e ventiladores
+• Verificação do sistema de degelo
+• Verificação de gaxetas, vedações e painéis isotérmicos
 • Relatório técnico digital com fotos`,
         unit: 'SV',
       },
