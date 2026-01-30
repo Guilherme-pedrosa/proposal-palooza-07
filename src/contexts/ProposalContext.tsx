@@ -108,26 +108,31 @@ const coifaTerms: SavedTermCondition[] = [
 const climatizacaoTerms: SavedTermCondition[] = [
   {
     id: 'clim-1',
-    title: 'Escopo Técnico - Câmaras Frias',
-    description: 'Limpeza da carenagem e condensador; Verificação de pontos de oxidação; Verificação e aperto de fixação de terminais, cabos e conexões; Verificação de ruídos e vibrações anormais; Verificação de pressões de alta e baixa; Verificação de temperaturas na unidade condensadora; Verificação do filtro secador da linha de líquido.',
+    title: 'Escopo Técnico - Unidade Condensadora',
+    description: 'Limpeza da carenagem e condensador; Verificar pontos de oxidação; Verificar e apertar fixação de terminais, cabos, conexões (elétricas e mecânicas); Verificar e corrigir ruídos e vibrações anormais; Verificar condições dos cabos elétricos; Verificar condições e atuação dos contatores; Verificar condições de atuação da proteção elétrica (relés, disjuntores); Verificar tensão e corrente elétrica; Verificar pressões de alta e baixa; Verificar temperaturas na UC; Verificar filtro secador da linha de líquido; Verificar atuação do separador de óleo e acumulador de sucção; Verificar condição do óleo do compressor (efetuar troca se necessário); Verificar pressão e nível de óleo; Verificar e ajustar todos os pressostatos; Verificar funcionamento do motor ventilador; Verificar contaminação no visor de líquido; Verificar e corrigir vazamento de fluido refrigerante.',
   },
   {
     id: 'clim-2',
-    title: 'Escopo Técnico - Sistema de Refrigeração',
-    description: 'Verificação de separador de óleo e acumulador de sucção; Verificação de condição do óleo do compressor; Verificação e ajuste de pressostatos; Verificação de motor ventilador; Limpeza de serpentina, bandeja, difusores e ventiladores; Verificação do sistema de degelo; Verificação de gaxetas e vedações.',
+    title: 'Escopo Técnico - Evaporador',
+    description: 'Limpar serpentina, bandeja, difusores e ventiladores do evaporador; Verificar e corrigir ruídos e vibrações anormais; Verificar condições dos cabos e barramentos elétricos; Verificar e corrigir fixação de terminais, cabos, conexões; Limpar o sistema de drenagem da bandeja do condensador; Verificar tensão e corrente dos motores, resistências, solenoide; Verificar pontos de oxidação; Verificar atuação da válvula solenoide; Verificar atuação do sistema de degelo; Verificar fixação do bulbo da válvula de expansão; Verificar fixação e calibração das sondas de temperatura; Verificar isolamento da tubulação; Verificar superaquecimento e subresfriamento; Verificar vazamentos de fluido refrigerante.',
   },
   {
     id: 'clim-3',
-    title: 'Escopo Técnico - Estrutura e Acabamento',
-    description: 'Verificação de borracha varredora e cortinas de PVC; Verificação de dobradiças, fechaduras e mancais; Verificação de painéis isotérmicos; Verificação de iluminação interna; Verificação de termômetros e controladores de temperatura.',
+    title: 'Escopo Técnico - Quadro Elétrico',
+    description: 'Verificar e corrigir fixação de terminais, cabos, conexões elétricas; Verificar condições dos cabos e barramentos elétricos; Verificar tensão e corrente elétrica; Verificar condições de atuação da proteção elétrica; Verificar atuação dos contatores; Verificar atuação do termostato; Verificar atuação interruptores, sinaleiros e botoeiras do alarme; Verificar parametrização; Verificar condição da caixa de comando.',
   },
   {
     id: 'clim-4',
+    title: 'Escopo Técnico - Estrutura da Câmara',
+    description: 'Verificar borracha varredora; Verificar cortinas de PVC; Verificar dobradiças e mancais; Verificar fechaduras; Verificar gaxetas; Verificar resistências; Verificar fixação e vedação da soleira; Verificar hidráulico; Verificar vedação/fixação dos painéis; Verificar existência de trincas/fissuras/quebras; Verificar válvula de alívio; Verificar fixação de chapas de proteção (xadrez); Verificar fixação e vedação das cantoneiras.',
+  },
+  {
+    id: 'clim-5',
     title: 'Segurança Alimentar',
     description: 'Os serviços de manutenção em câmaras frias visam garantir a segurança alimentar conforme as Boas Práticas de Fabricação (BPF) e a legislação sanitária vigente. Falhas no sistema de refrigeração podem comprometer a qualidade dos produtos armazenados.',
   },
   {
-    id: 'clim-5',
+    id: 'clim-6',
     title: 'Atendimento Emergencial',
     description: 'Em caso de falha crítica do sistema de refrigeração que comprometa os produtos armazenados, a WeDo oferece suporte emergencial com prazo de atendimento conforme contratado, mediante disponibilidade técnica.',
   },
