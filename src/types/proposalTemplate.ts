@@ -35,31 +35,25 @@ export const proposalTemplates: ProposalTemplate[] = [
       { id: 'equipment', name: 'Detalhamento por Equipamento', description: 'Checklists técnicos específicos', enabled: true },
       { id: 'results', name: 'Resultados Comprovados', description: 'Estatísticas e case de sucesso', enabled: true },
     ],
-    defaultTitle: 'Proposta de Manutenção Preventiva',
-    defaultDescription: `Proposta de serviços de manutenção preventiva para equipamentos de cozinha profissional.
+    defaultTitle: 'Proposta de Manutenção Preventiva Programada',
+    defaultDescription: `A presente proposta tem como objetivo o fornecimento de serviços estruturados de manutenção preventiva em equipamentos de cozinha profissional, com foco na continuidade operacional, segurança dos ativos e redução de falhas corretivas não programadas.
 
-Nossa abordagem garante que todos os seus equipamentos operem no máximo desempenho, com segurança e durabilidade. Desenvolvemos protocolos específicos para cada categoria de equipamento, garantindo que nenhum detalhe seja negligenciado.
+Os serviços serão executados conforme plano de manutenção previamente definido, considerando a criticidade, o tipo e as condições de operação de cada equipamento, contemplando inspeções técnicas, verificações elétricas, mecânicas e funcionais, ajustes operacionais, limpeza técnica funcional e validação dos sistemas de segurança.
 
-O programa inclui:
-• Checklists técnicos completos e padronizados
-• Inspeção minuciosa de todos os componentes
-• Ajustes preventivos e calibrações precisas
-• Relatórios detalhados após cada serviço
-• Histórico digital acessível de todas as manutenções
-• Equipe certificada em NR10, NR12 e ABNT
+A WeDo atua com gestão técnica de ativos, assegurando rastreabilidade completa das intervenções, histórico por equipamento e relatórios técnicos digitais de cada atendimento realizado, permitindo maior controle operacional e suporte à tomada de decisão do cliente.
 
-Incluso gestão via plataforma própria, atendimento emergencial com SLA, fornecimento de EPIs e software de controle.`,
+O modelo de manutenção preventiva proposto visa aumentar a vida útil dos equipamentos, reduzir paradas inesperadas, padronizar a operação e proporcionar previsibilidade de custos e desempenho ao longo da vigência contratual, conforme as condições estabelecidas nesta proposta.`,
     defaultProducts: [
       {
-        name: 'Manutenção Preventiva',
-        description: `Serviço completo de manutenção preventiva incluindo:
-• Inspeção e limpeza de queimadores
-• Verificação de válvulas e conexões de gás
-• Teste de termostatos e controladores
-• Limpeza e ajuste de componentes elétricos
-• Verificação de sistemas de segurança
+        name: 'Serviço estruturado de manutenção preventiva programada',
+        description: `Serviço estruturado de manutenção preventiva programada incluindo:
+• Inspeções técnicas periódicas conforme plano de manutenção
+• Verificações elétricas, mecânicas e funcionais
+• Ajustes operacionais e calibrações
+• Limpeza técnica funcional de componentes
+• Validação dos sistemas de segurança
 • Lubrificação de partes móveis
-• Relatório técnico digital com fotos`,
+• Relatório técnico digital com fotos e histórico por equipamento`,
         unit: 'SV',
       },
     ],
