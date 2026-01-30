@@ -4,6 +4,7 @@ import { CompanySettings } from '@/types/company';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import logoWedoDefault from '@/assets/logo-wedo.png';
+import industrialKitchenBg from '@/assets/industrial-kitchen-bg.jpg';
 
 interface ProposalPreviewProps {
   proposal: Partial<Proposal>;
@@ -40,28 +41,36 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         style={{ width: '210mm' }}
       >
         {/* Cover Page */}
-        <div className="relative overflow-hidden pdf-page" style={{ backgroundColor: '#1a1a1a', width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
-          {/* Background with gradient overlay */}
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.6))' }} />
+        <div className="relative overflow-hidden pdf-page" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+          {/* Background image */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ 
+              backgroundImage: `url(${industrialKitchenBg})`,
+            }} 
+          />
+          
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.7) 100%)' }} />
           
           {/* Content */}
           <div className="relative z-10 flex flex-col p-12 text-white" style={{ height: '297mm' }}>
             {/* Title */}
             <div className="mb-8">
-              <h1 className="text-5xl font-bold tracking-tight">Proposta</h1>
-              <h1 className="text-5xl font-bold tracking-tight">Comercial</h1>
+              <h1 className="text-5xl font-bold tracking-tight" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>Proposta</h1>
+              <h1 className="text-5xl font-bold tracking-tight" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>Comercial</h1>
             </div>
 
             {/* Info */}
             <div className="mb-auto space-y-4">
-              <p className="text-lg" style={{ color: '#d1d5db' }}>
+              <p className="text-lg" style={{ color: '#e5e7eb', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
                 A seguinte proposta comercial foi elaborada em {formatDate(proposal.createdAt as Date)} para{' '}
                 <span className="font-semibold text-white">{proposal.client?.name || 'Cliente'}</span>.
               </p>
-              <p style={{ color: '#d1d5db' }}>
+              <p style={{ color: '#e5e7eb', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
                 A proposta é válida até {formatDate(proposal.validUntil as Date)}.
               </p>
-              <p style={{ color: '#d1d5db' }}>
+              <p style={{ color: '#e5e7eb', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
                 Número da proposta <span className="font-semibold">{proposal.number || 'P0000'}</span>.
               </p>
             </div>
@@ -69,10 +78,10 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             {/* Company info with logo */}
             <div className="mt-auto flex items-center gap-4">
               <div>
-                <p className="text-lg font-medium">{company.name}</p>
-                <p style={{ color: '#9ca3af' }}>Tel: {company.phone}</p>
+                <p className="text-lg font-medium" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>{company.name}</p>
+                <p style={{ color: '#d1d5db', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>Tel: {company.phone}</p>
               </div>
-              <div className="ml-auto bg-white rounded-lg p-2">
+              <div className="ml-auto bg-white rounded-lg p-3 shadow-lg">
                 <img 
                   src={companyLogo} 
                   alt={company.name}
@@ -81,9 +90,9 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               </div>
             </div>
 
-            {/* Decorative elements */}
-            <div className="absolute bottom-0 right-0 h-48 w-48" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
-            <div className="absolute bottom-0 right-24 h-32 w-32" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+            {/* Decorative green accent */}
+            <div className="absolute bottom-0 right-0 h-40 w-40" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.95 }} />
+            <div className="absolute bottom-0 right-20 h-28 w-28" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
           </div>
         </div>
 
