@@ -1,16 +1,17 @@
 import { forwardRef } from 'react';
 import { Proposal } from '@/types/proposal';
+import { CompanySettings } from '@/types/company';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import logoWedo from '@/assets/logo-wedo.png';
-import logoWedoWhite from '@/assets/logo-wedo-white.png';
+import logoWedoDefault from '@/assets/logo-wedo.png';
 
 interface ProposalPreviewProps {
   proposal: Partial<Proposal>;
+  company: CompanySettings;
 }
 
 export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
-  ({ proposal }, ref) => {
+  ({ proposal, company }, ref) => {
     const formatCurrency = (value: number) => {
       return new Intl.NumberFormat('pt-BR', {
         style: 'currency',
@@ -24,6 +25,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
     };
 
     const totalValue = proposal.products?.reduce((sum, p) => sum + p.totalPrice, 0) || 0;
+    const companyLogo = company.logo || logoWedoDefault;
 
     return (
       <div
@@ -61,14 +63,16 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             {/* Company info with logo */}
             <div className="mt-auto flex items-center gap-4">
               <div>
-                <p className="text-lg font-medium">{proposal.companyName || 'WeDo Cozinhas'}</p>
-                <p style={{ color: '#9ca3af' }}>Tel: {proposal.companyPhone || '(62) 99446-6458'}</p>
+                <p className="text-lg font-medium">{company.name}</p>
+                <p style={{ color: '#9ca3af' }}>Tel: {company.phone}</p>
               </div>
-              <img 
-                src={logoWedo} 
-                alt="Logo WeDo" 
-                className="h-16 w-auto ml-auto bg-white rounded-lg p-2"
-              />
+              <div className="ml-auto bg-white rounded-lg p-2">
+                <img 
+                  src={companyLogo} 
+                  alt={company.name}
+                  className="h-14 w-auto object-contain"
+                />
+              </div>
             </div>
 
             {/* Decorative elements */}
@@ -81,7 +85,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         <div className="relative min-h-[297mm] bg-white p-12">
           {/* Logo no topo */}
           <div className="absolute top-8 right-12">
-            <img src={logoWedo} alt="Logo WeDo" className="h-12 w-auto" />
+            <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
           </div>
 
           <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>O que nos move?</h2>
@@ -91,47 +95,25 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             {/* Visão */}
             <div className="rounded-lg p-6" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
               <h3 className="text-xl font-bold mb-3" style={{ color: '#15803d' }}>Visão</h3>
-              <p style={{ color: '#374151' }}>
-                Ser reconhecida na esfera nacional e internacional como uma empresa de excelência, qualidade e preço justo, em todas as áreas de atuação.
-              </p>
+              <p style={{ color: '#374151' }}>{company.vision}</p>
             </div>
 
             {/* Missão */}
             <div className="rounded-lg p-6" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
               <h3 className="text-xl font-bold mb-3" style={{ color: '#15803d' }}>Missão</h3>
-              <p style={{ color: '#374151' }}>
-                Dar suporte nas fases essenciais da cadeia de suprimento dos clientes, prestando serviços de qualidade para resolução de problemas adequados à realidade do processo no qual estivermos inseridos.
-              </p>
+              <p style={{ color: '#374151' }}>{company.mission}</p>
             </div>
 
             {/* Valores */}
             <div className="rounded-lg p-6" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
               <h3 className="text-xl font-bold mb-3" style={{ color: '#15803d' }}>Valores</h3>
               <div className="grid grid-cols-2 gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }} />
-                  <span style={{ color: '#374151' }}>Segurança</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }} />
-                  <span style={{ color: '#374151' }}>Pessoas</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }} />
-                  <span style={{ color: '#374151' }}>Meio Ambiente</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }} />
-                  <span style={{ color: '#374151' }}>Qualidade</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }} />
-                  <span style={{ color: '#374151' }}>Foco no cliente</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }} />
-                  <span style={{ color: '#374151' }}>Melhoria Contínua</span>
-                </div>
+                {company.values.map((value, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }} />
+                    <span style={{ color: '#374151' }}>{value}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -149,7 +131,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           <div className="relative min-h-[297mm] bg-white p-12">
             {/* Logo no topo */}
             <div className="absolute top-8 right-12">
-              <img src={logoWedo} alt="Logo WeDo" className="h-12 w-auto" />
+              <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
             </div>
 
             <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Detalhes da proposta</h2>
@@ -183,7 +165,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           <div className="relative min-h-[297mm] bg-white p-12">
             {/* Logo no topo */}
             <div className="absolute top-8 right-12">
-              <img src={logoWedo} alt="Logo WeDo" className="h-12 w-auto" />
+              <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
             </div>
 
             <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Os produtos</h2>
@@ -246,7 +228,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           <div className="relative min-h-[297mm] bg-white p-12">
             {/* Logo no topo */}
             <div className="absolute top-8 right-12">
-              <img src={logoWedo} alt="Logo WeDo" className="h-12 w-auto" />
+              <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
             </div>
 
             <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Termos e Condições</h2>
@@ -285,7 +267,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           <div className="relative min-h-[297mm] bg-white p-12">
             {/* Logo no topo */}
             <div className="absolute top-8 right-12">
-              <img src={logoWedo} alt="Logo WeDo" className="h-12 w-auto" />
+              <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
             </div>
 
             <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Anexos</h2>
@@ -316,19 +298,19 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         <div className="relative min-h-[297mm] bg-white p-12">
           {/* Logo no topo */}
           <div className="absolute top-8 right-12">
-            <img src={logoWedo} alt="Logo WeDo" className="h-12 w-auto" />
+            <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
           </div>
 
           <div className="mt-24">
             <p className="text-lg leading-relaxed" style={{ color: '#374151' }}>
               Estando de acordo com os produtos, valores e termos relatados nesta proposta e por estarem assim justos e contratados, 
-              <strong> {proposal.companyName || 'WeDo Cozinhas'}</strong> e o(a) <strong>{proposal.client?.name || 'Cliente'}</strong> firmam a proposta.
+              <strong> {company.name}</strong> e o(a) <strong>{proposal.client?.name || 'Cliente'}</strong> firmam a proposta.
             </p>
 
             <div className="mt-16 grid grid-cols-2 gap-12">
               <div className="text-center">
                 <div className="border-t pt-4" style={{ borderColor: '#374151' }}>
-                  <p className="font-medium" style={{ color: '#111827' }}>{proposal.companyName || 'WeDo Cozinhas'}</p>
+                  <p className="font-medium" style={{ color: '#111827' }}>{company.name}</p>
                   <p className="text-sm" style={{ color: '#6b7280' }}>Contratada</p>
                 </div>
               </div>
@@ -342,7 +324,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
             <div className="mt-16 text-center">
               <p className="text-sm" style={{ color: '#9ca3af' }}>
-                WD Comércio e Importação Ltda - 43.572.954/0001-81
+                {company.name} - {company.cnpj}
               </p>
             </div>
           </div>

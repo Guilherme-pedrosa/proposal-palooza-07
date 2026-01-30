@@ -13,14 +13,16 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Client, Product, TermCondition, ProposalImage, Proposal } from '@/types/proposal';
 import { useProposal } from '@/contexts/ProposalContext';
-import { useNavigate } from 'react-router-dom';
+import { useCompany } from '@/contexts/CompanyContext';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { 
   FileText, 
   Eye, 
   Save, 
   Building2,
-  Calendar
+  Calendar,
+  Settings
 } from 'lucide-react';
 import {
   Dialog,
@@ -34,6 +36,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 export default function NewProposal() {
   const navigate = useNavigate();
   const { addProposal, generateProposalNumber } = useProposal();
+  const { company } = useCompany();
   const previewRef = useRef<HTMLDivElement>(null);
 
   const [activeTab, setActiveTab] = useState('info');
@@ -44,9 +47,6 @@ export default function NewProposal() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [validUntil, setValidUntil] = useState('');
-  const [companyName, setCompanyName] = useState('WeDo Cozinhas');
-  const [companyPhone, setCompanyPhone] = useState('(62) 99446-6458');
-  const [companyEmail, setCompanyEmail] = useState('');
   const [client, setClient] = useState<Client>({
     id: crypto.randomUUID(),
     name: '',
@@ -70,9 +70,9 @@ export default function NewProposal() {
     termsConditions,
     images,
     totalValue: products.reduce((sum, p) => sum + p.totalPrice, 0),
-    companyName,
-    companyPhone,
-    companyEmail,
+    companyName: company.name,
+    companyPhone: company.phone,
+    companyEmail: company.email,
     status: 'draft',
   };
 
@@ -99,9 +99,9 @@ export default function NewProposal() {
       termsConditions,
       images,
       totalValue: products.reduce((sum, p) => sum + p.totalPrice, 0),
-      companyName,
-      companyPhone,
-      companyEmail,
+      companyName: company.name,
+      companyPhone: company.phone,
+      companyEmail: company.email,
       status: 'draft',
     };
 
@@ -132,9 +132,9 @@ export default function NewProposal() {
                 <DialogTitle>Preview da Proposta</DialogTitle>
               </DialogHeader>
               <ScrollArea className="h-full">
-                <div className="p-4 bg-gray-100 rounded-lg">
+                <div className="p-4 bg-muted rounded-lg">
                   <div className="transform scale-50 origin-top-left" style={{ width: '200%' }}>
-                    <ProposalPreview ref={previewRef} proposal={proposalData} />
+                    <ProposalPreview ref={previewRef} proposal={proposalData} company={company} />
                   </div>
                 </div>
               </ScrollArea>
@@ -148,10 +148,10 @@ export default function NewProposal() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
           <TabsTrigger value="info" className="gap-2">
             <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Informações</span>
+            <span className="hidden sm:inline">Proposta</span>
           </TabsTrigger>
           <TabsTrigger value="client" className="gap-2">
             <Building2 className="h-4 w-4" />
@@ -163,48 +163,26 @@ export default function NewProposal() {
           <TabsTrigger value="terms" className="gap-2">
             Termos
           </TabsTrigger>
-          <TabsTrigger value="images" className="gap-2">
-            Imagens
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="info" className="space-y-6">
-          {/* Company Info */}
-          <Card className="shadow-card animate-fade-in">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Building2 className="h-5 w-5 text-primary" />
-                Dados da Empresa
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="companyName">Nome da Empresa *</Label>
-                <Input
-                  id="companyName"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="Nome da sua empresa"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="companyPhone">Telefone</Label>
-                <Input
-                  id="companyPhone"
-                  value={companyPhone}
-                  onChange={(e) => setCompanyPhone(e.target.value)}
-                  placeholder="(00) 00000-0000"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="companyEmail">E-mail</Label>
-                <Input
-                  id="companyEmail"
-                  type="email"
-                  value={companyEmail}
-                  onChange={(e) => setCompanyEmail(e.target.value)}
-                  placeholder="email@empresa.com"
-                />
+          {/* Company Info Banner */}
+          <Card className="shadow-card animate-fade-in border-primary/20 bg-primary/5">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Building2 className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="font-medium text-foreground">{company.name}</p>
+                    <p className="text-sm text-muted-foreground">{company.phone} • {company.cnpj}</p>
+                  </div>
+                </div>
+                <Link to="/configuracoes">
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <Settings className="h-4 w-4" />
+                    Editar
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -251,6 +229,9 @@ export default function NewProposal() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Images */}
+          <ImagesForm images={images} onChange={setImages} />
         </TabsContent>
 
         <TabsContent value="client">
@@ -266,10 +247,6 @@ export default function NewProposal() {
             selectedTerms={termsConditions}
             onChange={setTermsConditions}
           />
-        </TabsContent>
-
-        <TabsContent value="images">
-          <ImagesForm images={images} onChange={setImages} />
         </TabsContent>
       </Tabs>
     </MainLayout>

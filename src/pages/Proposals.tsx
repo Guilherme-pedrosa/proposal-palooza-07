@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useProposal } from '@/contexts/ProposalContext';
+import { useCompany } from '@/contexts/CompanyContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,6 +50,7 @@ const statusLabels = {
 
 export default function Proposals() {
   const { proposals, deleteProposal } = useProposal();
+  const { company } = useCompany();
   const [search, setSearch] = useState('');
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
 
@@ -219,9 +221,9 @@ export default function Proposals() {
             </DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-full">
-            <div className="p-4 bg-gray-100 rounded-lg">
+            <div className="p-4 bg-muted rounded-lg">
               <div className="transform scale-50 origin-top-left" style={{ width: '200%' }}>
-                {selectedProposal && <ProposalPreview proposal={selectedProposal} />}
+                {selectedProposal && <ProposalPreview proposal={selectedProposal} company={company} />}
               </div>
             </div>
           </ScrollArea>
