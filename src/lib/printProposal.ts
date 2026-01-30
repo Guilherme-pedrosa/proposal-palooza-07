@@ -163,14 +163,14 @@ export function generatePrintHTML(proposal: Partial<Proposal>, company: CompanyS
     </div>
   `;
 
-  // Company presentation page - Vision, Mission, Values ONLY - COM ESTILOS INLINE
-  const companyPage = `
+  // Company presentation page - Vision, Mission, Values - MOVED TO ANNEX (after terms)
+  const companyAnnexPage = `
     <div class="page" style="background: white; width: 210mm; min-height: 297mm; position: relative; page-break-after: always; page-break-inside: avoid;">
       <div style="padding: 48px; height: 100%; position: relative;">
         ${company.logo ? `<img src="${company.logo}" style="position: absolute; top: 32px; right: 48px; height: 48px;" alt="${company.name}">` : ''}
         
-        <h2 style="font-size: 28px; font-weight: 700; color: #111827; margin-bottom: 8px;">O que nos move?</h2>
-        <p style="font-size: 14px; color: #4b5563; margin-bottom: 24px;">Acreditamos em nossa missão e respeitamos os nossos valores.</p>
+        <h2 style="font-size: 28px; font-weight: 700; color: #111827; margin-bottom: 8px;">Sobre a ${company.name}</h2>
+        <p style="font-size: 14px; color: #4b5563; margin-bottom: 24px;">Nossa visão, missão e valores que guiam nosso trabalho.</p>
         
         <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 24px; margin-bottom: 16px;">
           <h3 style="font-size: 18px; font-weight: 700; color: #15803d; margin-bottom: 12px;">Visão</h3>
@@ -245,13 +245,70 @@ export function generatePrintHTML(proposal: Partial<Proposal>, company: CompanyS
     </div>
   ` : '';
 
+  // Executive Summary page (before products)
+  const executiveSummaryPage = `
+    <div class="page" style="background: white; width: 210mm; min-height: 297mm; position: relative; page-break-after: always; page-break-inside: avoid;">
+      <div style="padding: 48px; height: 100%; position: relative;">
+        ${company.logo ? `<img src="${company.logo}" style="position: absolute; top: 32px; right: 48px; height: 48px;" alt="${company.name}">` : ''}
+        
+        <h2 style="font-size: 28px; font-weight: 700; color: #111827; margin-bottom: 8px;">Resumo Executivo</h2>
+        <p style="font-size: 14px; color: #4b5563; margin-bottom: 32px;">Visão geral do objeto e condições desta proposta comercial.</p>
+        
+        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+          <h3 style="font-size: 18px; font-weight: 700; color: #15803d; margin-bottom: 12px;">Objeto do Contrato</h3>
+          <p style="font-size: 14px; color: #374151; line-height: 1.8;">
+            Prestação de serviços de ${proposal.title?.toLowerCase() || 'manutenção preventiva programada'} em equipamentos de cozinha profissional, com vigência conforme condições estabelecidas, abrangendo inspeções técnicas periódicas, gestão de ativos e suporte operacional contínuo, visando garantir segurança, desempenho e continuidade das operações da contratante.
+          </p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+          <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px;">
+            <p style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Contratante</p>
+            <p style="font-size: 16px; font-weight: 600; color: #111827;">${proposal.client?.name || 'Cliente'}</p>
+            ${proposal.client?.cnpj ? `<p style="font-size: 12px; color: #6b7280; margin-top: 4px;">CNPJ: ${proposal.client.cnpj}</p>` : ''}
+          </div>
+          <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px;">
+            <p style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Contratada</p>
+            <p style="font-size: 16px; font-weight: 600; color: #111827;">${company.name}</p>
+            <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">CNPJ: ${company.cnpj}</p>
+          </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+          <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; text-align: center;">
+            <p style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Nº da Proposta</p>
+            <p style="font-size: 18px; font-weight: 700; color: #15803d;">${proposal.number || 'P0000'}</p>
+          </div>
+          <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; text-align: center;">
+            <p style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Data de Emissão</p>
+            <p style="font-size: 18px; font-weight: 700; color: #111827;">${formatDate(proposal.createdAt as Date)}</p>
+          </div>
+          <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; text-align: center;">
+            <p style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">Validade</p>
+            <p style="font-size: 18px; font-weight: 700; color: #111827;">${formatDate(proposal.validUntil as Date)}</p>
+          </div>
+        </div>
+        
+        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 24px;">
+          <h3 style="font-size: 18px; font-weight: 700; color: #15803d; margin-bottom: 12px;">Valor Total</h3>
+          <p style="font-size: 32px; font-weight: 700; color: #15803d;">${formatCurrency(totalValue)}</p>
+          <p style="font-size: 12px; color: #6b7280; margin-top: 8px;">Conforme detalhamento na seção de produtos e serviços.</p>
+        </div>
+        
+        <div style="position: absolute; bottom: 0; right: 0; width: 128px; height: 128px; background-color: #22c55e; clip-path: polygon(100% 0, 100% 100%, 0 100%);"></div>
+        <div style="position: absolute; bottom: 0; right: 64px; width: 80px; height: 80px; background-color: #16a34a; clip-path: polygon(100% 0, 100% 100%, 0 100%);"></div>
+        <div style="position: absolute; bottom: 32px; left: 48px; font-size: 12px; color: #9ca3af;">${proposal.number} de ${formatDate(proposal.createdAt as Date)}</div>
+      </div>
+    </div>
+  `;
+
   // Products page
   const productsPage = proposal.products && proposal.products.length > 0 ? `
     <div class="page" style="background: white;">
       <div class="page-content">
         ${company.logo ? `<img src="${company.logo}" class="logo-top" alt="${company.name}">` : ''}
-        <h2 class="title">Os produtos</h2>
-        <p class="subtitle">Lista de produtos orçados nesta proposta comercial.</p>
+        <h2 class="title">Produtos e Serviços</h2>
+        <p class="subtitle">Detalhamento dos itens contemplados nesta proposta comercial.</p>
         
         <table class="table">
           <thead>
@@ -372,10 +429,11 @@ export function generatePrintHTML(proposal: Partial<Proposal>, company: CompanyS
       </head>
       <body>
         ${coverPage}
-        ${companyPage}
         ${clientsBrandsPage}
+        ${executiveSummaryPage}
         ${productsPage}
         ${termsPage}
+        ${companyAnnexPage}
         ${signaturePage}
       </body>
     </html>
