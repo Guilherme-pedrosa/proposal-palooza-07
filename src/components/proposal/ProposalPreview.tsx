@@ -94,44 +94,64 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
           </div>
 
-          <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>O que nos move?</h2>
-          <p className="mb-6" style={{ color: '#4b5563' }}>Acreditamos em nossa missão e respeitamos os nossos valores.</p>
+          {/* Header com linha decorativa */}
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-1 h-8 rounded-full" style={{ backgroundColor: '#22c55e' }}></div>
+              <h2 className="text-2xl font-semibold tracking-tight" style={{ color: '#111827' }}>Sobre a WeDo</h2>
+            </div>
+          </div>
 
-          {/* Texto de apresentação da empresa */}
-          <div className="rounded-lg p-5 mb-5" style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }}>
-            <p className="text-sm leading-relaxed mb-3" style={{ color: '#374151', textAlign: 'justify' }}>
-              A WeDo é uma empresa especializada em soluções técnicas para cozinhas profissionais, atuando na especificação, fornecimento e manutenção preventiva de equipamentos, com foco em continuidade operacional, controle de custos e redução de riscos.
+          {/* Texto institucional - layout editorial */}
+          <div className="mb-6 pl-4" style={{ borderLeft: '2px solid #e5e7eb' }}>
+            <p className="text-sm leading-relaxed mb-4" style={{ color: '#374151', lineHeight: '1.7' }}>
+              A WeDo é uma empresa especializada em soluções técnicas para cozinhas profissionais, atuando na especificação, fornecimento e manutenção preventiva de equipamentos, com foco em <strong style={{ color: '#111827' }}>continuidade operacional</strong>, <strong style={{ color: '#111827' }}>controle de custos</strong> e <strong style={{ color: '#111827' }}>redução de riscos</strong>.
             </p>
-            <p className="text-sm leading-relaxed mb-3" style={{ color: '#374151', textAlign: 'justify' }}>
-              Nossa atuação é baseada em programas estruturados de manutenção preventiva, com protocolos técnicos definidos por tipo de equipamento, gestão de ativos e acompanhamento contínuo da operação, permitindo a substituição do modelo corretivo reativo por um modelo previsível, planejado e financeiramente controlado.
+            <p className="text-sm leading-relaxed mb-4" style={{ color: '#374151', lineHeight: '1.7' }}>
+              Nossa atuação é baseada em programas estruturados de manutenção preventiva, com protocolos técnicos definidos por tipo de equipamento, gestão de ativos e acompanhamento contínuo da operação — permitindo a substituição do modelo corretivo reativo por um modelo <strong style={{ color: '#111827' }}>previsível, planejado e financeiramente controlado</strong>.
             </p>
-            <p className="text-sm leading-relaxed" style={{ color: '#374151', textAlign: 'justify' }}>
-              Com histórico comprovado de redução significativa de falhas, emergências e custos de manutenção, a WeDo se posiciona como parceira técnica da operação, apoiando decisões, sustentando o desempenho dos equipamentos e garantindo previsibilidade ao longo de todo o ciclo operacional.
+            <p className="text-sm leading-relaxed" style={{ color: '#374151', lineHeight: '1.7' }}>
+              Com histórico comprovado de redução significativa de falhas, emergências e custos de manutenção, a WeDo se posiciona como <strong style={{ color: '#111827' }}>parceira técnica da operação</strong>, apoiando decisões, sustentando o desempenho dos equipamentos e garantindo previsibilidade ao longo de todo o ciclo operacional.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
+          {/* Separador sutil */}
+          <div className="flex items-center gap-4 mb-5">
+            <div className="flex-1 h-px" style={{ backgroundColor: '#e5e7eb' }}></div>
+            <span className="text-xs font-medium uppercase tracking-widest" style={{ color: '#9ca3af' }}>O que nos move</span>
+            <div className="flex-1 h-px" style={{ backgroundColor: '#e5e7eb' }}></div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
             {/* Visão */}
-            <div className="rounded-lg p-4" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-              <h3 className="text-base font-bold mb-2" style={{ color: '#15803d' }}>Visão</h3>
-              <p className="text-sm" style={{ color: '#374151' }}>{company.vision}</p>
+            <div className="rounded-lg p-4" style={{ backgroundColor: '#fafafa' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }}></div>
+                <h3 className="text-sm font-semibold uppercase tracking-wide" style={{ color: '#111827' }}>Visão</h3>
+              </div>
+              <p className="text-xs leading-relaxed" style={{ color: '#4b5563' }}>{company.vision}</p>
             </div>
 
             {/* Missão */}
-            <div className="rounded-lg p-4" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-              <h3 className="text-base font-bold mb-2" style={{ color: '#15803d' }}>Missão</h3>
-              <p className="text-sm" style={{ color: '#374151' }}>{company.mission}</p>
+            <div className="rounded-lg p-4" style={{ backgroundColor: '#fafafa' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }}></div>
+                <h3 className="text-sm font-semibold uppercase tracking-wide" style={{ color: '#111827' }}>Missão</h3>
+              </div>
+              <p className="text-xs leading-relaxed" style={{ color: '#4b5563' }}>{company.mission}</p>
             </div>
 
             {/* Valores */}
-            <div className="rounded-lg p-4" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-              <h3 className="text-base font-bold mb-2" style={{ color: '#15803d' }}>Valores</h3>
-              <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-lg p-4" style={{ backgroundColor: '#fafafa' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }}></div>
+                <h3 className="text-sm font-semibold uppercase tracking-wide" style={{ color: '#111827' }}>Valores</h3>
+              </div>
+              <div className="flex flex-wrap gap-1">
                 {company.values.map((value, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }} />
-                    <span className="text-sm" style={{ color: '#374151' }}>{value}</span>
-                  </div>
+                  <span key={index} className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: '#f0fdf4', color: '#15803d' }}>
+                    {value}
+                  </span>
                 ))}
               </div>
             </div>
