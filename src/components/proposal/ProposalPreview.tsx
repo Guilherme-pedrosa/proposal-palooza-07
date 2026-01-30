@@ -87,7 +87,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           </div>
         </div>
 
-        {/* Company Presentation Page - O que nos move */}
+        {/* Company Presentation Page - Sobre a Empresa */}
         <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
           {/* Logo no topo */}
           <div className="absolute top-8 right-12">
@@ -95,24 +95,37 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           </div>
 
           <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>O que nos move?</h2>
-          <p className="mb-8" style={{ color: '#4b5563' }}>Acreditamos em nossa missão e respeitamos os nossos valores.</p>
+          <p className="mb-6" style={{ color: '#4b5563' }}>Acreditamos em nossa missão e respeitamos os nossos valores.</p>
 
-          <div className="grid grid-cols-1 gap-6">
+          {/* Texto de apresentação da empresa */}
+          <div className="rounded-lg p-5 mb-5" style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }}>
+            <p className="text-sm leading-relaxed mb-3" style={{ color: '#374151', textAlign: 'justify' }}>
+              A WeDo é uma empresa especializada em soluções técnicas para cozinhas profissionais, atuando na especificação, fornecimento e manutenção preventiva de equipamentos, com foco em continuidade operacional, controle de custos e redução de riscos.
+            </p>
+            <p className="text-sm leading-relaxed mb-3" style={{ color: '#374151', textAlign: 'justify' }}>
+              Nossa atuação é baseada em programas estruturados de manutenção preventiva, com protocolos técnicos definidos por tipo de equipamento, gestão de ativos e acompanhamento contínuo da operação, permitindo a substituição do modelo corretivo reativo por um modelo previsível, planejado e financeiramente controlado.
+            </p>
+            <p className="text-sm leading-relaxed" style={{ color: '#374151', textAlign: 'justify' }}>
+              Com histórico comprovado de redução significativa de falhas, emergências e custos de manutenção, a WeDo se posiciona como parceira técnica da operação, apoiando decisões, sustentando o desempenho dos equipamentos e garantindo previsibilidade ao longo de todo o ciclo operacional.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
             {/* Visão */}
-            <div className="rounded-lg p-5" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-              <h3 className="text-lg font-bold mb-2" style={{ color: '#15803d' }}>Visão</h3>
+            <div className="rounded-lg p-4" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+              <h3 className="text-base font-bold mb-2" style={{ color: '#15803d' }}>Visão</h3>
               <p className="text-sm" style={{ color: '#374151' }}>{company.vision}</p>
             </div>
 
             {/* Missão */}
-            <div className="rounded-lg p-5" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-              <h3 className="text-lg font-bold mb-2" style={{ color: '#15803d' }}>Missão</h3>
+            <div className="rounded-lg p-4" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+              <h3 className="text-base font-bold mb-2" style={{ color: '#15803d' }}>Missão</h3>
               <p className="text-sm" style={{ color: '#374151' }}>{company.mission}</p>
             </div>
 
             {/* Valores */}
-            <div className="rounded-lg p-5" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-              <h3 className="text-lg font-bold mb-2" style={{ color: '#15803d' }}>Valores</h3>
+            <div className="rounded-lg p-4" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+              <h3 className="text-base font-bold mb-2" style={{ color: '#15803d' }}>Valores</h3>
               <div className="grid grid-cols-2 gap-2">
                 {company.values.map((value, index) => (
                   <div key={index} className="flex items-center gap-2">
