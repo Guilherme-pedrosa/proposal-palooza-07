@@ -54,4 +54,5 @@ export interface SavedTermCondition {
   id: string;
   title: string;
   description: string;
+  templateIds: string[]; // IDs dos templates onde este termo aparece (vazio = todos)
 }
