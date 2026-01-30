@@ -178,6 +178,301 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
         </div>
 
+        {/* Objectives Page - Objetivos da Manutenção Preventiva */}
+        <div className="relative min-h-[297mm] bg-white p-12">
+          {/* Logo no topo */}
+          <div className="absolute top-8 right-12">
+            <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
+          </div>
+
+          <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Objetivos da Manutenção Preventiva</h2>
+          <p className="mb-8" style={{ color: '#4b5563' }}>
+            Nossa manutenção preventiva garante que todos os seus equipamentos operem no máximo desempenho, com segurança e durabilidade.
+          </p>
+
+          <div className="grid grid-cols-1 gap-6">
+            <div className="rounded-lg p-6" style={{ backgroundColor: '#fef3c7', border: '1px solid #fde68a' }}>
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#f59e0b' }}>
+                  <span className="text-white font-bold text-lg">1</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold mb-2" style={{ color: '#92400e' }}>Evitar Paradas Imprevistas</h3>
+                  <p style={{ color: '#78350f' }}>Eliminamos interrupções operacionais que podem comprometer seu serviço e gerar prejuízos financeiros significativos.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg p-6" style={{ backgroundColor: '#dcfce7', border: '1px solid #bbf7d0' }}>
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#22c55e' }}>
+                  <span className="text-white font-bold text-lg">2</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold mb-2" style={{ color: '#166534' }}>Reduzir Custos com Reparos</h3>
+                  <p style={{ color: '#15803d' }}>Prevenir falhas é muito mais econômico do que realizar reparos emergenciais ou substituir equipamentos prematuramente.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg p-6" style={{ backgroundColor: '#dbeafe', border: '1px solid #bfdbfe' }}>
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#3b82f6' }}>
+                  <span className="text-white font-bold text-lg">3</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold mb-2" style={{ color: '#1e40af' }}>Garantir Conformidade Técnica</h3>
+                  <p style={{ color: '#1d4ed8' }}>Mantemos seus equipamentos em conformidade com as normas NR10, NR12 e ABNT, evitando problemas legais e garantindo a segurança.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg p-6" style={{ backgroundColor: '#f3e8ff', border: '1px solid #e9d5ff' }}>
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#a855f7' }}>
+                  <span className="text-white font-bold text-lg">4</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold mb-2" style={{ color: '#6b21a8' }}>Preservar Investimentos</h3>
+                  <p style={{ color: '#7e22ce' }}>Prolongamos a vida útil dos seus equipamentos, protegendo seu investimento e maximizando o retorno.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg p-6" style={{ backgroundColor: '#fce7f3', border: '1px solid #fbcfe8' }}>
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#ec4899' }}>
+                  <span className="text-white font-bold text-lg">5</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold mb-2" style={{ color: '#9d174d' }}>Assegurar Qualidade Alimentar</h3>
+                  <p style={{ color: '#be185d' }}>Garantimos que seus equipamentos mantenham condições ideais para a produção segura e de alta qualidade dos alimentos.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Page number and decorative elements */}
+          <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
+            {proposal.number} de {formatDate(proposal.createdAt as Date)}
+          </div>
+          <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+          <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+        </div>
+
+        {/* Equipment Details Page - Detalhamento por Equipamento */}
+        <div className="relative min-h-[297mm] bg-white p-12">
+          {/* Logo no topo */}
+          <div className="absolute top-8 right-12">
+            <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
+          </div>
+
+          <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Nossa Abordagem por Equipamento</h2>
+          <p className="mb-6" style={{ color: '#4b5563' }}>
+            Desenvolvemos protocolos específicos para cada categoria de equipamento, garantindo que nenhum detalhe seja negligenciado.
+          </p>
+
+          <div className="grid grid-cols-2 gap-4">
+            {/* Fogões Industriais */}
+            <div className="rounded-lg p-4" style={{ backgroundColor: '#fff7ed', border: '1px solid #fed7aa' }}>
+              <h3 className="text-base font-bold mb-2" style={{ color: '#c2410c' }}>🔥 Fogões Industriais</h3>
+              <ul className="text-xs space-y-1" style={{ color: '#9a3412' }}>
+                <li>• Verificação de mangueiras, regulador e válvulas</li>
+                <li>• Limpeza e descarbonização dos queimadores</li>
+                <li>• Calibração de bicos injetores</li>
+                <li>• Tratamento antiferrugem</li>
+              </ul>
+            </div>
+
+            {/* Sistemas de Refrigeração */}
+            <div className="rounded-lg p-4" style={{ backgroundColor: '#ecfeff', border: '1px solid #a5f3fc' }}>
+              <h3 className="text-base font-bold mb-2" style={{ color: '#0e7490' }}>❄️ Refrigeração</h3>
+              <ul className="text-xs space-y-1" style={{ color: '#155e75' }}>
+                <li>• Ajuste de portas e borrachas de vedação</li>
+                <li>• Higienização de condensadora e evaporadora</li>
+                <li>• Verificação de controlador e sensores</li>
+                <li>• Medição de corrente do compressor</li>
+              </ul>
+            </div>
+
+            {/* Câmaras Frias */}
+            <div className="rounded-lg p-4" style={{ backgroundColor: '#f0f9ff', border: '1px solid #bae6fd' }}>
+              <h3 className="text-base font-bold mb-2" style={{ color: '#0369a1' }}>🧊 Câmaras Frias</h3>
+              <ul className="text-xs space-y-1" style={{ color: '#0c4a6e' }}>
+                <li>• Limpeza e desobstrução de componentes</li>
+                <li>• Verificação de pressostatos e degelo</li>
+                <li>• Teste de sistemas de alarme</li>
+                <li>• Avaliação de vedação de painéis</li>
+              </ul>
+            </div>
+
+            {/* Lava-Louças */}
+            <div className="rounded-lg p-4" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+              <h3 className="text-base font-bold mb-2" style={{ color: '#15803d' }}>🍽️ Lava-Louças</h3>
+              <ul className="text-xs space-y-1" style={{ color: '#166534' }}>
+                <li>• Inspeção visual de corrosão e nivelamento</li>
+                <li>• Testes elétricos e de placas eletrônicas</li>
+                <li>• Limpeza de braços e filtros</li>
+                <li>• Verificação de sensores de segurança</li>
+              </ul>
+            </div>
+
+            {/* Fornos e Estufas */}
+            <div className="rounded-lg p-4" style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca' }}>
+              <h3 className="text-base font-bold mb-2" style={{ color: '#b91c1c' }}>🔥 Fornos e Estufas</h3>
+              <ul className="text-xs space-y-1" style={{ color: '#991b1b' }}>
+                <li>• Teste de resistências e termostatos</li>
+                <li>• Verificação de fiação e isolamento</li>
+                <li>• Limpeza técnica especializada</li>
+                <li>• Ajuste de sistemas de segurança</li>
+              </ul>
+            </div>
+
+            {/* Equipamentos de Bancada */}
+            <div className="rounded-lg p-4" style={{ backgroundColor: '#faf5ff', border: '1px solid #e9d5ff' }}>
+              <h3 className="text-base font-bold mb-2" style={{ color: '#7e22ce' }}>🔧 Equipamentos de Bancada</h3>
+              <ul className="text-xs space-y-1" style={{ color: '#6b21a8' }}>
+                <li>• Verificação elétrica completa</li>
+                <li>• Lubrificação de partes móveis</li>
+                <li>• Ajuste de correias e retentores</li>
+                <li>• Revisão de controles e comandos</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Approach Summary */}
+          <div className="mt-6 rounded-lg p-4" style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-2xl font-bold" style={{ color: '#22c55e' }}>✓</p>
+                <p className="text-xs font-medium" style={{ color: '#374151' }}>Checklists Técnicos</p>
+                <p className="text-xs" style={{ color: '#6b7280' }}>Protocolos específicos</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold" style={{ color: '#22c55e' }}>✓</p>
+                <p className="text-xs font-medium" style={{ color: '#374151' }}>Inspeção Minuciosa</p>
+                <p className="text-xs" style={{ color: '#6b7280' }}>Identificação precoce</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold" style={{ color: '#22c55e' }}>✓</p>
+                <p className="text-xs font-medium" style={{ color: '#374151' }}>Ajustes Preventivos</p>
+                <p className="text-xs" style={{ color: '#6b7280' }}>Calibrações precisas</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Page number and decorative elements */}
+          <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
+            {proposal.number} de {formatDate(proposal.createdAt as Date)}
+          </div>
+          <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+          <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+        </div>
+
+        {/* Results Page - Resultados Comprovados */}
+        <div className="relative min-h-[297mm] bg-white p-12">
+          {/* Logo no topo */}
+          <div className="absolute top-8 right-12">
+            <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
+          </div>
+
+          <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Resultados Comprovados</h2>
+          <p className="mb-8" style={{ color: '#4b5563' }}>
+            Nosso programa de manutenção preventiva demonstra resultados significativos em clientes reais.
+          </p>
+
+          {/* Main Stats */}
+          <div className="grid grid-cols-3 gap-6 mb-8">
+            <div className="rounded-lg p-6 text-center" style={{ backgroundColor: '#dcfce7', border: '1px solid #bbf7d0' }}>
+              <p className="text-4xl font-bold" style={{ color: '#15803d' }}>76,2%</p>
+              <p className="text-sm font-medium mt-2" style={{ color: '#166534' }}>Redução de Custos</p>
+              <p className="text-xs mt-1" style={{ color: '#22c55e' }}>em manutenção</p>
+            </div>
+            <div className="rounded-lg p-6 text-center" style={{ backgroundColor: '#dbeafe', border: '1px solid #bfdbfe' }}>
+              <p className="text-4xl font-bold" style={{ color: '#1d4ed8' }}>68%</p>
+              <p className="text-sm font-medium mt-2" style={{ color: '#1e40af' }}>Menos Emergências</p>
+              <p className="text-xs mt-1" style={{ color: '#3b82f6' }}>chamados urgentes</p>
+            </div>
+            <div className="rounded-lg p-6 text-center" style={{ backgroundColor: '#f3e8ff', border: '1px solid #e9d5ff' }}>
+              <p className="text-4xl font-bold" style={{ color: '#7e22ce' }}>+35%</p>
+              <p className="text-sm font-medium mt-2" style={{ color: '#6b21a8' }}>Vida Útil</p>
+              <p className="text-xs mt-1" style={{ color: '#a855f7' }}>dos equipamentos</p>
+            </div>
+          </div>
+
+          {/* Case Study */}
+          <div className="rounded-lg p-6 mb-8" style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}>
+            <h3 className="text-lg font-bold mb-4" style={{ color: '#111827' }}>📊 Case de Sucesso: Rede de Restaurantes</h3>
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <p className="text-sm font-medium mb-2" style={{ color: '#374151' }}>Evolução do Programa:</p>
+                <ul className="text-sm space-y-2" style={{ color: '#4b5563' }}>
+                  <li className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#ef4444' }} />
+                    <span><strong>Fase Reativa:</strong> Custos de R$ 9.198/mês</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#f59e0b' }} />
+                    <span><strong>Fase Transição:</strong> Custos de R$ 5.812/mês</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }} />
+                    <span><strong>Fase Consolidada:</strong> Custos de R$ 2.191/mês</span>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-sm font-medium mb-2" style={{ color: '#374151' }}>Resultados da Rede:</p>
+                <ul className="text-sm space-y-2" style={{ color: '#4b5563' }}>
+                  <li>• 6 restaurantes atendidos</li>
+                  <li>• R$ 9.604 de economia mensal</li>
+                  <li>• 118 serviços contratuais executados</li>
+                  <li>• 32,6% das operações preventivas</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Benefits Beyond Savings */}
+          <div className="rounded-lg p-6" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+            <h3 className="text-lg font-bold mb-4" style={{ color: '#15803d' }}>✨ Benefícios Além da Economia</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style={{ backgroundColor: '#22c55e' }}>
+                  <span className="text-white text-xl">📈</span>
+                </div>
+                <p className="text-sm font-medium" style={{ color: '#166534' }}>Previsibilidade Financeira</p>
+                <p className="text-xs mt-1" style={{ color: '#15803d' }}>Custos fixos e planejáveis</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style={{ backgroundColor: '#22c55e' }}>
+                  <span className="text-white text-xl">⚡</span>
+                </div>
+                <p className="text-sm font-medium" style={{ color: '#166534' }}>Menos Emergências</p>
+                <p className="text-xs mt-1" style={{ color: '#15803d' }}>Operação sem interrupções</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style={{ backgroundColor: '#22c55e' }}>
+                  <span className="text-white text-xl">🔧</span>
+                </div>
+                <p className="text-sm font-medium" style={{ color: '#166534' }}>Maior Durabilidade</p>
+                <p className="text-xs mt-1" style={{ color: '#15803d' }}>Equipamentos duradouros</p>
+              </div>
+            </div>
+          </div>
+
+          <p className="mt-6 text-sm italic text-center" style={{ color: '#6b7280' }}>
+            "A estabilidade financeira proporcionada pelo programa nos permitiu realocar recursos antes destinados a contingências para investimentos em expansão."
+          </p>
+
+          {/* Page number and decorative elements */}
+          <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
+            {proposal.number} de {formatDate(proposal.createdAt as Date)}
+          </div>
+          <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+          <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+        </div>
+
         {/* Proposal Details Page */}
         {proposal.title && (
           <div className="relative min-h-[297mm] bg-white p-12">
