@@ -214,9 +214,9 @@ O modelo de manutenção proposto visa garantir o funcionamento adequado dos equ
     ],
   },
   {
-    id: 'ar-condicionado',
-    name: 'Ar Condicionado / Climatização',
-    description: 'Manutenção preventiva e corretiva de sistemas de climatização e PMOC',
+    id: 'climatizacao',
+    name: 'Climatização / Câmaras Frias',
+    description: 'Manutenção preventiva de climatização, ar condicionado e câmaras frias com PMOC',
     icon: '🌡️',
     color: '#0ea5e9',
     sections: [
