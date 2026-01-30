@@ -338,6 +338,7 @@ export default function NewProposal() {
           <TermsConditionsForm
             selectedTerms={termsConditions}
             onChange={setTermsConditions}
+            templateId={selectedTemplate?.id}
           />
         </TabsContent>
       </Tabs>

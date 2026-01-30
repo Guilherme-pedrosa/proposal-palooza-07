@@ -340,6 +340,7 @@ export default function EditProposal() {
           <TermsConditionsForm
             selectedTerms={termsConditions}
             onChange={setTermsConditions}
+            templateId={proposal.templateId}
           />
         </TabsContent>
       </Tabs>

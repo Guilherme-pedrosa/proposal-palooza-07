@@ -20,14 +20,25 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 interface TermsConditionsFormProps {
   selectedTerms: TermCondition[];
   onChange: (terms: TermCondition[]) => void;
+  templateId?: string; // ID do template selecionado para filtrar termos
 }
 
-export function TermsConditionsForm({ selectedTerms, onChange }: TermsConditionsFormProps) {
+export function TermsConditionsForm({ selectedTerms, onChange, templateId }: TermsConditionsFormProps) {
   const { savedTerms } = useProposal();
   const [customTerm, setCustomTerm] = useState({ title: '', description: '' });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTermId, setEditingTermId] = useState<string | null>(null);
   const [editingValues, setEditingValues] = useState({ title: '', description: '' });
+
+  // Filtrar termos: mostrar apenas os do template selecionado + os gerais (templateIds vazio)
+  const filteredSavedTerms = savedTerms.filter(term => {
+    // Termos gerais (sem templateIds) aparecem em todos
+    if (!term.templateIds || term.templateIds.length === 0) return true;
+    // Se não tem template selecionado, mostra todos
+    if (!templateId) return true;
+    // Mostra se o termo pertence ao template selecionado
+    return term.templateIds.includes(templateId);
+  });
 
   const isTermSelected = (id: string) => {
     return selectedTerms.some((t) => t.id === id);
@@ -130,10 +141,17 @@ export function TermsConditionsForm({ selectedTerms, onChange }: TermsConditions
       <CardContent className="space-y-4">
         {/* Saved Terms Selection */}
         <div>
-          <Label className="mb-3 block text-sm font-medium">Selecionar Termos Cadastrados</Label>
+          <Label className="mb-3 block text-sm font-medium">
+            Selecionar Termos Cadastrados
+            {templateId && (
+              <span className="ml-2 text-xs text-muted-foreground font-normal">
+                (exibindo termos para este tipo de proposta)
+              </span>
+            )}
+          </Label>
           <ScrollArea className="h-48 rounded-md border p-3">
             <div className="space-y-3">
-              {savedTerms.map((term) => (
+              {filteredSavedTerms.map((term) => (
                 <div
                   key={term.id}
                   className="flex items-start gap-3 rounded-lg p-2 hover:bg-muted/50 transition-colors"
@@ -156,6 +174,11 @@ export function TermsConditionsForm({ selectedTerms, onChange }: TermsConditions
                   </div>
                 </div>
               ))}
+              {filteredSavedTerms.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Nenhum termo disponível para este tipo de proposta.
+                </p>
+              )}
             </div>
           </ScrollArea>
         </div>
