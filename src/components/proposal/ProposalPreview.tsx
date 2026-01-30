@@ -697,44 +697,69 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           </div>
         )}
 
-        {/* Terms and Conditions Page */}
-        {proposal.termsConditions && proposal.termsConditions.length > 0 && (
-          <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
-            {/* Logo no topo */}
-            <div className="absolute top-8 right-12">
-              <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
+        {/* Terms and Conditions Pages - Paginated */}
+        {proposal.termsConditions && proposal.termsConditions.length > 0 && (() => {
+          // Split terms into pages (max 6 terms per page to fit A4)
+          const termsPerPage = 6;
+          const termsPages: typeof proposal.termsConditions[] = [];
+          for (let i = 0; i < proposal.termsConditions.length; i += termsPerPage) {
+            termsPages.push(proposal.termsConditions.slice(i, i + termsPerPage));
+          }
+
+          return termsPages.map((pageTerms, pageIndex) => (
+            <div key={`terms-page-${pageIndex}`} className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+              {/* Logo no topo */}
+              <div className="absolute top-8 right-12">
+                <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
+              </div>
+
+              <h2 className="mb-2 text-2xl font-bold" style={{ color: '#111827' }}>
+                Termos e Condições
+                {termsPages.length > 1 && <span className="text-base font-normal ml-2" style={{ color: '#9ca3af' }}>({pageIndex + 1}/{termsPages.length})</span>}
+              </h2>
+              {pageIndex === 0 && (
+                <p className="mb-6 text-sm" style={{ color: '#4b5563' }}>
+                  Os dados abaixo descrevem os termos e condições para fornecimento dos produtos e serviços descritos nesta proposta comercial.
+                </p>
+              )}
+
+              {/* Terms List - Compact design */}
+              <div className="space-y-3">
+                {pageTerms.map((term, index) => (
+                  <div 
+                    key={term.id} 
+                    className="rounded-lg p-4"
+                    style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div 
+                        className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                        style={{ backgroundColor: '#dcfce7' }}
+                      >
+                        <span className="text-xs font-bold" style={{ color: '#16a34a' }}>
+                          {pageIndex * termsPerPage + index + 1}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-semibold mb-1" style={{ color: '#111827' }}>{term.title}</h4>
+                        <p className="text-xs leading-relaxed" style={{ color: '#4b5563', lineHeight: '1.6' }}>{term.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Page number */}
+              <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
+                {proposal.number} de {formatDate(proposal.createdAt as Date)}
+              </div>
+
+              {/* Decorative elements */}
+              <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+              <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
             </div>
-
-            <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Termos e Condições</h2>
-            <p className="mb-8" style={{ color: '#4b5563' }}>
-              Os dados abaixo descrevem os termos e condições para fornecimento dos produtos e serviços descritos nesta proposta comercial.
-            </p>
-
-            {/* Terms Table */}
-            <div className="overflow-hidden rounded-lg" style={{ border: '1px solid #e5e7eb' }}>
-              <table className="w-full">
-                <thead>
-                  <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                    <th className="px-4 py-3 text-left text-sm font-semibold" style={{ color: '#374151', width: '30%' }}>Item</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold" style={{ color: '#374151' }}>Descrição</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {proposal.termsConditions.map((term, index) => (
-                    <tr key={term.id} style={{ backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9fafb' }}>
-                      <td className="px-4 py-4 font-medium align-top" style={{ color: '#111827' }}>{term.title}</td>
-                      <td className="px-4 py-4" style={{ color: '#4b5563' }}>{term.description}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Decorative elements */}
-            <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
-            <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
-          </div>
-        )}
+          ));
+        })()}
 
         {/* Images Page */}
         {proposal.images && proposal.images.length > 0 && (
