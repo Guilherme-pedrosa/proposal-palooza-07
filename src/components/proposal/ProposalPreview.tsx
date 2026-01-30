@@ -180,6 +180,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                     <th className="px-4 py-3 text-center text-sm font-semibold" style={{ color: '#374151' }}>Unid.</th>
                     <th className="px-4 py-3 text-center text-sm font-semibold" style={{ color: '#374151' }}>Qtde</th>
                     <th className="px-4 py-3 text-right text-sm font-semibold" style={{ color: '#374151' }}>Valor unitário</th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold" style={{ color: '#374151' }}>Desconto</th>
                     <th className="px-4 py-3 text-right text-sm font-semibold" style={{ color: '#374151' }}>Valor total</th>
                   </tr>
                 </thead>
@@ -189,6 +190,9 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                       <td className="px-4 py-4">
                         <p className="font-medium" style={{ color: '#111827' }}>{product.name}</p>
                         <p className="mt-1 text-sm" style={{ color: '#6b7280' }}>{product.description}</p>
+                        {product.discountNote && (
+                          <p className="mt-1 text-xs italic" style={{ color: '#9ca3af' }}>* {product.discountNote}</p>
+                        )}
                       </td>
                       <td className="px-4 py-4 text-center text-sm" style={{ color: '#4b5563' }}>{product.unit}</td>
                       <td className="px-4 py-4 text-center text-sm" style={{ color: '#4b5563' }}>
@@ -196,6 +200,9 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                       </td>
                       <td className="px-4 py-4 text-right text-sm" style={{ color: '#4b5563' }}>
                         {formatCurrency(product.unitPrice)}
+                      </td>
+                      <td className="px-4 py-4 text-right text-sm" style={{ color: product.discount ? '#dc2626' : '#4b5563' }}>
+                        {product.discount ? `-${formatCurrency(product.discount)}` : '-'}
                       </td>
                       <td className="px-4 py-4 text-right text-sm font-medium" style={{ color: '#111827' }}>
                         {formatCurrency(product.totalPrice)}
