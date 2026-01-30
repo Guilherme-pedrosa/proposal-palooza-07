@@ -42,7 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import html2pdf from 'html2pdf.js';
+import { openPrintWindow } from '@/lib/printProposal';
 
 const statusOptions = [
   { value: 'draft', label: 'Rascunho' },
@@ -153,9 +153,11 @@ export default function EditProposal() {
     navigate('/propostas');
   };
 
-  const handlePrint = () => {
+  const handleExportPDF = () => {
+    setIsExporting(true);
     openPrintWindow(proposalData, company);
     toast.success('Janela de impressão aberta! Use "Salvar como PDF" para exportar.');
+    setTimeout(() => setIsExporting(false), 1000);
   };
 
   return (
