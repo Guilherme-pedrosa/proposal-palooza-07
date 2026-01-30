@@ -2,8 +2,29 @@ import { Proposal } from '@/types/proposal';
 import { CompanySettings } from '@/types/company';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import industrialKitchenBg from '@/assets/industrial-kitchen-bg.jpg';
 
-export function generatePrintHTML(proposal: Partial<Proposal>, company: CompanySettings): string {
+// Convert image to base64 for print HTML
+async function getImageAsBase64(url: string): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = () => resolve('');
+    img.src = url;
+  });
+}
+
+export async function generatePrintHTML(proposal: Partial<Proposal>, company: CompanySettings): Promise<string> {
+  // Get background image as base64
+  const bgImageBase64 = await getImageAsBase64(industrialKitchenBg);
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -131,34 +152,35 @@ export function generatePrintHTML(proposal: Partial<Proposal>, company: CompanyS
     .footer-info { position: absolute; bottom: 32px; left: 48px; font-size: 12px; color: #9ca3af; }
   `;
 
-  // Cover page
+  // Cover page with background image
   const coverPage = `
-    <div class="page" style="background-color: #1a1a1a;">
-      <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.6));"></div>
+    <div class="page" style="position: relative; overflow: hidden;">
+      <div style="position: absolute; inset: 0; background-image: url('${bgImageBase64}'); background-size: cover; background-position: center;"></div>
+      <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.7) 100%);"></div>
       <div style="position: relative; z-index: 1; display: flex; flex-direction: column; height: 100%; padding: 48px; color: white;">
         <div style="margin-bottom: 32px;">
-          <h1 style="font-size: 48px; font-weight: 700; letter-spacing: -0.5px; margin: 0;">Proposta</h1>
-          <h1 style="font-size: 48px; font-weight: 700; letter-spacing: -0.5px; margin: 0;">Comercial</h1>
+          <h1 style="font-size: 48px; font-weight: 700; letter-spacing: -0.5px; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Proposta</h1>
+          <h1 style="font-size: 48px; font-weight: 700; letter-spacing: -0.5px; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Comercial</h1>
         </div>
         <div style="flex: 1;">
-          <p style="font-size: 16px; color: #d1d5db; margin-bottom: 16px;">
+          <p style="font-size: 16px; color: #e5e7eb; margin-bottom: 16px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
             A seguinte proposta comercial foi elaborada em ${formatDate(proposal.createdAt as Date)} para 
             <span style="font-weight: 600; color: white;">${proposal.client?.name || 'Cliente'}</span>.
           </p>
-          <p style="color: #d1d5db; margin-bottom: 8px;">A proposta é válida até ${formatDate(proposal.validUntil as Date)}.</p>
-          <p style="color: #d1d5db;">Número da proposta <span style="font-weight: 600;">${proposal.number || 'P0000'}</span>.</p>
+          <p style="color: #e5e7eb; margin-bottom: 8px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">A proposta é válida até ${formatDate(proposal.validUntil as Date)}.</p>
+          <p style="color: #e5e7eb; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Número da proposta <span style="font-weight: 600;">${proposal.number || 'P0000'}</span>.</p>
         </div>
         <div style="display: flex; align-items: center; gap: 16px; margin-top: auto;">
           <div>
-            <p style="font-size: 16px; font-weight: 500;">${company.name}</p>
-            <p style="color: #9ca3af;">Tel: ${company.phone}</p>
+            <p style="font-size: 16px; font-weight: 500; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">${company.name}</p>
+            <p style="color: #d1d5db; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Tel: ${company.phone}</p>
           </div>
-          <div style="margin-left: auto; background: white; border-radius: 8px; padding: 8px;">
+          <div style="margin-left: auto; background: white; border-radius: 8px; padding: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
             ${company.logo ? `<img src="${company.logo}" alt="${company.name}" style="height: 56px; width: auto;">` : ''}
           </div>
         </div>
-        <div class="corner-decoration" style="width: 192px; height: 192px;"></div>
-        <div class="corner-decoration-small" style="right: 96px; width: 128px; height: 128px;"></div>
+        <div class="corner-decoration" style="width: 160px; height: 160px; opacity: 0.95;"></div>
+        <div class="corner-decoration-small" style="right: 80px; width: 112px; height: 112px; opacity: 0.9;"></div>
       </div>
     </div>
   `;
@@ -452,8 +474,8 @@ export function generatePrintHTML(proposal: Partial<Proposal>, company: CompanyS
   `;
 }
 
-export function openPrintWindow(proposal: Partial<Proposal>, company: CompanySettings) {
-  const html = generatePrintHTML(proposal, company);
+export async function openPrintWindow(proposal: Partial<Proposal>, company: CompanySettings) {
+  const html = await generatePrintHTML(proposal, company);
   const printWindow = window.open('', '_blank', 'width=800,height=600');
   
   if (printWindow) {
