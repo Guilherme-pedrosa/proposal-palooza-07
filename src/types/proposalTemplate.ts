@@ -205,16 +205,7 @@ A WeDo atua com gestão técnica de ativos, assegurando rastreabilidade completa
       },
       {
         name: 'Manutenção Preventiva de Câmaras Frias',
-        description: `Serviço de manutenção preventiva programada em câmaras frias e sistemas de refrigeração.
-• Visitas conforme cronograma acordado entre as partes
-• Inspeção completa da unidade condensadora
-• Verificação e limpeza do evaporador e sistema de degelo
-• Análise do quadro elétrico e componentes de comando
-• Verificação de pressões, temperaturas e fluido refrigerante
-• Inspeção da estrutura da câmara (painéis, gaxetas, fechaduras)
-• Verificação de cortinas de PVC e borrachas varredoras
-• Relatório técnico digital com fotos a cada visita
-• Escopo técnico detalhado conforme Termos e Condições`,
+        description: `Serviço estruturado de manutenção preventiva, com 2 técnicos e 2 visitas mensais, abrangendo inspeções, ajustes e limpeza técnica da unidade condensadora, evaporador, quadro elétrico e estrutura da câmara, incluindo verificação elétrica (tensão, corrente, proteções), mecânica (fixações, vibrações), frigorífica (pressões, temperaturas, óleo, vazamentos, degelo, superaquecimento e subresfriamento), componentes estruturais e de vedação, assegurando funcionamento seguro, desempenho adequado e continuidade operacional, com emissão de relatório técnico digital com fotos.`,
         unit: 'SV',
       },
     ],
