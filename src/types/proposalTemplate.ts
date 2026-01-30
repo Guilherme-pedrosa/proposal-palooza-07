@@ -209,18 +209,48 @@ A WeDo atua com gestão técnica de ativos, assegurando rastreabilidade completa
       {
         name: 'Manutenção Preventiva de Câmaras Frias',
         description: `Serviço estruturado de manutenção preventiva incluindo:
+
+UNIDADE CONDENSADORA:
 • Limpeza da carenagem e condensador
-• Verificação de pontos de oxidação
-• Verificação e aperto de fixação de terminais, cabos e conexões
-• Verificação de ruídos e vibrações anormais
-• Verificação de pressões de alta e baixa
-• Verificação de temperaturas na unidade condensadora
-• Verificação do filtro secador da linha de líquido
-• Verificação de separador de óleo e acumulador de sucção
-• Verificação e ajuste de pressostatos
-• Limpeza de serpentina, bandeja, difusores e ventiladores
-• Verificação do sistema de degelo
-• Verificação de gaxetas, vedações e painéis isotérmicos
+• Verificar pontos de oxidação
+• Verificar e apertar fixação de terminais, cabos, conexões (elétricas e mecânicas)
+• Verificar e corrigir ruídos e vibrações anormais
+• Verificar condições dos cabos elétricos e contatores
+• Verificar condições de atuação da proteção elétrica (relés, disjuntores)
+• Verificar tensão e corrente elétrica
+• Verificar pressões de alta e baixa
+• Verificar temperaturas na UC
+• Verificar filtro secador da linha de líquido
+• Verificar atuação do separador de óleo e acumulador de sucção
+• Verificar condição do óleo do compressor (troca se necessário)
+• Verificar e ajustar todos os pressostatos
+• Verificar funcionamento do motor ventilador
+• Verificar contaminação no visor de líquido
+• Verificar e corrigir vazamento de fluido refrigerante
+
+EVAPORADOR:
+• Limpar serpentina, bandeja, difusores e ventiladores
+• Limpar sistema de drenagem da bandeja
+• Verificar tensão e corrente dos motores, resistências, solenoide
+• Verificar atuação da válvula solenoide e sistema de degelo
+• Verificar fixação do bulbo da válvula de expansão
+• Verificar fixação e calibração das sondas de temperatura
+• Verificar isolamento da tubulação
+• Verificar superaquecimento e subresfriamento
+
+QUADRO ELÉTRICO:
+• Verificar condições dos cabos e barramentos elétricos
+• Verificar atuação do termostato e contatores
+• Verificar interruptores, sinaleiros e botoeiras do alarme
+• Verificar parametrização e condição da caixa de comando
+
+ESTRUTURA DA CÂMARA:
+• Verificar borracha varredora e cortinas de PVC
+• Verificar dobradiças, mancais e fechaduras
+• Verificar gaxetas e resistências
+• Verificar fixação e vedação da soleira e painéis
+• Verificar existência de trincas/fissuras/quebras
+• Verificar válvula de alívio e chapas de proteção
 • Relatório técnico digital com fotos`,
         unit: 'SV',
       },
