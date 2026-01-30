@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useCompany } from '@/contexts/CompanyContext';
-import { CompanyClient } from '@/types/company';
+import { CompanyClient, CompanyBrand } from '@/types/company';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,8 @@ import {
   Save,
   Plus,
   Trash2,
-  Users
+  Users,
+  Package
 } from 'lucide-react';
 import { toast } from 'sonner';
 import logoWedoDefault from '@/assets/logo-wedo.png';
@@ -23,9 +24,12 @@ export default function CompanySettings() {
   const { company, updateCompany, setLogo } = useCompany();
   const inputRef = useRef<HTMLInputElement>(null);
   const clientLogoInputRef = useRef<HTMLInputElement>(null);
+  const brandLogoInputRef = useRef<HTMLInputElement>(null);
   const [newValue, setNewValue] = useState('');
   const [newClientName, setNewClientName] = useState('');
+  const [newBrandName, setNewBrandName] = useState('');
   const [editingClientId, setEditingClientId] = useState<string | null>(null);
+  const [editingBrandId, setEditingBrandId] = useState<string | null>(null);
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -95,6 +99,40 @@ export default function CompanySettings() {
     };
     reader.readAsDataURL(file);
     setEditingClientId(null);
+  };
+
+  const addBrand = () => {
+    if (newBrandName.trim()) {
+      const newBrand: CompanyBrand = {
+        id: crypto.randomUUID(),
+        name: newBrandName.trim(),
+        logo: null,
+      };
+      updateCompany({ brands: [...(company.brands || []), newBrand] });
+      setNewBrandName('');
+      toast.success('Marca adicionada!');
+    }
+  };
+
+  const removeBrand = (id: string) => {
+    updateCompany({ brands: (company.brands || []).filter((b) => b.id !== id) });
+    toast.success('Marca removida!');
+  };
+
+  const handleBrandLogoChange = (e: React.ChangeEvent<HTMLInputElement>, brandId: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const updatedBrands = (company.brands || []).map((b) =>
+        b.id === brandId ? { ...b, logo: event.target?.result as string } : b
+      );
+      updateCompany({ brands: updatedBrands });
+      toast.success('Logo da marca atualizada!');
+    };
+    reader.readAsDataURL(file);
+    setEditingBrandId(null);
   };
 
   return (
@@ -365,6 +403,85 @@ export default function CompanySettings() {
                 onKeyDown={(e) => e.key === 'Enter' && addClient()}
               />
               <Button onClick={addClient} variant="outline" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Adicionar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Principais Marcas */}
+        <Card className="shadow-card animate-fade-in lg:col-span-2">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Package className="h-5 w-5 text-primary" />
+              Principais Marcas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Adicione os logos das principais marcas que você trabalha para exibir na proposta comercial.
+            </p>
+            
+            {/* Lista de marcas */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
+              {(company.brands || []).map((brand) => (
+                <div
+                  key={brand.id}
+                  className="relative group rounded-lg border bg-white p-3 flex flex-col items-center"
+                >
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => removeBrand(brand.id)}
+                    className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                  
+                  <div 
+                    className="h-16 w-full flex items-center justify-center cursor-pointer hover:bg-muted/50 rounded transition-colors"
+                    onClick={() => {
+                      setEditingBrandId(brand.id);
+                      setTimeout(() => brandLogoInputRef.current?.click(), 0);
+                    }}
+                  >
+                    {brand.logo ? (
+                      <img 
+                        src={brand.logo} 
+                        alt={brand.name} 
+                        className="max-h-14 max-w-full object-contain"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center text-muted-foreground">
+                        <Upload className="h-6 w-6 mb-1" />
+                        <span className="text-xs">Add logo</span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-center mt-2 font-medium truncate w-full">{brand.name}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Input hidden para upload de logo da marca */}
+            <input
+              ref={brandLogoInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => editingBrandId && handleBrandLogoChange(e, editingBrandId)}
+            />
+
+            {/* Adicionar nova marca */}
+            <div className="flex gap-2">
+              <Input
+                value={newBrandName}
+                onChange={(e) => setNewBrandName(e.target.value)}
+                placeholder="Nome da marca..."
+                onKeyDown={(e) => e.key === 'Enter' && addBrand()}
+              />
+              <Button onClick={addBrand} variant="outline" className="gap-2">
                 <Plus className="h-4 w-4" />
                 Adicionar
               </Button>

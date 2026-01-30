@@ -144,6 +144,32 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             </div>
           )}
 
+          {/* Principais Marcas */}
+          {company.brands && company.brands.length > 0 && (
+            <div className="mt-12">
+              <h3 className="text-xl font-bold mb-4" style={{ color: '#111827' }}>Marcas que Trabalhamos</h3>
+              <div className="grid grid-cols-3 gap-6">
+                {company.brands.map((brand) => (
+                  <div 
+                    key={brand.id} 
+                    className="flex items-center justify-center rounded-lg p-4 h-20"
+                    style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}
+                  >
+                    {brand.logo ? (
+                      <img 
+                        src={brand.logo} 
+                        alt={brand.name} 
+                        className="max-h-14 max-w-full object-contain"
+                      />
+                    ) : (
+                      <span className="text-sm font-medium" style={{ color: '#6b7280' }}>{brand.name}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Page number and decorative elements */}
           <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
             {proposal.number} de {formatDate(proposal.createdAt as Date)}
