@@ -192,12 +192,29 @@ A WeDo atua com gestão técnica de ativos, assegurando rastreabilidade completa
     defaultProducts: [
       {
         name: 'Manutenção Preventiva de Ar Condicionado (PMOC)',
-        description: `Serviço de manutenção preventiva conforme PMOC, com visitas programadas para limpeza, higienização e verificação técnica dos equipamentos de climatização. Inclui relatório técnico digital com fotos a cada visita.`,
+        description: `Serviço de manutenção preventiva conforme PMOC (Plano de Manutenção, Operação e Controle).
+• Visitas programadas conforme cronograma acordado
+• Limpeza e higienização de evaporadores e condensadores
+• Limpeza química das serpentinas
+• Aferição de temperaturas e pressões
+• Verificação de tensões, correntes e conexões elétricas
+• Verificação de ruídos, vibrações e componentes mecânicos
+• Higienização completa do equipamento
+• Relatório técnico digital com fotos a cada visita`,
         unit: 'SV',
       },
       {
         name: 'Manutenção Preventiva de Câmaras Frias',
-        description: `Serviço de manutenção preventiva programada em câmaras frias e sistemas de refrigeração. Visitas conforme cronograma acordado para inspeção completa de unidade condensadora, evaporador, quadro elétrico e estrutura da câmara. Inclui relatório técnico digital com fotos a cada visita. Escopo técnico detalhado conforme Termos e Condições.`,
+        description: `Serviço de manutenção preventiva programada em câmaras frias e sistemas de refrigeração.
+• Visitas conforme cronograma acordado entre as partes
+• Inspeção completa da unidade condensadora
+• Verificação e limpeza do evaporador e sistema de degelo
+• Análise do quadro elétrico e componentes de comando
+• Verificação de pressões, temperaturas e fluido refrigerante
+• Inspeção da estrutura da câmara (painéis, gaxetas, fechaduras)
+• Verificação de cortinas de PVC e borrachas varredoras
+• Relatório técnico digital com fotos a cada visita
+• Escopo técnico detalhado conforme Termos e Condições`,
         unit: 'SV',
       },
     ],
