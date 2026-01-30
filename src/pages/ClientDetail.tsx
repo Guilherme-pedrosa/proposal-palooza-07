@@ -48,7 +48,7 @@ import { ProposalPreview } from '@/components/proposal/ProposalPreview';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Proposal } from '@/types/proposal';
 import { toast } from 'sonner';
-import html2pdf from 'html2pdf.js';
+import { openPrintWindow } from '@/lib/printProposal';
 
 const statusLabels = {
   draft: { label: 'Rascunho', variant: 'secondary' as const },
@@ -100,43 +100,16 @@ export default function ClientDetail() {
     toast.success('Proposta excluída com sucesso!');
   };
 
-  const handleExportPDF = async () => {
-    if (!previewRef.current || !selectedProposal) {
+  const handleExportPDF = () => {
+    if (!selectedProposal) {
       toast.error('Erro ao gerar PDF. Tente novamente.');
       return;
     }
 
     setIsExporting(true);
-    
-    try {
-      const element = previewRef.current;
-      const fileName = `proposta-${selectedProposal.number}-${selectedProposal.client.name || 'cliente'}.pdf`.replace(/\s+/g, '-').toLowerCase();
-      
-      const opt = {
-        margin: 0,
-        filename: fileName,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          letterRendering: true,
-        },
-        jsPDF: { 
-          unit: 'mm', 
-          format: 'a4', 
-          orientation: 'portrait' 
-        },
-        pagebreak: { mode: ['css', 'legacy'], before: '.pdf-page' }
-      };
-
-      await html2pdf().set(opt).from(element).save();
-      toast.success('PDF exportado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao exportar PDF:', error);
-      toast.error('Erro ao exportar PDF. Tente novamente.');
-    } finally {
-      setIsExporting(false);
-    }
+    openPrintWindow(selectedProposal, company);
+    toast.success('Janela de impressão aberta! Use "Salvar como PDF" para exportar.');
+    setTimeout(() => setIsExporting(false), 1000);
   };
 
   if (isLoading) {

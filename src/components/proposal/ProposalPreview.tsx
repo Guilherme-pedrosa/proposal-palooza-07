@@ -95,86 +95,34 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           </div>
 
           <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>O que nos move?</h2>
-          <p className="mb-12" style={{ color: '#4b5563' }}>Acreditamos em nossa missão e respeitamos os nossos valores.</p>
+          <p className="mb-8" style={{ color: '#4b5563' }}>Acreditamos em nossa missão e respeitamos os nossos valores.</p>
 
-          <div className="grid grid-cols-1 gap-8">
+          <div className="grid grid-cols-1 gap-6">
             {/* Visão */}
-            <div className="rounded-lg p-6" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-              <h3 className="text-xl font-bold mb-3" style={{ color: '#15803d' }}>Visão</h3>
-              <p style={{ color: '#374151' }}>{company.vision}</p>
+            <div className="rounded-lg p-5" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+              <h3 className="text-lg font-bold mb-2" style={{ color: '#15803d' }}>Visão</h3>
+              <p className="text-sm" style={{ color: '#374151' }}>{company.vision}</p>
             </div>
 
             {/* Missão */}
-            <div className="rounded-lg p-6" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-              <h3 className="text-xl font-bold mb-3" style={{ color: '#15803d' }}>Missão</h3>
-              <p style={{ color: '#374151' }}>{company.mission}</p>
+            <div className="rounded-lg p-5" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+              <h3 className="text-lg font-bold mb-2" style={{ color: '#15803d' }}>Missão</h3>
+              <p className="text-sm" style={{ color: '#374151' }}>{company.mission}</p>
             </div>
 
             {/* Valores */}
-            <div className="rounded-lg p-6" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-              <h3 className="text-xl font-bold mb-3" style={{ color: '#15803d' }}>Valores</h3>
+            <div className="rounded-lg p-5" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+              <h3 className="text-lg font-bold mb-2" style={{ color: '#15803d' }}>Valores</h3>
               <div className="grid grid-cols-2 gap-2">
                 {company.values.map((value, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }} />
-                    <span style={{ color: '#374151' }}>{value}</span>
+                    <span className="text-sm" style={{ color: '#374151' }}>{value}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
-
-          {/* Principais Clientes */}
-          {company.clients && company.clients.length > 0 && (
-            <div className="mt-12">
-              <h3 className="text-xl font-bold mb-4" style={{ color: '#111827' }}>Principais Clientes</h3>
-              <div className="grid grid-cols-3 gap-6">
-                {company.clients.map((client) => (
-                  <div 
-                    key={client.id} 
-                    className="flex items-center justify-center rounded-lg p-4 h-20"
-                    style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}
-                  >
-                    {client.logo ? (
-                      <img 
-                        src={client.logo} 
-                        alt={client.name} 
-                        className="max-h-14 max-w-full object-contain"
-                      />
-                    ) : (
-                      <span className="text-sm font-medium" style={{ color: '#6b7280' }}>{client.name}</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Principais Marcas */}
-          {company.brands && company.brands.length > 0 && (
-            <div className="mt-12">
-              <h3 className="text-xl font-bold mb-4" style={{ color: '#111827' }}>Marcas que Trabalhamos</h3>
-              <div className="grid grid-cols-3 gap-6">
-                {company.brands.map((brand) => (
-                  <div 
-                    key={brand.id} 
-                    className="flex items-center justify-center rounded-lg p-4 h-20"
-                    style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}
-                  >
-                    {brand.logo ? (
-                      <img 
-                        src={brand.logo} 
-                        alt={brand.name} 
-                        className="max-h-14 max-w-full object-contain"
-                      />
-                    ) : (
-                      <span className="text-sm font-medium" style={{ color: '#6b7280' }}>{brand.name}</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Page number and decorative elements */}
           <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
@@ -183,6 +131,75 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
           <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
         </div>
+
+        {/* Clients & Brands Page - Separate page for better layout */}
+        {((company.clients && company.clients.length > 0) || (company.brands && company.brands.length > 0)) && (
+          <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+            {/* Logo no topo */}
+            <div className="absolute top-8 right-12">
+              <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
+            </div>
+
+            {/* Principais Clientes */}
+            {company.clients && company.clients.length > 0 && (
+              <div className="mb-10">
+                <h2 className="text-2xl font-bold mb-6" style={{ color: '#111827' }}>Principais Clientes</h2>
+                <div className="grid grid-cols-4 gap-4">
+                  {company.clients.slice(0, 12).map((client) => (
+                    <div 
+                      key={client.id} 
+                      className="flex items-center justify-center rounded-lg p-3 h-16"
+                      style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}
+                    >
+                      {client.logo ? (
+                        <img 
+                          src={client.logo} 
+                          alt={client.name} 
+                          className="max-h-12 max-w-full object-contain"
+                        />
+                      ) : (
+                        <span className="text-xs font-medium text-center" style={{ color: '#6b7280' }}>{client.name}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Principais Marcas */}
+            {company.brands && company.brands.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold mb-6" style={{ color: '#111827' }}>Marcas que Trabalhamos</h2>
+                <div className="grid grid-cols-4 gap-4">
+                  {company.brands.slice(0, 12).map((brand) => (
+                    <div 
+                      key={brand.id} 
+                      className="flex items-center justify-center rounded-lg p-3 h-16"
+                      style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}
+                    >
+                      {brand.logo ? (
+                        <img 
+                          src={brand.logo} 
+                          alt={brand.name} 
+                          className="max-h-12 max-w-full object-contain"
+                        />
+                      ) : (
+                        <span className="text-xs font-medium text-center" style={{ color: '#6b7280' }}>{brand.name}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Page number and decorative elements */}
+            <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
+              {proposal.number} de {formatDate(proposal.createdAt as Date)}
+            </div>
+            <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+            <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+          </div>
+        )}
 
         {/* Preventiva-specific sections */}
         {isPreventiva && (
