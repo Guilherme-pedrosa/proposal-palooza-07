@@ -163,39 +163,40 @@ export function generatePrintHTML(proposal: Partial<Proposal>, company: CompanyS
     </div>
   `;
 
-  // Company presentation page - Vision, Mission, Values ONLY
+  // Company presentation page - Vision, Mission, Values ONLY - COM ESTILOS INLINE
   const companyPage = `
-    <div class="page" style="background: white;">
-      <div class="page-content">
-        ${company.logo ? `<img src="${company.logo}" class="logo-top" alt="${company.name}">` : ''}
-        <h2 class="title">O que nos move?</h2>
-        <p class="subtitle">Acreditamos em nossa missão e respeitamos os nossos valores.</p>
+    <div class="page" style="background: white; width: 210mm; min-height: 297mm; position: relative; page-break-after: always; page-break-inside: avoid;">
+      <div style="padding: 48px; height: 100%; position: relative;">
+        ${company.logo ? `<img src="${company.logo}" style="position: absolute; top: 32px; right: 48px; height: 48px;" alt="${company.name}">` : ''}
         
-        <div class="card">
-          <h3 class="card-title">Visão</h3>
-          <p class="card-text">${company.vision || ''}</p>
+        <h2 style="font-size: 28px; font-weight: 700; color: #111827; margin-bottom: 8px;">O que nos move?</h2>
+        <p style="font-size: 14px; color: #4b5563; margin-bottom: 24px;">Acreditamos em nossa missão e respeitamos os nossos valores.</p>
+        
+        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 24px; margin-bottom: 16px;">
+          <h3 style="font-size: 18px; font-weight: 700; color: #15803d; margin-bottom: 12px;">Visão</h3>
+          <p style="font-size: 14px; color: #374151; line-height: 1.6;">${company.vision || ''}</p>
         </div>
         
-        <div class="card">
-          <h3 class="card-title">Missão</h3>
-          <p class="card-text">${company.mission || ''}</p>
+        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 24px; margin-bottom: 16px;">
+          <h3 style="font-size: 18px; font-weight: 700; color: #15803d; margin-bottom: 12px;">Missão</h3>
+          <p style="font-size: 14px; color: #374151; line-height: 1.6;">${company.mission || ''}</p>
         </div>
         
-        <div class="card">
-          <h3 class="card-title">Valores</h3>
-          <div class="values-grid">
+        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 24px; margin-bottom: 16px;">
+          <h3 style="font-size: 18px; font-weight: 700; color: #15803d; margin-bottom: 12px;">Valores</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
             ${(company.values || []).map(v => `
-              <div class="value-item">
-                <div class="value-dot"></div>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #374151;">
+                <div style="width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; flex-shrink: 0;"></div>
                 <span>${v}</span>
               </div>
             `).join('')}
           </div>
         </div>
         
-        <div class="corner-decoration"></div>
-        <div class="corner-decoration-small"></div>
-        <div class="footer-info">${proposal.number} de ${formatDate(proposal.createdAt as Date)}</div>
+        <div style="position: absolute; bottom: 0; right: 0; width: 128px; height: 128px; background-color: #22c55e; clip-path: polygon(100% 0, 100% 100%, 0 100%);"></div>
+        <div style="position: absolute; bottom: 0; right: 64px; width: 80px; height: 80px; background-color: #16a34a; clip-path: polygon(100% 0, 100% 100%, 0 100%);"></div>
+        <div style="position: absolute; bottom: 32px; left: 48px; font-size: 12px; color: #9ca3af;">${proposal.number} de ${formatDate(proposal.createdAt as Date)}</div>
       </div>
     </div>
   `;
