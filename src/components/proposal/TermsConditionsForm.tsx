@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { TermCondition, SavedTermCondition } from '@/types/proposal';
 import { useProposal } from '@/contexts/ProposalContext';
-import { ClipboardList, Plus, X } from 'lucide-react';
+import { ClipboardList, Plus, X, Edit2, Check } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,8 @@ export function TermsConditionsForm({ selectedTerms, onChange }: TermsConditions
   const { savedTerms } = useProposal();
   const [customTerm, setCustomTerm] = useState({ title: '', description: '' });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingTermId, setEditingTermId] = useState<string | null>(null);
+  const [editingValues, setEditingValues] = useState({ title: '', description: '' });
 
   const isTermSelected = (id: string) => {
     return selectedTerms.some((t) => t.id === id);
@@ -35,7 +37,7 @@ export function TermsConditionsForm({ selectedTerms, onChange }: TermsConditions
     if (isTermSelected(term.id)) {
       onChange(selectedTerms.filter((t) => t.id !== term.id));
     } else {
-      onChange([...selectedTerms, { id: term.id, title: term.title, description: term.description }]);
+      onChange([...selectedTerms, { id: crypto.randomUUID(), title: term.title, description: term.description }]);
     }
   };
 
@@ -54,6 +56,30 @@ export function TermsConditionsForm({ selectedTerms, onChange }: TermsConditions
 
   const removeTerm = (id: string) => {
     onChange(selectedTerms.filter((t) => t.id !== id));
+  };
+
+  const startEditing = (term: TermCondition) => {
+    setEditingTermId(term.id);
+    setEditingValues({ title: term.title, description: term.description });
+  };
+
+  const saveEditing = () => {
+    if (editingTermId) {
+      onChange(
+        selectedTerms.map((t) =>
+          t.id === editingTermId
+            ? { ...t, title: editingValues.title, description: editingValues.description }
+            : t
+        )
+      );
+      setEditingTermId(null);
+      setEditingValues({ title: '', description: '' });
+    }
+  };
+
+  const cancelEditing = () => {
+    setEditingTermId(null);
+    setEditingValues({ title: '', description: '' });
   };
 
   return (
@@ -134,30 +160,70 @@ export function TermsConditionsForm({ selectedTerms, onChange }: TermsConditions
           </ScrollArea>
         </div>
 
-        {/* Selected Terms */}
+        {/* Selected Terms - EDITÁVEIS */}
         {selectedTerms.length > 0 && (
           <div>
             <Label className="mb-3 block text-sm font-medium">
-              Termos Selecionados ({selectedTerms.length})
+              Termos Selecionados ({selectedTerms.length}) - Clique no ícone de edição para modificar
             </Label>
             <div className="space-y-2">
               {selectedTerms.map((term) => (
                 <div
                   key={term.id}
-                  className="flex items-start justify-between gap-2 rounded-lg border bg-secondary/30 p-3 animate-scale-in"
+                  className="rounded-lg border bg-secondary/30 p-3 animate-scale-in"
                 >
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{term.title}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{term.description}</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeTerm(term.id)}
-                    className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  {editingTermId === term.id ? (
+                    <div className="space-y-3">
+                      <Input
+                        value={editingValues.title}
+                        onChange={(e) => setEditingValues({ ...editingValues, title: e.target.value })}
+                        placeholder="Título do termo"
+                        className="font-medium"
+                      />
+                      <Textarea
+                        value={editingValues.description}
+                        onChange={(e) => setEditingValues({ ...editingValues, description: e.target.value })}
+                        placeholder="Descrição do termo..."
+                        rows={3}
+                      />
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={saveEditing} className="gap-1">
+                          <Check className="h-4 w-4" />
+                          Salvar
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={cancelEditing}>
+                          Cancelar
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{term.title}</p>
+                        <p className="mt-1 text-xs text-muted-foreground whitespace-pre-wrap">{term.description}</p>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEditing(term)}
+                          className="h-7 w-7 p-0 text-primary hover:bg-primary/10"
+                          title="Editar termo"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeTerm(term.id)}
+                          className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          title="Remover termo"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

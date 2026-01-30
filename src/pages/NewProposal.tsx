@@ -44,8 +44,8 @@ export default function NewProposal() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [validUntil, setValidUntil] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [companyPhone, setCompanyPhone] = useState('');
+  const [companyName, setCompanyName] = useState('WeDo Cozinhas');
+  const [companyPhone, setCompanyPhone] = useState('(62) 99446-6458');
   const [companyEmail, setCompanyEmail] = useState('');
   const [client, setClient] = useState<Client>({
     id: crypto.randomUUID(),
