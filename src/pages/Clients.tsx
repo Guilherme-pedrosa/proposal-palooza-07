@@ -499,11 +499,23 @@ function ClientRow({
       </TableCell>
       <TableCell className="text-right">
         <div className="flex items-center justify-end gap-2">
-          <Badge variant="outline" className="gap-1">
+          <Badge 
+            variant="outline" 
+            className="gap-1 cursor-pointer hover:bg-muted"
+            onClick={() => onNavigate(`/cliente/${client.id}`)}
+          >
             <FileText className="h-3 w-3" />
             {proposals.length} proposta{proposals.length !== 1 ? 's' : ''}
           </Badge>
-          <Button variant="ghost" size="icon" onClick={() => onEdit(client)}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => onNavigate(`/cliente/${client.id}`)}
+            title="Ver detalhes"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => onEdit(client)} title="Editar">
             <Edit className="h-4 w-4" />
           </Button>
           <Button 
@@ -511,6 +523,7 @@ function ClientRow({
             size="icon" 
             onClick={onDelete}
             className="text-destructive hover:text-destructive"
+            title="Excluir"
           >
             <Trash2 className="h-4 w-4" />
           </Button>

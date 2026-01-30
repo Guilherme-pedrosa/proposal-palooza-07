@@ -16,7 +16,8 @@ import {
   Building2,
   DollarSign,
   Download,
-  Loader2
+  Loader2,
+  Edit
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -222,6 +223,15 @@ export default function Proposals() {
                     <Eye className="h-4 w-4" />
                     Ver
                   </Button>
+                  <Link to={`/proposta/${proposal.id}/editar`}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </Link>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
