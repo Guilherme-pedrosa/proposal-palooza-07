@@ -5,6 +5,7 @@ import { ProductsForm } from '@/components/proposal/ProductsForm';
 import { TermsConditionsForm } from '@/components/proposal/TermsConditionsForm';
 import { ImagesForm } from '@/components/proposal/ImagesForm';
 import { ProposalPreview } from '@/components/proposal/ProposalPreview';
+import { TemplateSelector } from '@/components/proposal/TemplateSelector';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Client, Product, TermCondition, ProposalImage, Proposal } from '@/types/proposal';
+import { ProposalTemplate } from '@/types/proposalTemplate';
 import { useProposal } from '@/contexts/ProposalContext';
 import { useCompany } from '@/contexts/CompanyContext';
 import { useNavigate, Link } from 'react-router-dom';
@@ -22,7 +24,9 @@ import {
   Save, 
   Building2,
   Calendar,
-  Settings
+  Settings,
+  ArrowLeft,
+  ArrowRight
 } from 'lucide-react';
 import {
   Dialog,
@@ -39,6 +43,7 @@ export default function NewProposal() {
   const { company } = useCompany();
   const previewRef = useRef<HTMLDivElement>(null);
 
+  const [selectedTemplate, setSelectedTemplate] = useState<ProposalTemplate | null>(null);
   const [activeTab, setActiveTab] = useState('info');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
@@ -59,7 +64,7 @@ export default function NewProposal() {
   const [termsConditions, setTermsConditions] = useState<TermCondition[]>([]);
   const [images, setImages] = useState<ProposalImage[]>([]);
 
-  const proposalData: Partial<Proposal> = {
+  const proposalData: Partial<Proposal> & { templateId?: string } = {
     number: proposalNumber,
     title,
     description,
@@ -74,6 +79,15 @@ export default function NewProposal() {
     companyPhone: company.phone,
     companyEmail: company.email,
     status: 'draft',
+    templateId: selectedTemplate?.id,
+  };
+
+  const handleSelectTemplate = (template: ProposalTemplate) => {
+    setSelectedTemplate(template);
+    // Pre-fill title based on template
+    if (!title) {
+      setTitle(`Proposta de ${template.name}`);
+    }
   };
 
   const handleSave = () => {
@@ -110,13 +124,52 @@ export default function NewProposal() {
     navigate('/propostas');
   };
 
+  // Show template selector if no template selected
+  if (!selectedTemplate) {
+    return (
+      <MainLayout>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-foreground">Nova Proposta</h1>
+          <p className="text-sm text-muted-foreground">
+            Escolha o modelo de proposta para começar
+          </p>
+        </div>
+
+        <TemplateSelector 
+          selectedTemplate={selectedTemplate} 
+          onSelect={handleSelectTemplate} 
+        />
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Nova Proposta</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-foreground">Nova Proposta</h1>
+            <span 
+              className="px-3 py-1 rounded-full text-sm font-medium"
+              style={{ 
+                backgroundColor: `${selectedTemplate.color}20`,
+                color: selectedTemplate.color,
+              }}
+            >
+              {selectedTemplate.icon} {selectedTemplate.name}
+            </span>
+          </div>
           <p className="text-sm text-muted-foreground">
             Proposta nº <span className="font-medium text-primary">{proposalNumber}</span>
+            <Button 
+              variant="link" 
+              size="sm" 
+              onClick={() => setSelectedTemplate(null)}
+              className="text-xs ml-2 h-auto p-0"
+            >
+              <ArrowLeft className="h-3 w-3 mr-1" />
+              Trocar modelo
+            </Button>
           </p>
         </div>
         <div className="flex gap-2">

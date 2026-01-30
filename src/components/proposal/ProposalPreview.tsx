@@ -26,6 +26,12 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
     const totalValue = proposal.products?.reduce((sum, p) => sum + p.totalPrice, 0) || 0;
     const companyLogo = company.logo || logoWedoDefault;
+    
+    // Check template type for conditional rendering
+    const isPreventiva = proposal.templateId === 'preventiva' || !proposal.templateId;
+    const isCoifa = proposal.templateId === 'coifa';
+    const isQuimicos = proposal.templateId === 'quimicos';
+    const isInstalacao = proposal.templateId === 'instalacao';
 
     return (
       <div
@@ -178,8 +184,11 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
         </div>
 
-        {/* Objectives Page - Objetivos da Manutenção Preventiva */}
-        <div className="relative min-h-[297mm] bg-white p-12">
+        {/* Preventiva-specific sections */}
+        {isPreventiva && (
+          <>
+            {/* Objectives Page - Objetivos da Manutenção Preventiva */}
+            <div className="relative min-h-[297mm] bg-white p-12">
           {/* Logo no topo */}
           <div className="absolute top-8 right-12">
             <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -471,7 +480,9 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           </div>
           <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
           <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
-        </div>
+          </div>
+          </>
+        )}
 
         {/* Proposal Details Page */}
         {proposal.title && (

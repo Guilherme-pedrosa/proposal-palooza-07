@@ -47,6 +47,7 @@ export interface Proposal {
   companyName: string;
   companyPhone: string;
   companyEmail?: string;
+  templateId?: string;
 }
 
 export interface SavedTermCondition {
