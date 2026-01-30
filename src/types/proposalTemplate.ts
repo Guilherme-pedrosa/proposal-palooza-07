@@ -5,6 +5,12 @@ export interface ProposalTemplateSection {
   enabled: boolean;
 }
 
+export interface DefaultProduct {
+  name: string;
+  description: string;
+  unit: string;
+}
+
 export interface ProposalTemplate {
   id: string;
   name: string;
@@ -14,6 +20,7 @@ export interface ProposalTemplate {
   sections: ProposalTemplateSection[];
   defaultTitle: string;
   defaultDescription: string;
+  defaultProducts: DefaultProduct[];
 }
 
 export const proposalTemplates: ProposalTemplate[] = [
@@ -42,6 +49,20 @@ O programa inclui:
 • Equipe certificada em NR10, NR12 e ABNT
 
 Incluso gestão via plataforma própria, atendimento emergencial com SLA, fornecimento de EPIs e software de controle.`,
+    defaultProducts: [
+      {
+        name: 'Manutenção Preventiva',
+        description: `Serviço completo de manutenção preventiva incluindo:
+• Inspeção e limpeza de queimadores
+• Verificação de válvulas e conexões de gás
+• Teste de termostatos e controladores
+• Limpeza e ajuste de componentes elétricos
+• Verificação de sistemas de segurança
+• Lubrificação de partes móveis
+• Relatório técnico digital com fotos`,
+        unit: 'SV',
+      },
+    ],
   },
   {
     id: 'coifa',
@@ -66,6 +87,20 @@ O serviço inclui:
 • Remoção de gordura acumulada
 • Emissão de laudo técnico
 • Conformidade com NR23 e ABNT NBR 14880`,
+    defaultProducts: [
+      {
+        name: 'Limpeza de Coifa Completa',
+        description: `Serviço completo de limpeza de sistema de exaustão:
+• Limpeza interna e externa da coifa
+• Higienização de filtros de gordura
+• Limpeza de dutos de exaustão
+• Limpeza de exaustores e ventiladores
+• Remoção de gordura saturada
+• Emissão de laudo técnico com fotos
+• Certificado de conformidade`,
+        unit: 'SV',
+      },
+    ],
   },
   {
     id: 'quimicos',
@@ -90,6 +125,18 @@ O fornecimento inclui:
 • Produtos para higienização de superfícies
 • Fichas de segurança (FISPQ)
 • Treinamento de aplicação`,
+    defaultProducts: [
+      {
+        name: 'Kit Produtos de Limpeza Profissional',
+        description: `Kit completo de produtos químicos para cozinha profissional:
+• Detergente desengraxante industrial
+• Sanitizante para superfícies
+• Desincrustante alcalino
+• Limpa-inox profissional
+• Fichas FISPQ incluídas`,
+        unit: 'KIT',
+      },
+    ],
   },
   {
     id: 'instalacao',
@@ -114,5 +161,19 @@ O serviço inclui:
 • Testes de funcionamento
 • Treinamento operacional da equipe
 • Suporte pós-instalação`,
+    defaultProducts: [
+      {
+        name: 'Instalação de Equipamento',
+        description: `Serviço completo de instalação incluindo:
+• Montagem e posicionamento do equipamento
+• Conexões elétricas conforme normas
+• Conexões hidráulicas/gás quando aplicável
+• Configuração inicial e calibração
+• Testes de funcionamento
+• Treinamento operacional básico
+• Garantia do serviço de instalação`,
+        unit: 'SV',
+      },
+    ],
   },
 ];
