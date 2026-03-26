@@ -10,6 +10,7 @@ export interface WAIMessage {
 
 export interface WAIContexto {
   cliente?: {
+    id?: string;
     nome: string;
     segmento?: string | null;
     porte?: string | null;
