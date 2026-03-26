@@ -155,6 +155,23 @@ export default function Hoje() {
     queryFn: fetchMotivosPerda,
   });
 
+  // Fetch WAI daily tip
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('notificacoes')
+      .select('descricao, created_at')
+      .eq('usuario_id', user.id)
+      .eq('tipo', 'dica_wai')
+      .gte('created_at', new Date().toISOString().split('T')[0])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+      .then(({ data }) => {
+        if (data) setDicaDiaria(data.descricao);
+      });
+  }, [user]);
+
   // Group activities
   const grupos = useMemo(() => {
     const map: Record<GrupoAtividade, AtividadeComCliente[]> = {
