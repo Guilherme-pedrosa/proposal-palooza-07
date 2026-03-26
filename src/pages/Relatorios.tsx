@@ -14,7 +14,8 @@ import { exportarCSV, type Periodo } from '@/hooks/useDashboardData';
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
-import { Download, BarChart3, Package, AlertTriangle, ClipboardList } from 'lucide-react';
+import { Download, BarChart3, Package, AlertTriangle, ClipboardList, Sparkles } from 'lucide-react';
+import { WAICustoCard } from '@/components/WAICustoCard';
 import { subMonths, subDays, startOfMonth, endOfMonth, startOfQuarter, startOfYear, format } from 'date-fns';
 
 const PIE_COLORS = ['#3B82F6', '#22C55E', '#EAB308', '#EF4444', '#8B5CF6', '#F97316', '#6B7280', '#EC4899'];
