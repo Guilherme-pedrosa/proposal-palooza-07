@@ -418,6 +418,21 @@ export default function PropostaEditor() {
                 🔧 {carregandoGC ? 'Criando...' : 'Criar no GC'}
               </Button>
             )}
+            <WAIButton
+              variant="header"
+              contexto={{
+                cliente: clienteSelecionado ? {
+                  nome: clienteSelecionado.nome,
+                  segmento: clienteSelecionado.segmento,
+                } : undefined,
+                proposta: {
+                  numero: numero,
+                  status: status,
+                  valor_total: total,
+                  produtos_nomes: produtos.map(p => p.name).filter(Boolean).join(', '),
+                },
+              }}
+            />
           </div>
         </div>
 

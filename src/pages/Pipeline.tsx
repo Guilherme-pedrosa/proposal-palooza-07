@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { WAIButton } from '@/components/WAIButton';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

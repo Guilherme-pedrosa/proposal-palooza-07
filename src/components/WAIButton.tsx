@@ -35,6 +35,27 @@ export function WAIButton({ contexto, variant = 'inline' }: WAIButtonProps) {
     );
   }
 
+  if (variant === 'header') {
+    return (
+      <>
+        <button
+          onClick={() => setAberto(true)}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/10 text-primary text-xs rounded-lg hover:bg-primary/20 transition-colors"
+          aria-label="Abrir assistente WAI"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span className="font-medium">WAI</span>
+        </button>
+
+        <Sheet open={aberto} onOpenChange={setAberto}>
+          <SheetContent side="right" className="w-full sm:w-[420px] p-0">
+            <WAIChat contexto={contexto} onClose={() => setAberto(false)} />
+          </SheetContent>
+        </Sheet>
+      </>
+    );
+  }
+
   return (
     <>
       <button
