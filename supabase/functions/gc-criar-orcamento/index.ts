@@ -10,11 +10,11 @@ const GC_LOJA_ID = 446246;
 const GC_SITUACAO_ORCAMENTO_INICIAL = 7116099;
 const GC_MAX_RETRIES = 3;
 
-async function fetchComRetry(url: string, body: object, maxRetries: number): Promise<Response> {
+async function fetchComRetry(url: string, headers: Record<string, string>, body: object, maxRetries: number): Promise<Response> {
   for (let tentativa = 0; tentativa < maxRetries; tentativa++) {
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(body),
     });
     if (response.status === 429) {
@@ -40,6 +40,12 @@ serve(async (req) => {
     });
   }
 
+  const gcHeaders = {
+    'access-token': ACCESS_TOKEN,
+    'secret-access-token': SECRET_TOKEN,
+    'Content-Type': 'application/json',
+  };
+
   const {
     gc_cliente_id,
     produtos,
@@ -61,12 +67,11 @@ serve(async (req) => {
   };
 
   const url = `${GC_BASE_URL}/orcamentos?` + new URLSearchParams({
-    access_token: ACCESS_TOKEN,
-    secret_access_token: SECRET_TOKEN,
+    loja_id: String(GC_LOJA_ID),
   });
 
   try {
-    const response = await fetchComRetry(url, payload, GC_MAX_RETRIES);
+    const response = await fetchComRetry(url, gcHeaders, payload, GC_MAX_RETRIES);
 
     if (response.status === 401) {
       return new Response(JSON.stringify({
