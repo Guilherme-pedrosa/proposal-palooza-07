@@ -54,76 +54,82 @@ serve(async (req) => {
     });
   }
 
-  let pagina = 1;
   let totalSincronizados = 0;
   let erros = 0;
-  let continuar = true;
+  let paginasTotal = 0;
 
-  while (continuar) {
-    if (pagina > 1) {
+  for (const grupoId of GC_GRUPO_IDS) {
+    let pagina = 1;
+    let continuar = true;
+
+    while (continuar) {
       await new Promise(resolve => setTimeout(resolve, GC_RATE_LIMIT_DELAY_MS));
-    }
 
-    const url = `${GC_BASE_URL}/produtos?` + new URLSearchParams({
-      access_token: ACCESS_TOKEN,
-      secret_access_token: SECRET_TOKEN,
-      loja_id: String(GC_LOJA_ID),
-      limite: String(GC_MAX_PER_PAGE),
-      pagina: String(pagina),
-    });
+      const url = `${GC_BASE_URL}/produtos?` + new URLSearchParams({
+        access_token: ACCESS_TOKEN,
+        secret_access_token: SECRET_TOKEN,
+        loja_id: String(GC_LOJA_ID),
+        limite: String(GC_MAX_PER_PAGE),
+        pagina: String(pagina),
+        grupo_id: grupoId,
+      });
 
-    try {
-      const response = await fetchComRetry(url, GC_MAX_RETRIES);
+      try {
+        const response = await fetchComRetry(url, GC_MAX_RETRIES);
 
-      if (!response.ok) {
-        await supabase.from('gc_sync_log').insert({
-          entidade: 'produtos', acao: 'sync_pagina',
-          status: 'erro',
-          detalhes: { pagina, status: response.status, body: await response.text() }
-        });
-        break;
-      }
+        if (!response.ok) {
+          await supabase.from('gc_sync_log').insert({
+            entidade: 'produtos', acao: 'sync_pagina',
+            status: 'erro',
+            detalhes: { grupo_id: grupoId, pagina, status: response.status, body: await response.text() }
+          });
+          erros++;
+          break;
+        }
 
-      const body = await response.json();
-      const produtos = body?.data || body;
+        const body = await response.json();
+        const produtos = body?.data || body;
 
-      if (!Array.isArray(produtos) || produtos.length === 0) {
-        continuar = false;
-        break;
-      }
+        if (!Array.isArray(produtos) || produtos.length === 0) {
+          continuar = false;
+          break;
+        }
 
-      // Build upsert records WITHOUT foto_url to preserve manual uploads
-      const registros = produtos.map((p: any) => ({
-        gc_id: String(p.id),
-        codigo: p.codigo,
-        nome: p.nome,
-        descricao: p.descricao,
-        tipo: p.tipo_produto === 'S' ? 'servico' : 'produto',
-        preco_venda: parseFloat(p.preco_venda) || null,
-        unidade: p.unidade || 'UN',
-        estoque_atual: parseFloat(p.estoque_atual) || 0,
-        ativo: p.ativo !== false,
-        gc_synced_at: new Date().toISOString(),
-      }));
+        const registros = produtos.map((p: any) => ({
+          gc_id: String(p.id),
+          codigo: p.codigo,
+          nome: p.nome,
+          descricao: p.descricao,
+          categoria: p.nome_grupo || null,
+          tipo: p.tipo_produto === 'S' ? 'servico' : 'produto',
+          preco_venda: parseFloat(p.preco_venda) || null,
+          unidade: p.unidade || 'UN',
+          estoque_atual: parseFloat(p.estoque_atual) || 0,
+          ativo: p.ativo !== false,
+          gc_synced_at: new Date().toISOString(),
+        }));
 
-      const { error } = await supabase
-        .from('produtos_gc')
-        .upsert(registros, { onConflict: 'gc_id', ignoreDuplicates: false });
+        const { error } = await supabase
+          .from('produtos_gc')
+          .upsert(registros, { onConflict: 'gc_id', ignoreDuplicates: false });
 
-      if (error) {
+        if (error) {
+          erros++;
+        } else {
+          totalSincronizados += registros.length;
+        }
+
+        paginasTotal++;
+
+        if (produtos.length < GC_MAX_PER_PAGE) {
+          continuar = false;
+        } else {
+          pagina++;
+        }
+      } catch (e) {
         erros++;
-      } else {
-        totalSincronizados += registros.length;
-      }
-
-      if (produtos.length < GC_MAX_PER_PAGE) {
         continuar = false;
-      } else {
-        pagina++;
       }
-    } catch (e) {
-      erros++;
-      continuar = false;
     }
   }
 
