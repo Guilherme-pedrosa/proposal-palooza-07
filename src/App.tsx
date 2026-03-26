@@ -19,8 +19,6 @@ import Proposals from "./pages/Proposals";
 import ClientesGC from "./pages/ClientesGC";
 import ClienteDetail360 from "./pages/ClienteDetail360";
 import ClienteForm from "./pages/ClienteForm";
-import Clients from "./pages/Clients";
-import ClientDetail from "./pages/ClientDetail";
 import Catalogo from "./pages/Catalogo";
 import CatalogoDetail from "./pages/CatalogoDetail";
 import OportunidadeNova from "./pages/OportunidadeNova";
