@@ -36,6 +36,8 @@ import {
 } from '@/lib/api/atividades';
 import { insertAtividade, updateOportunidadeEtapa, fetchMotivosPerda, formatBRL } from '@/lib/api/oportunidades';
 import { supabase } from '@/integrations/supabase/client';
+import { WAIButton } from '@/components/WAIButton';
+import { Sparkles } from 'lucide-react';
 
 const grupoConfig: Record<GrupoAtividade, { label: string; emoji: string; borderColor: string; bgColor: string }> = {
   atrasada: { label: 'EM ATRASO', emoji: '🔴', borderColor: 'border-l-red-500', bgColor: 'bg-red-50' },
