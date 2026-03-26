@@ -352,7 +352,7 @@ export default function PropostaEditor() {
         gc_cliente_id: clienteSelecionado?.gc_id || clienteId,
         produtos: produtos.map(p => ({ gc_produto_id: p.gcProdutoId!, quantidade: p.quantity, valor_unitario: p.unitPrice })),
         observacoes: descricao,
-        vendedor_nome: user?.nome || '',
+        vendedor_nome: (user as any)?.nome || user?.email || '',
         proposta_numero: numero,
       });
       // Save GC IDs on the proposal
