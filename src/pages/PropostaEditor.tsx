@@ -168,7 +168,7 @@ export default function PropostaEditor() {
       if (!clienteBusca || clienteBusca.length < 2) return [];
       const { data } = await supabase
         .from('clientes_gc')
-        .select('id, nome, cnpj, cidade, segmento')
+        .select('id, nome, cnpj, cidade, segmento, gc_id')
         .or(`nome.ilike.%${clienteBusca}%,cnpj.ilike.%${clienteBusca}%`)
         .limit(10);
       return data ?? [];
