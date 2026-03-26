@@ -122,6 +122,27 @@ export default function PropostaEditor() {
   const [versao, setVersao] = useState(1);
   const [linkUuid, setLinkUuid] = useState('');
 
+  // Load price tables
+  const { data: tabelasPreco = [] } = useQuery({
+    queryKey: ['tabelas_preco'],
+    queryFn: tabelasPrecoApi.getAll,
+  });
+
+  // Load prices for selected table
+  const { data: precosTabela = [] } = useQuery({
+    queryKey: ['precos_tabela', tabelaPrecoId],
+    queryFn: () => tabelasPrecoApi.getPrecosPorTabela(tabelaPrecoId),
+    enabled: !!tabelaPrecoId,
+  });
+
+  // Set default price table on load
+  useEffect(() => {
+    if (tabelasPreco.length > 0 && !tabelaPrecoId) {
+      const principal = tabelasPreco.find(t => t.principal);
+      setTabelaPrecoId(principal?.id || tabelasPreco[0].id);
+    }
+  }, [tabelasPreco]);
+
   // Load existing proposal
   const { data: proposta, isLoading: loadingProposta } = useQuery({
     queryKey: ['proposta', id],
