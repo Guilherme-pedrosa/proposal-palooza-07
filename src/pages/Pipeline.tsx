@@ -440,6 +440,7 @@ export default function Pipeline() {
             <p className="text-sm text-muted-foreground">Total em aberto: <span className="font-semibold text-foreground">{formatBRL(totalAberto)}</span></p>
           </div>
           <div className="flex gap-2">
+            <WAIButton variant="header" contexto={{}} />
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-1">

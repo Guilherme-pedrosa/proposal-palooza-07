@@ -98,6 +98,11 @@ export default function Relatorios() {
           <TabsContent value="atividades">
             <AtividadesReport inicio={inicio} vendedorId={vendedorId} isGestor={isGestor} />
           </TabsContent>
+          {isGestor && (
+            <TabsContent value="wai">
+              <WAICustoCard />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </MainLayout>
