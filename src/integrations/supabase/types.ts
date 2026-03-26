@@ -456,6 +456,51 @@ export type Database = {
           },
         ]
       }
+      precos_produto: {
+        Row: {
+          id: string
+          lucro_percentual: number | null
+          produto_id: string
+          tabela_preco_id: string
+          updated_at: string | null
+          valor_custo: number | null
+          valor_venda: number | null
+        }
+        Insert: {
+          id?: string
+          lucro_percentual?: number | null
+          produto_id: string
+          tabela_preco_id: string
+          updated_at?: string | null
+          valor_custo?: number | null
+          valor_venda?: number | null
+        }
+        Update: {
+          id?: string
+          lucro_percentual?: number | null
+          produto_id?: string
+          tabela_preco_id?: string
+          updated_at?: string | null
+          valor_custo?: number | null
+          valor_venda?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "precos_produto_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos_gc"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "precos_produto_tabela_preco_id_fkey"
+            columns: ["tabela_preco_id"]
+            isOneToOne: false
+            referencedRelation: "tabelas_preco"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       produtos_gc: {
         Row: {
           ativo: boolean | null
@@ -705,6 +750,36 @@ export type Database = {
             referencedColumns: ["usuario_id"]
           },
         ]
+      }
+      tabelas_preco: {
+        Row: {
+          ativa: boolean
+          created_at: string | null
+          gc_tipo_id: string
+          id: string
+          nome: string
+          principal: boolean
+          updated_at: string | null
+        }
+        Insert: {
+          ativa?: boolean
+          created_at?: string | null
+          gc_tipo_id: string
+          id?: string
+          nome: string
+          principal?: boolean
+          updated_at?: string | null
+        }
+        Update: {
+          ativa?: boolean
+          created_at?: string | null
+          gc_tipo_id?: string
+          id?: string
+          nome?: string
+          principal?: boolean
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       usuarios: {
         Row: {
