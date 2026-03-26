@@ -7,6 +7,9 @@ import { ProposalProvider } from "@/contexts/ProposalContext";
 import { CompanyProvider } from "@/contexts/CompanyContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { GCProvider } from "@/contexts/GCContext";
+import { ConnectionStatus } from "@/components/ConnectionStatus";
+import { PWAInstallBanner } from "@/components/PWAInstallBanner";
+import { useEffect } from "react";
 
 // Pages
 import Login from "./pages/Login";
