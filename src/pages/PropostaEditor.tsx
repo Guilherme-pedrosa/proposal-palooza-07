@@ -19,7 +19,7 @@ import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   ArrowLeft, Save, Send, FileText, ChevronDown, Plus, Trash2, Image as ImageIcon,
-  Copy, MessageCircle, Mail, Printer, Link2
+  Copy, MessageCircle, Mail, Printer, Link2, Search
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { CurrencyInput } from '@/components/ui/currency-input';
