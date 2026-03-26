@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface WAIMessage {
   role: 'user' | 'assistant';
@@ -9,6 +10,7 @@ export interface WAIMessage {
 
 export interface WAIContexto {
   cliente?: {
+    id?: string;
     nome: string;
     segmento?: string | null;
     porte?: string | null;
@@ -19,6 +21,7 @@ export interface WAIContexto {
     observacoes?: string | null;
   };
   oportunidade?: {
+    id?: string;
     titulo: string;
     etapa?: string;
     tipo_venda?: string | null;
@@ -42,6 +45,7 @@ export interface WAIContexto {
 }
 
 export function useWAI(contexto: WAIContexto) {
+  const { user } = useAuth();
   const [historico, setHistorico] = useState<WAIMessage[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -67,6 +71,7 @@ export function useWAI(contexto: WAIContexto) {
           contexto_oportunidade: contexto.oportunidade,
           contexto_proposta: contexto.proposta,
           historico_chat: historico.map(m => ({ role: m.role, content: m.content })),
+          usuario_id: user?.id || null,
         },
       });
 

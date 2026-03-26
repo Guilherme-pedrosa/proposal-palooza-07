@@ -94,6 +94,13 @@ export type Database = {
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "atividades_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "wai_custo_mes"
+            referencedColumns: ["usuario_id"]
+          },
         ]
       }
       clientes_gc: {
@@ -288,6 +295,13 @@ export type Database = {
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "metas_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "wai_custo_mes"
+            referencedColumns: ["usuario_id"]
+          },
         ]
       }
       motivos_perda: {
@@ -432,6 +446,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oportunidades_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "wai_custo_mes"
+            referencedColumns: ["usuario_id"]
           },
         ]
       }
@@ -676,6 +697,13 @@ export type Database = {
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "propostas_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "wai_custo_mes"
+            referencedColumns: ["usuario_id"]
+          },
         ]
       }
       usuarios: {
@@ -711,9 +739,143 @@ export type Database = {
         }
         Relationships: []
       }
+      wai_conversas: {
+        Row: {
+          cliente_id: string | null
+          criado_em: string | null
+          custo_estimado_usd: number | null
+          id: string
+          modelo: string | null
+          modo: string
+          oportunidade_id: string | null
+          pergunta: string
+          resposta: string
+          tokens_prompt: number | null
+          tokens_resposta: number | null
+          tokens_total: number | null
+          usuario_id: string | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          criado_em?: string | null
+          custo_estimado_usd?: number | null
+          id?: string
+          modelo?: string | null
+          modo?: string
+          oportunidade_id?: string | null
+          pergunta: string
+          resposta: string
+          tokens_prompt?: number | null
+          tokens_resposta?: number | null
+          tokens_total?: number | null
+          usuario_id?: string | null
+        }
+        Update: {
+          cliente_id?: string | null
+          criado_em?: string | null
+          custo_estimado_usd?: number | null
+          id?: string
+          modelo?: string | null
+          modo?: string
+          oportunidade_id?: string | null
+          pergunta?: string
+          resposta?: string
+          tokens_prompt?: number | null
+          tokens_resposta?: number | null
+          tokens_total?: number | null
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wai_conversas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes_gc"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wai_conversas_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wai_conversas_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wai_conversas_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "wai_custo_mes"
+            referencedColumns: ["usuario_id"]
+          },
+        ]
+      }
+      wai_log: {
+        Row: {
+          criado_em: string | null
+          custo_estimado_usd: number | null
+          id: string
+          modo: string | null
+          tokens_prompt: number | null
+          tokens_resposta: number | null
+          tokens_total: number | null
+          usuario_id: string | null
+        }
+        Insert: {
+          criado_em?: string | null
+          custo_estimado_usd?: number | null
+          id?: string
+          modo?: string | null
+          tokens_prompt?: number | null
+          tokens_resposta?: number | null
+          tokens_total?: number | null
+          usuario_id?: string | null
+        }
+        Update: {
+          criado_em?: string | null
+          custo_estimado_usd?: number | null
+          id?: string
+          modo?: string | null
+          tokens_prompt?: number | null
+          tokens_resposta?: number | null
+          tokens_total?: number | null
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wai_log_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wai_log_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "wai_custo_mes"
+            referencedColumns: ["usuario_id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      wai_custo_mes: {
+        Row: {
+          chamadas: number | null
+          custo_usd: number | null
+          nome: string | null
+          tokens_total: number | null
+          usuario_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
