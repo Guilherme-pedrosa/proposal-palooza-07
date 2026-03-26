@@ -1,9 +1,11 @@
 import { useState, useRef } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useCompany } from '@/contexts/CompanyContext';
+import { useGC } from '@/contexts/GCContext';
 import { CompanyClient, CompanyBrand } from '@/types/company';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,7 +17,12 @@ import {
   Plus,
   Trash2,
   Users,
-  Package
+  Package,
+  RefreshCw,
+  Wifi,
+  WifiOff,
+  Loader2,
+  Key
 } from 'lucide-react';
 import { toast } from 'sonner';
 import logoWedoDefault from '@/assets/logo-wedo.png';
@@ -488,7 +495,76 @@ export default function CompanySettings() {
             </div>
           </CardContent>
         </Card>
+        {/* GestãoClick Integration */}
+        <GCSection />
       </div>
     </MainLayout>
+  );
+}
+
+function GCSection() {
+  const { isSyncingClientes, isSyncingProdutos, lastSyncClientes, lastSyncProdutos, syncClientes, syncProdutos, testarConexao } = useGC();
+  const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'ok' | 'error'>('idle');
+  const [testMsg, setTestMsg] = useState('');
+
+  const handleTest = async () => {
+    setTestStatus('testing');
+    const res = await testarConexao();
+    setTestStatus(res.ok ? 'ok' : 'error');
+    setTestMsg(res.mensagem);
+    toast[res.ok ? 'success' : 'error'](res.mensagem);
+  };
+
+  const fmt = (d: Date | null) => d ? d.toLocaleString('pt-BR') : 'Nunca';
+
+  return (
+    <Card className="shadow-card animate-fade-in lg:col-span-2">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Key className="h-5 w-5 text-primary" />
+          Integração GestãoClick
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Connection test */}
+        <div className="flex items-center justify-between p-3 rounded-lg border">
+          <div className="flex items-center gap-2">
+            {testStatus === 'testing' && <Loader2 className="h-4 w-4 animate-spin" />}
+            {testStatus === 'ok' && <Wifi className="h-4 w-4 text-green-600" />}
+            {testStatus === 'error' && <WifiOff className="h-4 w-4 text-red-600" />}
+            {testStatus === 'idle' && <Wifi className="h-4 w-4 text-muted-foreground" />}
+            <span className="text-sm">{testMsg || 'Clique para testar a conexão'}</span>
+          </div>
+          <Button variant="outline" size="sm" onClick={handleTest} disabled={testStatus === 'testing'}>
+            🔌 Testar Conexão
+          </Button>
+        </div>
+
+        {/* Sync buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="p-3 rounded-lg border space-y-2">
+            <p className="text-sm font-medium flex items-center gap-1.5"><Users className="h-4 w-4" /> Clientes</p>
+            <p className="text-xs text-muted-foreground">Última sync: {fmt(lastSyncClientes)}</p>
+            <Button size="sm" className="w-full gap-1.5" onClick={syncClientes} disabled={isSyncingClientes}>
+              {isSyncingClientes ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+              {isSyncingClientes ? 'Sincronizando...' : 'Sincronizar Clientes'}
+            </Button>
+          </div>
+          <div className="p-3 rounded-lg border space-y-2">
+            <p className="text-sm font-medium flex items-center gap-1.5"><Package className="h-4 w-4" /> Produtos</p>
+            <p className="text-xs text-muted-foreground">Última sync: {fmt(lastSyncProdutos)}</p>
+            <Button size="sm" className="w-full gap-1.5" onClick={syncProdutos} disabled={isSyncingProdutos}>
+              {isSyncingProdutos ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+              {isSyncingProdutos ? 'Sincronizando...' : 'Sincronizar Produtos'}
+            </Button>
+          </div>
+        </div>
+
+        <p className="text-xs text-muted-foreground">
+          As credenciais da API GestãoClick são gerenciadas de forma segura no backend. 
+          Para atualizar os tokens, entre em contato com o administrador.
+        </p>
+      </CardContent>
+    </Card>
   );
 }

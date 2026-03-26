@@ -19,7 +19,7 @@ import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   ArrowLeft, Save, Send, FileText, ChevronDown, Plus, Trash2, Image as ImageIcon,
-  Copy, MessageCircle, Mail, Printer, Link2, Search
+  Copy, MessageCircle, Mail, Printer, Link2, Search, Loader2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { CurrencyInput } from '@/components/ui/currency-input';
@@ -31,6 +31,7 @@ import {
 } from '@/lib/api/propostas';
 import { proposalTemplates } from '@/types/proposalTemplate';
 import { useProposal } from '@/contexts/ProposalContext';
+import { useGC } from '@/contexts/GCContext';
 import type { ProdutoGCRow } from '@/lib/api/produtosGC';
 
 interface PropostaProduct {
@@ -88,10 +89,13 @@ export default function PropostaEditor() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { savedTerms } = useProposal();
+  const { criarOrcamentoGC } = useGC();
   const [searchParams] = useSearchParams();
   const isNew = !id;
 
   const [saving, setSaving] = useState(false);
+  const [carregandoGC, setCarregandoGC] = useState(false);
+  const [gcOrcamentoUrl, setGcOrcamentoUrl] = useState('');
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
@@ -138,6 +142,7 @@ export default function PropostaEditor() {
       setStatus(proposta.status ?? 'rascunho');
       setVersao(proposta.versao);
       setLinkUuid(proposta.link_publico_uuid ?? '');
+      setGcOrcamentoUrl(proposta.gc_orcamento_url ?? '');
     }
   }, [proposta]);
 
@@ -163,7 +168,7 @@ export default function PropostaEditor() {
       if (!clienteBusca || clienteBusca.length < 2) return [];
       const { data } = await supabase
         .from('clientes_gc')
-        .select('id, nome, cnpj, cidade, segmento')
+        .select('id, nome, cnpj, cidade, segmento, gc_id')
         .or(`nome.ilike.%${clienteBusca}%,cnpj.ilike.%${clienteBusca}%`)
         .limit(10);
       return data ?? [];
@@ -175,7 +180,7 @@ export default function PropostaEditor() {
     queryKey: ['cliente_sel_proposta', clienteId],
     queryFn: async () => {
       if (!clienteId) return null;
-      const { data } = await supabase.from('clientes_gc').select('id, nome, cnpj, cidade, segmento').eq('id', clienteId).single();
+      const { data } = await supabase.from('clientes_gc').select('id, nome, cnpj, cidade, segmento, gc_id').eq('id', clienteId).single();
       return data;
     },
     enabled: !!clienteId,
@@ -334,6 +339,46 @@ export default function PropostaEditor() {
     e.target.value = '';
   };
 
+  const criarOrcamentoNoGC = async () => {
+    if (!clienteId) { toast({ title: 'Selecione um cliente', variant: 'destructive' }); return; }
+    const produtosSemGC = produtos.filter(p => !p.gcProdutoId);
+    if (produtosSemGC.length > 0) {
+      toast({ title: `${produtosSemGC.length} item(s) sem código GC — substitua antes de criar o orçamento`, variant: 'destructive' });
+      return;
+    }
+    setCarregandoGC(true);
+    try {
+      const resultado = await criarOrcamentoGC({
+        gc_cliente_id: clienteSelecionado?.gc_id || clienteId,
+        produtos: produtos.map(p => ({ gc_produto_id: p.gcProdutoId!, quantidade: p.quantity, valor_unitario: p.unitPrice })),
+        observacoes: descricao,
+        vendedor_nome: (user as any)?.nome || user?.email || '',
+        proposta_numero: numero,
+      });
+      // Save GC IDs on the proposal
+      if (id) {
+        await supabase.from('propostas').update({
+          gc_orcamento_id: resultado.gc_orcamento_id,
+          gc_orcamento_url: resultado.gc_orcamento_url,
+        } as any).eq('id', id);
+        if (oportunidadeId) {
+          await supabase.from('oportunidades').update({
+            gc_orcamento_id: resultado.gc_orcamento_id,
+            gc_orcamento_url: resultado.gc_orcamento_url,
+          } as any).eq('id', oportunidadeId);
+        }
+      }
+      setGcOrcamentoUrl(resultado.gc_orcamento_url);
+      toast({ title: `✅ Orçamento #${resultado.gc_orcamento_id} criado no GestãoClick!` });
+    } catch (e: any) {
+      if (e.message !== 'API_KEY_EXPIRADA') {
+        toast({ title: '❌ Erro ao criar orçamento', variant: 'destructive' });
+      }
+    } finally {
+      setCarregandoGC(false);
+    }
+  };
+
   if (!isNew && loadingProposta) {
     return <MainLayout><div className="space-y-3"><Skeleton className="h-8 w-1/2" /><Skeleton className="h-40 w-full" /></div></MainLayout>;
   }
@@ -362,9 +407,16 @@ export default function PropostaEditor() {
             <Button size="sm" className="gap-1.5 shrink-0" onClick={handleSendLink} disabled={saving}>
               <Send className="h-3.5 w-3.5" /> Enviar Link
             </Button>
-            <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={() => toast({ title: 'Disponível após configurar API GC' })}>
-              🔧 Criar no GC
-            </Button>
+            {gcOrcamentoUrl ? (
+              <Button size="sm" variant="outline" className="gap-1.5 shrink-0" asChild>
+                <a href={gcOrcamentoUrl} target="_blank" rel="noopener">🔗 Ver no GC →</a>
+              </Button>
+            ) : (
+              <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={criarOrcamentoNoGC} disabled={carregandoGC || isNew}>
+                {carregandoGC ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                🔧 {carregandoGC ? 'Criando...' : 'Criar no GC'}
+              </Button>
+            )}
           </div>
         </div>
 
