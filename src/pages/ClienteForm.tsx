@@ -27,6 +27,7 @@ export default function ClienteForm() {
 
   const [saving, setSaving] = useState(false);
   const [lookingUpCep, setLookingUpCep] = useState(false);
+  const [lookingUpCnpj, setLookingUpCnpj] = useState(false);
   const [tipoPessoa, setTipoPessoa] = useState<'PJ' | 'PF'>('PJ');
 
   const [form, setForm] = useState({
