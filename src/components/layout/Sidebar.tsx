@@ -42,15 +42,15 @@ const menuGroups: MenuGroup[] = [
   {
     label: '',
     items: [
-      { title: 'Nova Proposta', icon: PlusCircle, href: '/nova-proposta' },
+      { title: 'Dashboard', icon: PlusCircle, href: '/' },
     ],
     defaultOpen: true,
   },
   {
-    label: 'Gestão',
+    label: 'Comercial',
     items: [
-      { title: 'Propostas', icon: FileText, href: '/propostas' },
       { title: 'Clientes', icon: Building2, href: '/clientes' },
+      { title: 'Propostas', icon: FileText, href: '/propostas' },
     ],
     defaultOpen: true,
   },
