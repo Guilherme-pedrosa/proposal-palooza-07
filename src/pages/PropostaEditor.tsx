@@ -407,9 +407,16 @@ export default function PropostaEditor() {
             <Button size="sm" className="gap-1.5 shrink-0" onClick={handleSendLink} disabled={saving}>
               <Send className="h-3.5 w-3.5" /> Enviar Link
             </Button>
-            <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={() => toast({ title: 'Disponível após configurar API GC' })}>
-              🔧 Criar no GC
-            </Button>
+            {gcOrcamentoUrl ? (
+              <Button size="sm" variant="outline" className="gap-1.5 shrink-0" asChild>
+                <a href={gcOrcamentoUrl} target="_blank" rel="noopener">🔗 Ver no GC →</a>
+              </Button>
+            ) : (
+              <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={criarOrcamentoNoGC} disabled={carregandoGC || isNew}>
+                {carregandoGC ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                🔧 {carregandoGC ? 'Criando...' : 'Criar no GC'}
+              </Button>
+            )}
           </div>
         </div>
 
