@@ -23,6 +23,7 @@ import {
   ArrowLeft, BarChart3, FileText, Calendar, Clock, Flame,
   ChevronLeft, ChevronRight, CheckCircle2, Plus,
 } from 'lucide-react';
+import { WAIButton } from '@/components/WAIButton';
 import {
   ETAPAS_KANBAN,
   CHECKLISTS_ETAPA,
