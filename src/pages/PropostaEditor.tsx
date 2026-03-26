@@ -21,6 +21,7 @@ import {
   ArrowLeft, Save, Send, FileText, ChevronDown, Plus, Trash2, Image as ImageIcon,
   Copy, MessageCircle, Mail, Printer, Link2, Search, Loader2
 } from 'lucide-react';
+import { WAIButton } from '@/components/WAIButton';
 import { supabase } from '@/integrations/supabase/client';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { NumberInput } from '@/components/ui/number-input';
@@ -417,6 +418,21 @@ export default function PropostaEditor() {
                 🔧 {carregandoGC ? 'Criando...' : 'Criar no GC'}
               </Button>
             )}
+            <WAIButton
+              variant="header"
+              contexto={{
+                cliente: clienteSelecionado ? {
+                  nome: clienteSelecionado.nome,
+                  segmento: clienteSelecionado.segmento,
+                } : undefined,
+                proposta: {
+                  numero: numero,
+                  status: status,
+                  valor_total: total,
+                  produtos_nomes: produtos.map(p => p.name).filter(Boolean).join(', '),
+                },
+              }}
+            />
           </div>
         </div>
 

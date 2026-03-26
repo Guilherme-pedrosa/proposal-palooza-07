@@ -6,7 +6,7 @@ import type { WAIContexto } from '@/hooks/useWAI';
 
 interface WAIButtonProps {
   contexto: WAIContexto;
-  variant?: 'fab' | 'inline';
+  variant?: 'fab' | 'inline' | 'header';
 }
 
 export function WAIButton({ contexto, variant = 'inline' }: WAIButtonProps) {
@@ -28,6 +28,27 @@ export function WAIButton({ contexto, variant = 'inline' }: WAIButtonProps) {
 
         <Sheet open={aberto} onOpenChange={setAberto}>
           <SheetContent side="bottom" className="h-[85vh] p-0 rounded-t-2xl">
+            <WAIChat contexto={contexto} onClose={() => setAberto(false)} />
+          </SheetContent>
+        </Sheet>
+      </>
+    );
+  }
+
+  if (variant === 'header') {
+    return (
+      <>
+        <button
+          onClick={() => setAberto(true)}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/10 text-primary text-xs rounded-lg hover:bg-primary/20 transition-colors"
+          aria-label="Abrir assistente WAI"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span className="font-medium">WAI</span>
+        </button>
+
+        <Sheet open={aberto} onOpenChange={setAberto}>
+          <SheetContent side="right" className="w-full sm:w-[420px] p-0">
             <WAIChat contexto={contexto} onClose={() => setAberto(false)} />
           </SheetContent>
         </Sheet>

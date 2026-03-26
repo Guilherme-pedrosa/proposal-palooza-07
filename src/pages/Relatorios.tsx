@@ -14,7 +14,8 @@ import { exportarCSV, type Periodo } from '@/hooks/useDashboardData';
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
-import { Download, BarChart3, Package, AlertTriangle, ClipboardList } from 'lucide-react';
+import { Download, BarChart3, Package, AlertTriangle, ClipboardList, Sparkles } from 'lucide-react';
+import { WAICustoCard } from '@/components/WAICustoCard';
 import { subMonths, subDays, startOfMonth, endOfMonth, startOfQuarter, startOfYear, format } from 'date-fns';
 
 const PIE_COLORS = ['#3B82F6', '#22C55E', '#EAB308', '#EF4444', '#8B5CF6', '#F97316', '#6B7280', '#EC4899'];
@@ -82,6 +83,7 @@ export default function Relatorios() {
             <TabsTrigger value="produtos" className="gap-1.5"><Package className="h-3.5 w-3.5" /> Produtos</TabsTrigger>
             <TabsTrigger value="perdas" className="gap-1.5"><AlertTriangle className="h-3.5 w-3.5" /> Motivos de Perda</TabsTrigger>
             <TabsTrigger value="atividades" className="gap-1.5"><ClipboardList className="h-3.5 w-3.5" /> Atividades</TabsTrigger>
+            {isGestor && <TabsTrigger value="wai" className="gap-1.5"><Sparkles className="h-3.5 w-3.5" /> WAI</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="performance">
@@ -96,6 +98,11 @@ export default function Relatorios() {
           <TabsContent value="atividades">
             <AtividadesReport inicio={inicio} vendedorId={vendedorId} isGestor={isGestor} />
           </TabsContent>
+          {isGestor && (
+            <TabsContent value="wai">
+              <WAICustoCard />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </MainLayout>

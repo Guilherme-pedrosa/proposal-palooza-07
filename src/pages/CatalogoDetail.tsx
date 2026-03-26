@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { WAIButton } from '@/components/WAIButton';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -357,6 +358,18 @@ export default function CatalogoDetail() {
 
           {/* Actions */}
           <div className="flex gap-2">
+            <WAIButton
+              variant="inline"
+              contexto={{
+                oportunidade: {
+                  titulo: `Consulta sobre ${produto.nome}`,
+                  etapa: 'catalogo',
+                  tipo_venda: produto.categoria || undefined,
+                  valor_estimado: produto.preco_venda,
+                  produtos_interesse: `${produto.nome} (${produto.codigo || ''})`,
+                },
+              }}
+            />
             <Button className="flex-1 gap-2">
               <Plus className="h-4 w-4" /> Adicionar à Proposta
             </Button>
