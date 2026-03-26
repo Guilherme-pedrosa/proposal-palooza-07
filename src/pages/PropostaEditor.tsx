@@ -33,6 +33,7 @@ import {
 import { proposalTemplates } from '@/types/proposalTemplate';
 import { useProposal } from '@/contexts/ProposalContext';
 import { useGC } from '@/contexts/GCContext';
+import { tabelasPrecoApi, type TabelaPreco } from '@/lib/api/tabelasPreco';
 import type { ProdutoGCRow } from '@/lib/api/produtosGC';
 
 interface PropostaProduct {
