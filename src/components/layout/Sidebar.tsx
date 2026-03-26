@@ -10,6 +10,7 @@ import {
   Settings,
   RefreshCw,
   BarChart,
+  PieChart,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
