@@ -17,7 +17,7 @@ import { ArrowLeft, Loader2, Search } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientesGCApi, segmentoConfig } from '@/lib/api/clientesGC';
 import { toast } from 'sonner';
-import { v4 as uuidv4 } from 'crypto';
+
 
 export default function ClienteForm() {
   const { id } = useParams<{ id: string }>();
