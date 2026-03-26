@@ -83,6 +83,7 @@ export default function Relatorios() {
             <TabsTrigger value="produtos" className="gap-1.5"><Package className="h-3.5 w-3.5" /> Produtos</TabsTrigger>
             <TabsTrigger value="perdas" className="gap-1.5"><AlertTriangle className="h-3.5 w-3.5" /> Motivos de Perda</TabsTrigger>
             <TabsTrigger value="atividades" className="gap-1.5"><ClipboardList className="h-3.5 w-3.5" /> Atividades</TabsTrigger>
+            {isGestor && <TabsTrigger value="wai" className="gap-1.5"><Sparkles className="h-3.5 w-3.5" /> WAI</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="performance">
