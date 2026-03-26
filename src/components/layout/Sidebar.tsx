@@ -1,10 +1,15 @@
 import { Link, useLocation } from 'react-router-dom';
 import {
   FileText,
-  PlusCircle,
+  LayoutDashboard,
+  CalendarDays,
+  BarChart3,
+  Building2,
+  UtensilsCrossed,
   ClipboardList,
   Settings,
-  Building2,
+  RefreshCw,
+  BarChart,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -13,6 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCompany } from '@/contexts/CompanyContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -42,17 +48,27 @@ const menuGroups: MenuGroup[] = [
   {
     label: '',
     items: [
-      { title: 'Dashboard', icon: PlusCircle, href: '/' },
+      { title: 'Dashboard', icon: LayoutDashboard, href: '/' },
+      { title: 'Hoje', icon: CalendarDays, href: '/hoje' },
     ],
     defaultOpen: true,
   },
   {
     label: 'Comercial',
     items: [
+      { title: 'Pipeline', icon: BarChart3, href: '/pipeline' },
       { title: 'Clientes', icon: Building2, href: '/clientes' },
+      { title: 'Catálogo', icon: UtensilsCrossed, href: '/catalogo' },
       { title: 'Propostas', icon: FileText, href: '/propostas' },
     ],
     defaultOpen: true,
+  },
+  {
+    label: 'Gestão',
+    items: [
+      { title: 'Relatórios', icon: BarChart, href: '/relatorios' },
+      { title: 'Sync GC', icon: RefreshCw, href: '/sync' },
+    ],
   },
   {
     label: 'Configurações',
@@ -66,6 +82,7 @@ const menuGroups: MenuGroup[] = [
 export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const location = useLocation();
   const { company } = useCompany();
+  const { usuario, signOut } = useAuth();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -87,20 +104,21 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
     setOpenGroups(prev => ({ ...prev, [label]: !prev[label] }));
   };
 
+  const userInitials = usuario?.nome
+    ? usuario.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+    : 'U';
+
   const sidebarContent = (
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
         {(!collapsed || mobileOpen) ? (
           <div className="flex items-center gap-2">
-            <img
-              src={company.logo || logoWedoDefault}
-              alt={company.name}
-              className="h-10 w-auto max-w-[160px] object-contain"
-            />
+            <span className="text-2xl font-extrabold text-[hsl(0,78%,56%)]">WeDo</span>
+            <span className="text-[11px] font-medium text-sidebar-foreground/50 uppercase tracking-wider">CRM</span>
           </div>
         ) : (
-          <span className="text-lg font-bold text-white mx-auto">W</span>
+          <span className="text-lg font-bold text-[hsl(0,78%,56%)] mx-auto">W</span>
         )}
       </div>
 
@@ -112,7 +130,6 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
 
             return (
               <div key={groupIndex} className={cn(group.label && "mt-4")}>
-                {/* Group label */}
                 {group.label && (!collapsed || mobileOpen) && (
                   <button
                     onClick={() => toggleGroup(group.label)}
@@ -131,7 +148,6 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
                   </button>
                 )}
 
-                {/* Items */}
                 <ul
                   className={cn(
                     "space-y-0.5 overflow-hidden transition-all duration-200",
@@ -178,19 +194,24 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
         )}>
           <Avatar className="h-9 w-9 flex-shrink-0">
             <AvatarFallback className="bg-sidebar-accent text-sidebar-foreground text-sm font-medium">
-              AD
+              {userInitials}
             </AvatarFallback>
           </Avatar>
           {(!collapsed || mobileOpen) && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">Admin</p>
-              <p className="text-[11px] text-sidebar-foreground/60 truncate">{company.name}</p>
+              <p className="text-sm font-medium text-sidebar-foreground truncate">
+                {usuario?.nome || 'Usuário'}
+              </p>
+              <p className="text-[11px] text-sidebar-foreground/60 truncate capitalize">
+                {usuario?.perfil || 'vendedor'}
+              </p>
             </div>
           )}
           {(!collapsed || mobileOpen) && (
             <Button
               variant="ghost"
               size="icon"
+              onClick={() => signOut()}
               className="h-8 w-8 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent flex-shrink-0"
             >
               <LogOut className="h-4 w-4" />
@@ -231,7 +252,6 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
   if (mobileOpen !== undefined) {
     return (
       <>
-        {/* Desktop sidebar */}
         <aside
           className={cn(
             "fixed left-0 top-0 z-40 hidden md:flex h-screen flex-col bg-sidebar transition-all duration-200",
@@ -241,7 +261,6 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
           {sidebarContent}
         </aside>
 
-        {/* Mobile sidebar (drawer) */}
         <aside
           className={cn(
             "fixed left-0 top-0 z-50 flex md:hidden h-screen w-72 flex-col bg-sidebar transition-transform duration-300 shadow-2xl",

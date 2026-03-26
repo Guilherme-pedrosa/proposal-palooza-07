@@ -14,6 +14,163 @@ export type Database = {
   }
   public: {
     Tables: {
+      atividades: {
+        Row: {
+          cliente_id: string | null
+          concluida: boolean | null
+          created_at: string | null
+          data_prevista: string | null
+          data_realizada: string | null
+          descricao: string | null
+          duracao_minutos: number | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          oportunidade_id: string | null
+          proxima_acao: string | null
+          proxima_data: string | null
+          resultado: string | null
+          tipo: string
+          titulo: string
+          vendedor_id: string | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          concluida?: boolean | null
+          created_at?: string | null
+          data_prevista?: string | null
+          data_realizada?: string | null
+          descricao?: string | null
+          duracao_minutos?: number | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          oportunidade_id?: string | null
+          proxima_acao?: string | null
+          proxima_data?: string | null
+          resultado?: string | null
+          tipo: string
+          titulo: string
+          vendedor_id?: string | null
+        }
+        Update: {
+          cliente_id?: string | null
+          concluida?: boolean | null
+          created_at?: string | null
+          data_prevista?: string | null
+          data_realizada?: string | null
+          descricao?: string | null
+          duracao_minutos?: number | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          oportunidade_id?: string | null
+          proxima_acao?: string | null
+          proxima_data?: string | null
+          resultado?: string | null
+          tipo?: string
+          titulo?: string
+          vendedor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atividades_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes_gc"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atividades_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clientes_gc: {
+        Row: {
+          ativo: boolean | null
+          celular: string | null
+          cidade: string | null
+          cnpj: string | null
+          cpf: string | null
+          created_at: string | null
+          email: string | null
+          endereco: string | null
+          estado: string | null
+          gc_id: string
+          gc_synced_at: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          porte: string | null
+          razao_social: string | null
+          segmento: string | null
+          telefone: string | null
+          tipo_pessoa: string | null
+          total_compras_gc: number | null
+          ultima_compra_gc: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          celular?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          gc_id: string
+          gc_synced_at?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          porte?: string | null
+          razao_social?: string | null
+          segmento?: string | null
+          telefone?: string | null
+          tipo_pessoa?: string | null
+          total_compras_gc?: number | null
+          ultima_compra_gc?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          celular?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          gc_id?: string
+          gc_synced_at?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          porte?: string | null
+          razao_social?: string | null
+          segmento?: string | null
+          telefone?: string | null
+          tipo_pessoa?: string | null
+          total_compras_gc?: number | null
+          ultima_compra_gc?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           address: string | null
@@ -62,6 +219,255 @@ export type Database = {
           trade_name?: string | null
           updated_at?: string
           zip_code?: string | null
+        }
+        Relationships: []
+      }
+      gc_sync_log: {
+        Row: {
+          acao: string
+          created_at: string | null
+          detalhes: Json | null
+          entidade: string
+          gc_id: string | null
+          id: string
+          status: string | null
+        }
+        Insert: {
+          acao: string
+          created_at?: string | null
+          detalhes?: Json | null
+          entidade: string
+          gc_id?: string | null
+          id?: string
+          status?: string | null
+        }
+        Update: {
+          acao?: string
+          created_at?: string | null
+          detalhes?: Json | null
+          entidade?: string
+          gc_id?: string | null
+          id?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
+      metas: {
+        Row: {
+          ano: number
+          id: string
+          mes: number
+          meta_propostas: number | null
+          meta_valor: number
+          meta_visitas: number | null
+          vendedor_id: string | null
+        }
+        Insert: {
+          ano: number
+          id?: string
+          mes: number
+          meta_propostas?: number | null
+          meta_valor: number
+          meta_visitas?: number | null
+          vendedor_id?: string | null
+        }
+        Update: {
+          ano?: number
+          id?: string
+          mes?: number
+          meta_propostas?: number | null
+          meta_valor?: number
+          meta_visitas?: number | null
+          vendedor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metas_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      motivos_perda: {
+        Row: {
+          ativo: boolean | null
+          descricao: string
+          id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          descricao: string
+          id?: string
+        }
+        Update: {
+          ativo?: boolean | null
+          descricao?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      oportunidades: {
+        Row: {
+          checklist_etapa: Json | null
+          cliente_id: string | null
+          created_at: string | null
+          data_fechamento_prevista: string | null
+          descricao_perda: string | null
+          etapa: string
+          gc_orcamento_id: string | null
+          gc_orcamento_url: string | null
+          id: string
+          motivo_perda_id: string | null
+          numero: number
+          origem: string | null
+          probabilidade: number | null
+          produtos_interesse: string[] | null
+          temperatura: string | null
+          tipo_venda: string | null
+          titulo: string
+          ultima_atividade_em: string | null
+          updated_at: string | null
+          valor_estimado: number | null
+          vendedor_id: string | null
+        }
+        Insert: {
+          checklist_etapa?: Json | null
+          cliente_id?: string | null
+          created_at?: string | null
+          data_fechamento_prevista?: string | null
+          descricao_perda?: string | null
+          etapa?: string
+          gc_orcamento_id?: string | null
+          gc_orcamento_url?: string | null
+          id?: string
+          motivo_perda_id?: string | null
+          numero?: number
+          origem?: string | null
+          probabilidade?: number | null
+          produtos_interesse?: string[] | null
+          temperatura?: string | null
+          tipo_venda?: string | null
+          titulo: string
+          ultima_atividade_em?: string | null
+          updated_at?: string | null
+          valor_estimado?: number | null
+          vendedor_id?: string | null
+        }
+        Update: {
+          checklist_etapa?: Json | null
+          cliente_id?: string | null
+          created_at?: string | null
+          data_fechamento_prevista?: string | null
+          descricao_perda?: string | null
+          etapa?: string
+          gc_orcamento_id?: string | null
+          gc_orcamento_url?: string | null
+          id?: string
+          motivo_perda_id?: string | null
+          numero?: number
+          origem?: string | null
+          probabilidade?: number | null
+          produtos_interesse?: string[] | null
+          temperatura?: string | null
+          tipo_venda?: string | null
+          titulo?: string
+          ultima_atividade_em?: string | null
+          updated_at?: string | null
+          valor_estimado?: number | null
+          vendedor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oportunidades_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes_gc"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oportunidades_motivo_perda_id_fkey"
+            columns: ["motivo_perda_id"]
+            isOneToOne: false
+            referencedRelation: "motivos_perda"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oportunidades_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produtos_gc: {
+        Row: {
+          ativo: boolean | null
+          categoria: string | null
+          codigo: string | null
+          created_at: string | null
+          descricao: string | null
+          destaque: boolean | null
+          estoque_atual: number | null
+          estoque_minimo: number | null
+          ficha_tecnica_url: string | null
+          foto_url: string | null
+          fotos_urls: string[] | null
+          gc_id: string
+          gc_synced_at: string | null
+          id: string
+          nome: string
+          preco_locacao_mensal: number | null
+          preco_venda: number | null
+          tipo: string | null
+          unidade: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          categoria?: string | null
+          codigo?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          destaque?: boolean | null
+          estoque_atual?: number | null
+          estoque_minimo?: number | null
+          ficha_tecnica_url?: string | null
+          foto_url?: string | null
+          fotos_urls?: string[] | null
+          gc_id: string
+          gc_synced_at?: string | null
+          id?: string
+          nome: string
+          preco_locacao_mensal?: number | null
+          preco_venda?: number | null
+          tipo?: string | null
+          unidade?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          categoria?: string | null
+          codigo?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          destaque?: boolean | null
+          estoque_atual?: number | null
+          estoque_minimo?: number | null
+          ficha_tecnica_url?: string | null
+          foto_url?: string | null
+          fotos_urls?: string[] | null
+          gc_id?: string
+          gc_synced_at?: string | null
+          id?: string
+          nome?: string
+          preco_locacao_mensal?: number | null
+          preco_venda?: number | null
+          tipo?: string | null
+          unidade?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -123,6 +529,154 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      propostas: {
+        Row: {
+          aberto_contagem: number | null
+          aberto_em: string | null
+          aberto_por_ip: string | null
+          cliente_id: string | null
+          created_at: string | null
+          desconto_total: number | null
+          descricao: string | null
+          gc_orcamento_id: string | null
+          gc_orcamento_url: string | null
+          historico_versoes: Json | null
+          id: string
+          imagens: Json | null
+          link_publico_uuid: string | null
+          numero: string
+          observacoes_internas: string | null
+          oportunidade_id: string | null
+          pdf_url: string | null
+          produtos: Json
+          status: string | null
+          template_id: string | null
+          termos_condicoes: Json
+          titulo: string
+          updated_at: string | null
+          validade_ate: string | null
+          validade_dias: number | null
+          valor_total: number | null
+          vendedor_id: string | null
+          versao: number
+        }
+        Insert: {
+          aberto_contagem?: number | null
+          aberto_em?: string | null
+          aberto_por_ip?: string | null
+          cliente_id?: string | null
+          created_at?: string | null
+          desconto_total?: number | null
+          descricao?: string | null
+          gc_orcamento_id?: string | null
+          gc_orcamento_url?: string | null
+          historico_versoes?: Json | null
+          id?: string
+          imagens?: Json | null
+          link_publico_uuid?: string | null
+          numero: string
+          observacoes_internas?: string | null
+          oportunidade_id?: string | null
+          pdf_url?: string | null
+          produtos?: Json
+          status?: string | null
+          template_id?: string | null
+          termos_condicoes?: Json
+          titulo: string
+          updated_at?: string | null
+          validade_ate?: string | null
+          validade_dias?: number | null
+          valor_total?: number | null
+          vendedor_id?: string | null
+          versao?: number
+        }
+        Update: {
+          aberto_contagem?: number | null
+          aberto_em?: string | null
+          aberto_por_ip?: string | null
+          cliente_id?: string | null
+          created_at?: string | null
+          desconto_total?: number | null
+          descricao?: string | null
+          gc_orcamento_id?: string | null
+          gc_orcamento_url?: string | null
+          historico_versoes?: Json | null
+          id?: string
+          imagens?: Json | null
+          link_publico_uuid?: string | null
+          numero?: string
+          observacoes_internas?: string | null
+          oportunidade_id?: string | null
+          pdf_url?: string | null
+          produtos?: Json
+          status?: string | null
+          template_id?: string | null
+          termos_condicoes?: Json
+          titulo?: string
+          updated_at?: string | null
+          validade_ate?: string | null
+          validade_dias?: number | null
+          valor_total?: number | null
+          vendedor_id?: string | null
+          versao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "propostas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes_gc"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propostas_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "propostas_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usuarios: {
+        Row: {
+          ativo: boolean | null
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          id: string
+          nome: string
+          perfil: string
+          telefone: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          id: string
+          nome: string
+          perfil: string
+          telefone?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          nome?: string
+          perfil?: string
+          telefone?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {

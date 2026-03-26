@@ -2,6 +2,7 @@ import { useState, useEffect, ReactNode } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { AppHeader } from './AppHeader';
+import { BottomNav } from './BottomNav';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -15,7 +16,6 @@ export function MainLayout({ children }: MainLayoutProps) {
   const isMobile = useIsMobile();
   const location = useLocation();
 
-  // Auto-collapse on mobile
   useEffect(() => {
     if (isMobile) {
       setCollapsed(true);
@@ -23,7 +23,6 @@ export function MainLayout({ children }: MainLayoutProps) {
     }
   }, [isMobile]);
 
-  // Close mobile menu on route change
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
@@ -56,13 +55,16 @@ export function MainLayout({ children }: MainLayoutProps) {
           showMenuButton={isMobile}
         />
 
-        {/* Content area */}
-        <main className="flex-1 p-4 md:p-8 overflow-x-hidden page-enter">
+        {/* Content area - add bottom padding on mobile for BottomNav */}
+        <main className="flex-1 p-4 md:p-8 overflow-x-hidden page-enter pb-20 md:pb-8">
           <div className="mx-auto max-w-7xl space-y-4">
             {children || <Outlet />}
           </div>
         </main>
       </div>
+
+      {/* Bottom Navigation - mobile only */}
+      {isMobile && <BottomNav />}
     </div>
   );
 }
