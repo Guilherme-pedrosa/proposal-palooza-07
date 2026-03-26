@@ -33,6 +33,7 @@ import {
 import { proposalTemplates } from '@/types/proposalTemplate';
 import { useProposal } from '@/contexts/ProposalContext';
 import { useGC } from '@/contexts/GCContext';
+import { tabelasPrecoApi, type TabelaPreco } from '@/lib/api/tabelasPreco';
 import type { ProdutoGCRow } from '@/lib/api/produtosGC';
 
 interface PropostaProduct {
@@ -98,6 +99,7 @@ export default function PropostaEditor() {
   const [carregandoGC, setCarregandoGC] = useState(false);
   const [gcOrcamentoUrl, setGcOrcamentoUrl] = useState('');
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [tabelaPrecoId, setTabelaPrecoId] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
 
@@ -119,6 +121,27 @@ export default function PropostaEditor() {
   const [status, setStatus] = useState<string>('rascunho');
   const [versao, setVersao] = useState(1);
   const [linkUuid, setLinkUuid] = useState('');
+
+  // Load price tables
+  const { data: tabelasPreco = [] } = useQuery({
+    queryKey: ['tabelas_preco'],
+    queryFn: tabelasPrecoApi.getAll,
+  });
+
+  // Load prices for selected table
+  const { data: precosTabela = [] } = useQuery({
+    queryKey: ['precos_tabela', tabelaPrecoId],
+    queryFn: () => tabelasPrecoApi.getPrecosPorTabela(tabelaPrecoId),
+    enabled: !!tabelaPrecoId,
+  });
+
+  // Set default price table on load
+  useEffect(() => {
+    if (tabelasPreco.length > 0 && !tabelaPrecoId) {
+      const principal = tabelasPreco.find(t => t.principal);
+      setTabelaPrecoId(principal?.id || tabelasPreco[0].id);
+    }
+  }, [tabelasPreco]);
 
   // Load existing proposal
   const { data: proposta, isLoading: loadingProposta } = useQuery({
@@ -212,14 +235,23 @@ export default function PropostaEditor() {
   };
 
   const addProductFromCatalog = (p: ProdutoGCRow) => {
+    // Find price from selected price table
+    let preco = p.preco_venda || 0;
+    if (tabelaPrecoId && precosTabela.length > 0) {
+      const precoTabela = precosTabela.find(pt => pt.produto_id === p.id);
+      if (precoTabela && precoTabela.valor_venda > 0) {
+        preco = precoTabela.valor_venda;
+      }
+    }
+
     const item: PropostaProduct = {
       id: crypto.randomUUID(),
       name: p.nome,
       description: p.descricao || '',
       unit: p.unidade || 'un',
       quantity: 1,
-      unitPrice: p.preco_venda || 0,
-      totalPrice: p.preco_venda || 0,
+      unitPrice: preco,
+      totalPrice: preco,
       discount: 0,
       photoUrl: p.foto_url || undefined,
       gcProdutoId: p.gc_id,
@@ -495,7 +527,28 @@ export default function PropostaEditor() {
           </div>
         </Section>
 
-        {/* Section 4: Products */}
+        {/* Section 4: Price Table */}
+        {tabelasPreco.length > 0 && (
+          <Section title="Tabela de Preço" icon="💰">
+            <Select value={tabelaPrecoId} onValueChange={setTabelaPrecoId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecionar tabela de preço..." />
+              </SelectTrigger>
+              <SelectContent>
+                {tabelasPreco.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.nome} {t.principal ? '⭐' : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              A tabela selecionada define os preços ao adicionar produtos do catálogo
+            </p>
+          </Section>
+        )}
+
+        {/* Section 5: Products */}
         <Section title={`Produtos e Serviços — ${formatBRL(total)}`} icon="📦">
           <div className="space-y-3">
             <div className="flex gap-2">
@@ -627,7 +680,7 @@ export default function PropostaEditor() {
       </div>
 
       {/* Catalog Picker */}
-      <CatalogPickerModal open={catalogOpen} onClose={() => setCatalogOpen(false)} onSelect={addProductFromCatalog} />
+      <CatalogPickerModal open={catalogOpen} onClose={() => setCatalogOpen(false)} onSelect={addProductFromCatalog} tabelaPrecoId={tabelaPrecoId} />
 
       {/* Share Modal */}
       <Dialog open={shareOpen} onOpenChange={setShareOpen}>
