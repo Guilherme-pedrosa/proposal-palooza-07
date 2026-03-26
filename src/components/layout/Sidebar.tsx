@@ -10,6 +10,7 @@ import {
   Settings,
   RefreshCw,
   BarChart,
+  PieChart,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -66,6 +67,7 @@ const menuGroups: MenuGroup[] = [
   {
     label: 'Gestão',
     items: [
+      { title: 'Dashboard', icon: PieChart, href: '/dashboard' },
       { title: 'Relatórios', icon: BarChart, href: '/relatorios' },
       { title: 'Sync GC', icon: RefreshCw, href: '/sync' },
     ],

@@ -22,6 +22,7 @@ import Catalogo from "./pages/Catalogo";
 import CatalogoDetail from "./pages/CatalogoDetail";
 import OportunidadeNova from "./pages/OportunidadeNova";
 import OportunidadeDetail from "./pages/OportunidadeDetail";
+import Dashboard from "./pages/Dashboard";
 import Relatorios from "./pages/Relatorios";
 import SyncGC from "./pages/SyncGC";
 import TermsConditions from "./pages/TermsConditions";
@@ -89,6 +90,7 @@ function AppRoutes() {
       <Route path="/propostas" element={<ProtectedRoute><Proposals /></ProtectedRoute>} />
       <Route path="/propostas/nova" element={<ProtectedRoute><PropostaEditor /></ProtectedRoute>} />
       <Route path="/propostas/:id" element={<ProtectedRoute><PropostaEditor /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
       <Route path="/sync" element={<ProtectedRoute><SyncGC /></ProtectedRoute>} />
       <Route path="/termos" element={<ProtectedRoute><TermsConditions /></ProtectedRoute>} />
