@@ -31,6 +31,7 @@ import {
 } from '@/lib/api/propostas';
 import { proposalTemplates } from '@/types/proposalTemplate';
 import { useProposal } from '@/contexts/ProposalContext';
+import { useGC } from '@/contexts/GCContext';
 import type { ProdutoGCRow } from '@/lib/api/produtosGC';
 
 interface PropostaProduct {
