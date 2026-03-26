@@ -22,6 +22,7 @@ import Catalogo from "./pages/Catalogo";
 import CatalogoDetail from "./pages/CatalogoDetail";
 import OportunidadeNova from "./pages/OportunidadeNova";
 import OportunidadeDetail from "./pages/OportunidadeDetail";
+import Dashboard from "./pages/Dashboard";
 import Relatorios from "./pages/Relatorios";
 import SyncGC from "./pages/SyncGC";
 import TermsConditions from "./pages/TermsConditions";
