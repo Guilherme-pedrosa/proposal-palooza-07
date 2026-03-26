@@ -172,9 +172,40 @@ export default function ClienteForm() {
         await clientesGCApi.update(id!, payload as any);
         toast.success('Cliente atualizado!');
       } else {
-        const gcId = `manual-${crypto.randomUUID()}`;
+        // 1) Create client in GestãoClick first
+        let gcId = `manual-${crypto.randomUUID()}`;
+        try {
+          const { data: gcResult, error: gcError } = await supabase.functions.invoke('gc-criar-cliente', {
+            body: {
+              tipo_pessoa: tipoPessoa,
+              nome: form.nome,
+              razao_social: form.razao_social || undefined,
+              cnpj: payload.cnpj || undefined,
+              cpf: payload.cpf || undefined,
+              telefone: form.telefone || undefined,
+              celular: form.celular || undefined,
+              email: form.email || undefined,
+              endereco: form.endereco || undefined,
+              cidade: form.cidade || undefined,
+              estado: form.estado || undefined,
+            },
+          });
+
+          if (!gcError && gcResult?.sucesso && gcResult?.gc_id) {
+            gcId = gcResult.gc_id;
+            toast.success('Cliente criado no GestãoClick!');
+          } else {
+            console.warn('GC sync failed, saving locally:', gcError || gcResult?.erro);
+            toast.warning('Cliente salvo localmente. Sincronização com GestãoClick pendente.');
+          }
+        } catch (gcErr) {
+          console.warn('GC sync error:', gcErr);
+          toast.warning('Cliente salvo localmente. Sincronização com GestãoClick pendente.');
+        }
+
+        // 2) Save in CRM database
         await clientesGCApi.create({ ...payload, gc_id: gcId, ativo: true, total_compras_gc: 0 } as any);
-        toast.success('Cliente cadastrado!');
+        toast.success('Cliente cadastrado no CRM!');
       }
 
       queryClient.invalidateQueries({ queryKey: ['clientes_gc'] });
