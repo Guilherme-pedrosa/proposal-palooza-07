@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +36,8 @@ import {
 } from '@/lib/api/atividades';
 import { insertAtividade, updateOportunidadeEtapa, fetchMotivosPerda, formatBRL } from '@/lib/api/oportunidades';
 import { supabase } from '@/integrations/supabase/client';
+import { WAIButton } from '@/components/WAIButton';
+import { Sparkles } from 'lucide-react';
 
 const grupoConfig: Record<GrupoAtividade, { label: string; emoji: string; borderColor: string; bgColor: string }> = {
   atrasada: { label: 'EM ATRASO', emoji: '🔴', borderColor: 'border-l-red-500', bgColor: 'bg-red-50' },
@@ -124,6 +126,7 @@ export default function Hoje() {
 
   // FAB
   const [fabOpen, setFabOpen] = useState(false);
+  const [dicaDiaria, setDicaDiaria] = useState<string | null>(null);
 
   const agora = new Date();
   const mes = agora.getMonth() + 1;
@@ -151,6 +154,23 @@ export default function Hoje() {
     queryKey: ['motivos_perda'],
     queryFn: fetchMotivosPerda,
   });
+
+  // Fetch WAI daily tip
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('notificacoes')
+      .select('descricao, created_at')
+      .eq('usuario_id', user.id)
+      .eq('tipo', 'dica_wai')
+      .gte('created_at', new Date().toISOString().split('T')[0])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+      .then(({ data }) => {
+        if (data) setDicaDiaria(data.descricao);
+      });
+  }, [user]);
 
   // Group activities
   const grupos = useMemo(() => {
@@ -270,12 +290,26 @@ export default function Hoje() {
     <MainLayout>
       <div className="space-y-4 pb-20">
         {/* Header */}
-        <div>
-          <h1 className="text-xl font-bold">{saudacao()}, {usuario?.nome?.split(' ')[0] ?? 'Vendedor'}! 👋</h1>
-          <p className="text-sm text-muted-foreground capitalize">
-            {format(agora, "EEEE, dd 'de' MMMM", { locale: ptBR })}
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold">{saudacao()}, {usuario?.nome?.split(' ')[0] ?? 'Vendedor'}! 👋</h1>
+            <p className="text-sm text-muted-foreground capitalize">
+              {format(agora, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+            </p>
+          </div>
+          <WAIButton variant="inline" contexto={{}} />
         </div>
+
+        {/* WAI Daily Tip */}
+        {dicaDiaria && (
+          <div className="p-4 bg-sidebar rounded-xl text-sidebar-foreground">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="text-xs font-semibold text-primary uppercase">Dica WAI para hoje</span>
+            </div>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">{dicaDiaria}</p>
+          </div>
+        )}
 
         {/* KPI Cards */}
         <div className="flex gap-2 overflow-x-auto no-scrollbar">

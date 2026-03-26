@@ -26,6 +26,7 @@ import {
   ArrowLeft, Phone, MessageSquare, MapPin, Edit, DollarSign,
   CalendarDays, FileText, Target, Plus, Loader2
 } from 'lucide-react';
+import { WAIButton } from '@/components/WAIButton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -263,6 +264,21 @@ export default function ClienteDetail360() {
           <Button variant="outline" size="sm" className="gap-1 flex-shrink-0" onClick={() => navigate(`/clientes/${id}/editar`)}>
             <Edit className="h-3.5 w-3.5" /> Editar
           </Button>
+          <WAIButton
+            variant="inline"
+            contexto={{
+              cliente: {
+                nome: cliente.nome,
+                segmento: cliente.segmento,
+                porte: cliente.porte,
+                cidade: cliente.cidade,
+                estado: cliente.estado,
+                ultima_compra: cliente.ultima_compra_gc,
+                total_compras: cliente.total_compras_gc,
+                observacoes: cliente.observacoes,
+              },
+            }}
+          />
         </div>
       </div>
 
