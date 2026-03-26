@@ -16,8 +16,9 @@ import Pipeline from "./pages/Pipeline";
 import NewProposal from "./pages/NewProposal";
 import EditProposal from "./pages/EditProposal";
 import Proposals from "./pages/Proposals";
-import Clients from "./pages/Clients";
-import ClientDetail from "./pages/ClientDetail";
+import ClientesGC from "./pages/ClientesGC";
+import ClienteDetail360 from "./pages/ClienteDetail360";
+import ClienteForm from "./pages/ClienteForm";
 import Catalogo from "./pages/Catalogo";
 import CatalogoDetail from "./pages/CatalogoDetail";
 import OportunidadeNova from "./pages/OportunidadeNova";
@@ -78,9 +79,10 @@ function AppRoutes() {
       <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
       <Route path="/hoje" element={<ProtectedRoute><Hoje /></ProtectedRoute>} />
       <Route path="/pipeline" element={<ProtectedRoute><Pipeline /></ProtectedRoute>} />
-      <Route path="/clientes" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
-      <Route path="/clientes/novo" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
-      <Route path="/cliente/:id" element={<ProtectedRoute><ClientDetail /></ProtectedRoute>} />
+      <Route path="/clientes" element={<ProtectedRoute><ClientesGC /></ProtectedRoute>} />
+      <Route path="/clientes/novo" element={<ProtectedRoute><ClienteForm /></ProtectedRoute>} />
+      <Route path="/clientes/:id/editar" element={<ProtectedRoute><ClienteForm /></ProtectedRoute>} />
+      <Route path="/cliente/:id" element={<ProtectedRoute><ClienteDetail360 /></ProtectedRoute>} />
       <Route path="/catalogo" element={<ProtectedRoute><Catalogo /></ProtectedRoute>} />
       <Route path="/catalogo/:id" element={<ProtectedRoute><CatalogoDetail /></ProtectedRoute>} />
       <Route path="/oportunidades/nova" element={<ProtectedRoute><OportunidadeNova /></ProtectedRoute>} />
