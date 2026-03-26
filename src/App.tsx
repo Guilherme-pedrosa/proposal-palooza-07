@@ -13,9 +13,8 @@ import Login from "./pages/Login";
 import Index from "./pages/Index";
 import Hoje from "./pages/Hoje";
 import Pipeline from "./pages/Pipeline";
-import NewProposal from "./pages/NewProposal";
-import EditProposal from "./pages/EditProposal";
 import Proposals from "./pages/Proposals";
+import PropostaEditor from "./pages/PropostaEditor";
 import ClientesGC from "./pages/ClientesGC";
 import ClienteDetail360 from "./pages/ClienteDetail360";
 import ClienteForm from "./pages/ClienteForm";
@@ -88,8 +87,8 @@ function AppRoutes() {
       <Route path="/oportunidades/nova" element={<ProtectedRoute><OportunidadeNova /></ProtectedRoute>} />
       <Route path="/oportunidades/:id" element={<ProtectedRoute><OportunidadeDetail /></ProtectedRoute>} />
       <Route path="/propostas" element={<ProtectedRoute><Proposals /></ProtectedRoute>} />
-      <Route path="/nova-proposta" element={<ProtectedRoute><NewProposal /></ProtectedRoute>} />
-      <Route path="/proposta/:id/editar" element={<ProtectedRoute><EditProposal /></ProtectedRoute>} />
+      <Route path="/propostas/nova" element={<ProtectedRoute><PropostaEditor /></ProtectedRoute>} />
+      <Route path="/propostas/:id" element={<ProtectedRoute><PropostaEditor /></ProtectedRoute>} />
       <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
       <Route path="/sync" element={<ProtectedRoute><SyncGC /></ProtectedRoute>} />
       <Route path="/termos" element={<ProtectedRoute><TermsConditions /></ProtectedRoute>} />
