@@ -126,6 +126,7 @@ export default function Hoje() {
 
   // FAB
   const [fabOpen, setFabOpen] = useState(false);
+  const [dicaDiaria, setDicaDiaria] = useState<string | null>(null);
 
   const agora = new Date();
   const mes = agora.getMonth() + 1;
