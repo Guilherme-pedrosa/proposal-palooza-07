@@ -16,7 +16,7 @@ import { format, addDays } from 'date-fns';
 import { ArrowLeft, Save, Search, Plus, X } from 'lucide-react';
 import { proximoDiaUtil } from '@/lib/api/atividades';
 import { insertAtividade, tipoVendaLabels } from '@/lib/api/oportunidades';
-import CurrencyInput from '@/components/ui/currency-input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 
 const origemOptions = [
   { value: 'indicacao', label: 'Indicação' },
