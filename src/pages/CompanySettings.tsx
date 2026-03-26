@@ -499,6 +499,29 @@ export default function CompanySettings() {
             </div>
           </CardContent>
         </Card>
+        {/* Aparência */}
+        <Card className="shadow-card animate-fade-in">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              {theme === 'dark' ? <Moon className="h-5 w-5 text-primary" /> : <Sun className="h-5 w-5 text-primary" />}
+              Aparência
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Modo Escuro</p>
+                <p className="text-xs text-muted-foreground">Alternar entre tema claro e escuro</p>
+              </div>
+              <Switch
+                checked={theme === 'dark'}
+                onCheckedChange={toggleTheme}
+                aria-label="Alternar modo escuro"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* GestãoClick Integration */}
         <GCSection />
       </div>
