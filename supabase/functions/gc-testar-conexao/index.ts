@@ -23,14 +23,18 @@ serve(async (req) => {
   }
 
   const url = `${GC_BASE_URL}/clientes?` + new URLSearchParams({
-    access_token: ACCESS_TOKEN,
-    secret_access_token: SECRET_TOKEN,
     loja_id: String(GC_LOJA_ID),
     limite: '1',
   });
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        'access-token': ACCESS_TOKEN,
+        'secret-access-token': SECRET_TOKEN,
+        'Content-Type': 'application/json',
+      },
+    });
     if (response.status === 200) {
       return new Response(JSON.stringify({ ok: true, mensagem: 'Conexão com GestãoClick OK ✅' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

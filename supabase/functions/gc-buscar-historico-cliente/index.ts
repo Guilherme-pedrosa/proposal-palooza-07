@@ -25,9 +25,13 @@ serve(async (req) => {
 
   const { gc_cliente_id } = await req.json();
 
+  const gcHeaders = {
+    'access-token': ACCESS_TOKEN,
+    'secret-access-token': SECRET_TOKEN,
+    'Content-Type': 'application/json',
+  };
+
   const params = new URLSearchParams({
-    access_token: ACCESS_TOKEN,
-    secret_access_token: SECRET_TOKEN,
     loja_id: String(GC_LOJA_ID),
     cliente_id: String(gc_cliente_id),
     limite: '20',
@@ -36,7 +40,7 @@ serve(async (req) => {
   const fetchSafe = async (endpoint: string, delayMs = 0) => {
     if (delayMs > 0) await new Promise(r => setTimeout(r, delayMs));
     try {
-      const res = await fetch(`${GC_BASE_URL}/${endpoint}?${params}`);
+      const res = await fetch(`${GC_BASE_URL}/${endpoint}?${params}`, { headers: gcHeaders });
       if (!res.ok) return [];
       const body = await res.json();
       return body?.data || [];

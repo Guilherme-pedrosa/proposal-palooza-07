@@ -12,9 +12,9 @@ const GC_RATE_LIMIT_DELAY_MS = 350;
 const GC_MAX_RETRIES = 3;
 const GC_MAX_PER_PAGE = 100;
 
-async function fetchComRetry(url: string, maxRetries: number): Promise<Response> {
+async function fetchComRetry(url: string, headers: Record<string, string>, maxRetries: number): Promise<Response> {
   for (let tentativa = 0; tentativa < maxRetries; tentativa++) {
-    const response = await fetch(url);
+    const response = await fetch(url, { headers });
     if (response.status === 429) {
       const espera = Math.pow(2, tentativa) * 1000;
       await new Promise(r => setTimeout(r, espera));
@@ -44,6 +44,12 @@ serve(async (req) => {
     });
   }
 
+  const gcHeaders = {
+    'access-token': ACCESS_TOKEN,
+    'secret-access-token': SECRET_TOKEN,
+    'Content-Type': 'application/json',
+  };
+
   let pagina = 1;
   let totalSincronizados = 0;
   let erros = 0;
@@ -55,15 +61,13 @@ serve(async (req) => {
     }
 
     const url = `${GC_BASE_URL}/clientes?` + new URLSearchParams({
-      access_token: ACCESS_TOKEN,
-      secret_access_token: SECRET_TOKEN,
       loja_id: String(GC_LOJA_ID),
       limite: String(GC_MAX_PER_PAGE),
       pagina: String(pagina),
     });
 
     try {
-      const response = await fetchComRetry(url, GC_MAX_RETRIES);
+      const response = await fetchComRetry(url, gcHeaders, GC_MAX_RETRIES);
 
       if (!response.ok) {
         await supabase.from('gc_sync_log').insert({

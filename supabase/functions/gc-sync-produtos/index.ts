@@ -23,9 +23,9 @@ const GC_GRUPO_IDS = [
   '5711316', // REVENDA - SKYMSEN
 ];
 
-async function fetchComRetry(url: string, maxRetries: number): Promise<Response> {
+async function fetchComRetry(url: string, headers: Record<string, string>, maxRetries: number): Promise<Response> {
   for (let tentativa = 0; tentativa < maxRetries; tentativa++) {
-    const response = await fetch(url);
+    const response = await fetch(url, { headers });
     if (response.status === 429) {
       await new Promise(r => setTimeout(r, Math.pow(2, tentativa) * 1000));
       continue;
@@ -54,6 +54,12 @@ serve(async (req) => {
     });
   }
 
+  const gcHeaders = {
+    'access-token': ACCESS_TOKEN,
+    'secret-access-token': SECRET_TOKEN,
+    'Content-Type': 'application/json',
+  };
+
   let totalSincronizados = 0;
   let erros = 0;
   let paginasTotal = 0;
@@ -66,8 +72,6 @@ serve(async (req) => {
       await new Promise(resolve => setTimeout(resolve, GC_RATE_LIMIT_DELAY_MS));
 
       const url = `${GC_BASE_URL}/produtos?` + new URLSearchParams({
-        access_token: ACCESS_TOKEN,
-        secret_access_token: SECRET_TOKEN,
         loja_id: String(GC_LOJA_ID),
         limite: String(GC_MAX_PER_PAGE),
         pagina: String(pagina),
@@ -75,7 +79,7 @@ serve(async (req) => {
       });
 
       try {
-        const response = await fetchComRetry(url, GC_MAX_RETRIES);
+        const response = await fetchComRetry(url, gcHeaders, GC_MAX_RETRIES);
 
         if (!response.ok) {
           await supabase.from('gc_sync_log').insert({
