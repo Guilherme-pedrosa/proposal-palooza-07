@@ -117,9 +117,12 @@ const App = () => (
           <CompanyProvider>
             <ProposalProvider>
               <TooltipProvider>
+                <ConnectionStatus />
                 <Toaster />
                 <Sonner />
+                <ScrollToTop />
                 <AppRoutes />
+                <PWAInstallBanner />
               </TooltipProvider>
             </ProposalProvider>
           </CompanyProvider>
