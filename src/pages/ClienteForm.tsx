@@ -101,6 +101,34 @@ export default function ClienteForm() {
     }
   };
 
+  const handleCNPJ = async () => {
+    const cnpj = form.cnpj.replace(/\D/g, '');
+    if (cnpj.length !== 14) {
+      toast.error('CNPJ deve ter 14 dígitos');
+      return;
+    }
+    setLookingUpCnpj(true);
+    try {
+      const data = await clientesGCApi.lookupCNPJ(cnpj);
+      setForm(f => ({
+        ...f,
+        nome: data.razao_social || f.nome,
+        razao_social: data.nome_fantasia || f.razao_social,
+        telefone: data.ddd_telefone_1 || f.telefone,
+        email: data.email || f.email,
+        endereco: [data.logradouro, data.numero, data.complemento].filter(Boolean).join(', ') || f.endereco,
+        cidade: data.municipio || f.cidade,
+        estado: data.uf || f.estado,
+        cep: data.cep?.replace(/\D/g, '') || f.cep,
+      }));
+      toast.success('Dados do CNPJ preenchidos automaticamente!');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao consultar CNPJ');
+    } finally {
+      setLookingUpCnpj(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!form.nome.trim()) {
       toast.error('Nome é obrigatório');
