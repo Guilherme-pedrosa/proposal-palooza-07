@@ -27,6 +27,7 @@ export default function ClienteForm() {
 
   const [saving, setSaving] = useState(false);
   const [lookingUpCep, setLookingUpCep] = useState(false);
+  const [lookingUpCnpj, setLookingUpCnpj] = useState(false);
   const [tipoPessoa, setTipoPessoa] = useState<'PJ' | 'PF'>('PJ');
 
   const [form, setForm] = useState({
@@ -97,6 +98,34 @@ export default function ClienteForm() {
       toast.error('CEP não encontrado');
     } finally {
       setLookingUpCep(false);
+    }
+  };
+
+  const handleCNPJ = async () => {
+    const cnpj = form.cnpj.replace(/\D/g, '');
+    if (cnpj.length !== 14) {
+      toast.error('CNPJ deve ter 14 dígitos');
+      return;
+    }
+    setLookingUpCnpj(true);
+    try {
+      const data = await clientesGCApi.lookupCNPJ(cnpj);
+      setForm(f => ({
+        ...f,
+        nome: data.razao_social || f.nome,
+        razao_social: data.nome_fantasia || f.razao_social,
+        telefone: data.ddd_telefone_1 || f.telefone,
+        email: data.email || f.email,
+        endereco: [data.logradouro, data.numero, data.complemento].filter(Boolean).join(', ') || f.endereco,
+        cidade: data.municipio || f.cidade,
+        estado: data.uf || f.estado,
+        cep: data.cep?.replace(/\D/g, '') || f.cep,
+      }));
+      toast.success('Dados do CNPJ preenchidos automaticamente!');
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao consultar CNPJ');
+    } finally {
+      setLookingUpCnpj(false);
     }
   };
 
@@ -206,7 +235,13 @@ export default function ClienteForm() {
           {tipoPessoa === 'PJ' ? (
             <div>
               <Label>CNPJ</Label>
-              <Input value={form.cnpj} onChange={(e) => set('cnpj', e.target.value)} placeholder="00.000.000/0000-00" />
+              <div className="flex gap-2">
+                <Input value={form.cnpj} onChange={(e) => set('cnpj', e.target.value)} placeholder="00.000.000/0000-00" className="flex-1" />
+                <Button variant="outline" onClick={handleCNPJ} disabled={lookingUpCnpj} title="Buscar dados pelo CNPJ">
+                  {lookingUpCnpj ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                  <span className="ml-1">Buscar</span>
+                </Button>
+              </div>
             </div>
           ) : (
             <div>

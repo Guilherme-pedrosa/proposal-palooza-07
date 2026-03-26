@@ -62,6 +62,17 @@ export const clientesGCApi = {
     if (data.erro) throw new Error('CEP não encontrado');
     return data;
   },
+
+  async lookupCNPJ(cnpj: string) {
+    const clean = cnpj.replace(/\D/g, '');
+    if (clean.length !== 14) throw new Error('CNPJ deve ter 14 dígitos');
+    const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${clean}`);
+    if (!response.ok) {
+      if (response.status === 404) throw new Error('CNPJ não encontrado');
+      throw new Error('Erro ao consultar CNPJ');
+    }
+    return await response.json();
+  },
 };
 
 // Health calculation
