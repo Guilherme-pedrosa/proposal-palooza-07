@@ -26,6 +26,7 @@ import {
   ArrowLeft, Phone, MessageSquare, MapPin, Edit, DollarSign,
   CalendarDays, FileText, Target, Plus, Loader2
 } from 'lucide-react';
+import { WAIButton } from '@/components/WAIButton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {

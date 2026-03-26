@@ -217,7 +217,30 @@ export default function OportunidadeDetail() {
             <span className="text-sm">{temp.emoji} {temp.label}</span>
           </div>
           <h1 className="text-xl font-bold">{op.titulo}</h1>
-          {op.cliente && <p className="text-sm text-muted-foreground">{(op.cliente as any).nome}</p>}
+          <div className="flex items-center gap-2 flex-wrap">
+            {op.cliente && <p className="text-sm text-muted-foreground">{(op.cliente as any).nome}</p>}
+            <WAIButton
+              variant="inline"
+              contexto={{
+                cliente: op.cliente ? {
+                  nome: (op.cliente as any).nome,
+                  segmento: (op.cliente as any).segmento,
+                  porte: (op.cliente as any).porte,
+                  cidade: (op.cliente as any).cidade,
+                  estado: (op.cliente as any).estado,
+                } : undefined,
+                oportunidade: {
+                  titulo: op.titulo,
+                  etapa: op.etapa,
+                  tipo_venda: op.tipo_venda,
+                  valor_estimado: op.valor_estimado,
+                  probabilidade: op.probabilidade,
+                  temperatura: op.temperatura,
+                  origem: op.origem,
+                },
+              }}
+            />
+          </div>
         </div>
 
         {/* Metrics row */}

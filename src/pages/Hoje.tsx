@@ -290,12 +290,26 @@ export default function Hoje() {
     <MainLayout>
       <div className="space-y-4 pb-20">
         {/* Header */}
-        <div>
-          <h1 className="text-xl font-bold">{saudacao()}, {usuario?.nome?.split(' ')[0] ?? 'Vendedor'}! 👋</h1>
-          <p className="text-sm text-muted-foreground capitalize">
-            {format(agora, "EEEE, dd 'de' MMMM", { locale: ptBR })}
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold">{saudacao()}, {usuario?.nome?.split(' ')[0] ?? 'Vendedor'}! 👋</h1>
+            <p className="text-sm text-muted-foreground capitalize">
+              {format(agora, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+            </p>
+          </div>
+          <WAIButton variant="inline" contexto={{}} />
         </div>
+
+        {/* WAI Daily Tip */}
+        {dicaDiaria && (
+          <div className="p-4 bg-sidebar rounded-xl text-sidebar-foreground">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="text-xs font-semibold text-primary uppercase">Dica WAI para hoje</span>
+            </div>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">{dicaDiaria}</p>
+          </div>
+        )}
 
         {/* KPI Cards */}
         <div className="flex gap-2 overflow-x-auto no-scrollbar">
