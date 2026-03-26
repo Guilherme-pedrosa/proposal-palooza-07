@@ -2,11 +2,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ProposalProvider } from "@/contexts/ProposalContext";
 import { CompanyProvider } from "@/contexts/CompanyContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { GCProvider } from "@/contexts/GCContext";
+import { ConnectionStatus } from "@/components/ConnectionStatus";
+import { PWAInstallBanner } from "@/components/PWAInstallBanner";
+import { useEffect } from "react";
 
 // Pages
 import Login from "./pages/Login";
@@ -68,6 +71,12 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+}
+
 function AppRoutes() {
   return (
     <Routes>
@@ -108,9 +117,12 @@ const App = () => (
           <CompanyProvider>
             <ProposalProvider>
               <TooltipProvider>
+                <ConnectionStatus />
                 <Toaster />
                 <Sonner />
+                <ScrollToTop />
                 <AppRoutes />
+                <PWAInstallBanner />
               </TooltipProvider>
             </ProposalProvider>
           </CompanyProvider>
