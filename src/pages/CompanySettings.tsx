@@ -33,7 +33,7 @@ import logoWedoDefault from '@/assets/logo-wedo.png';
 
 export default function CompanySettings() {
   const { company, updateCompany, setLogo } = useCompany();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const { theme, toggleTheme } = useTheme();
   const clientLogoInputRef = useRef<HTMLInputElement>(null);
   const brandLogoInputRef = useRef<HTMLInputElement>(null);
   const [newValue, setNewValue] = useState('');
