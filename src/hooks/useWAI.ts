@@ -71,6 +71,7 @@ export function useWAI(contexto: WAIContexto) {
           contexto_oportunidade: contexto.oportunidade,
           contexto_proposta: contexto.proposta,
           historico_chat: historico.map(m => ({ role: m.role, content: m.content })),
+          usuario_id: user?.id || null,
         },
       });
 
