@@ -339,6 +339,46 @@ export default function PropostaEditor() {
     e.target.value = '';
   };
 
+  const criarOrcamentoNoGC = async () => {
+    if (!clienteId) { toast({ title: 'Selecione um cliente', variant: 'destructive' }); return; }
+    const produtosSemGC = produtos.filter(p => !p.gcProdutoId);
+    if (produtosSemGC.length > 0) {
+      toast({ title: `${produtosSemGC.length} item(s) sem código GC — substitua antes de criar o orçamento`, variant: 'destructive' });
+      return;
+    }
+    setCarregandoGC(true);
+    try {
+      const resultado = await criarOrcamentoGC({
+        gc_cliente_id: clienteSelecionado?.gc_id || clienteId,
+        produtos: produtos.map(p => ({ gc_produto_id: p.gcProdutoId!, quantidade: p.quantity, valor_unitario: p.unitPrice })),
+        observacoes: descricao,
+        vendedor_nome: user?.nome || '',
+        proposta_numero: numero,
+      });
+      // Save GC IDs on the proposal
+      if (id) {
+        await supabase.from('propostas').update({
+          gc_orcamento_id: resultado.gc_orcamento_id,
+          gc_orcamento_url: resultado.gc_orcamento_url,
+        } as any).eq('id', id);
+        if (oportunidadeId) {
+          await supabase.from('oportunidades').update({
+            gc_orcamento_id: resultado.gc_orcamento_id,
+            gc_orcamento_url: resultado.gc_orcamento_url,
+          } as any).eq('id', oportunidadeId);
+        }
+      }
+      setGcOrcamentoUrl(resultado.gc_orcamento_url);
+      toast({ title: `✅ Orçamento #${resultado.gc_orcamento_id} criado no GestãoClick!` });
+    } catch (e: any) {
+      if (e.message !== 'API_KEY_EXPIRADA') {
+        toast({ title: '❌ Erro ao criar orçamento', variant: 'destructive' });
+      }
+    } finally {
+      setCarregandoGC(false);
+    }
+  };
+
   if (!isNew && loadingProposta) {
     return <MainLayout><div className="space-y-3"><Skeleton className="h-8 w-1/2" /><Skeleton className="h-40 w-full" /></div></MainLayout>;
   }
