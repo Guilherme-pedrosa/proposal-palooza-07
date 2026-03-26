@@ -99,6 +99,7 @@ export default function PropostaEditor() {
   const [carregandoGC, setCarregandoGC] = useState(false);
   const [gcOrcamentoUrl, setGcOrcamentoUrl] = useState('');
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [tabelaPrecoId, setTabelaPrecoId] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
 
