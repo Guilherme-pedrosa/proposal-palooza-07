@@ -12,6 +12,17 @@ const GC_RATE_LIMIT_DELAY_MS = 350;
 const GC_MAX_RETRIES = 3;
 const GC_MAX_PER_PAGE = 100;
 
+// Only sync products from these GC group IDs
+const GC_GRUPO_IDS = [
+  '5607724', // REVENDA - EQUIPAMENTOS
+  '5607733', // REVENDA - ACESSÓRIOS
+  '5607771', // REVENDA - MANUTENÇÃO
+  '5607834', // REVENDA - Rational
+  '5617001', // SPOLU - REVENDA
+  '5664343', // REVENDA - ROBOT COUPE
+  '5711316', // REVENDA - SKYMSEN
+];
+
 async function fetchComRetry(url: string, maxRetries: number): Promise<Response> {
   for (let tentativa = 0; tentativa < maxRetries; tentativa++) {
     const response = await fetch(url);
