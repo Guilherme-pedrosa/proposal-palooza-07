@@ -87,8 +87,8 @@ function AppRoutes() {
       <Route path="/oportunidades/nova" element={<ProtectedRoute><OportunidadeNova /></ProtectedRoute>} />
       <Route path="/oportunidades/:id" element={<ProtectedRoute><OportunidadeDetail /></ProtectedRoute>} />
       <Route path="/propostas" element={<ProtectedRoute><Proposals /></ProtectedRoute>} />
-      <Route path="/nova-proposta" element={<ProtectedRoute><NewProposal /></ProtectedRoute>} />
-      <Route path="/proposta/:id/editar" element={<ProtectedRoute><EditProposal /></ProtectedRoute>} />
+      <Route path="/propostas/nova" element={<ProtectedRoute><PropostaEditor /></ProtectedRoute>} />
+      <Route path="/propostas/:id" element={<ProtectedRoute><PropostaEditor /></ProtectedRoute>} />
       <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
       <Route path="/sync" element={<ProtectedRoute><SyncGC /></ProtectedRoute>} />
       <Route path="/termos" element={<ProtectedRoute><TermsConditions /></ProtectedRoute>} />
