@@ -137,7 +137,7 @@ serve(async (req) => {
     entidade: 'produtos',
     acao: 'sync_completo',
     status: erros === 0 ? 'sucesso' : 'parcial',
-    detalhes: { total: totalSincronizados, erros, paginas: pagina }
+    detalhes: { total: totalSincronizados, erros, paginas: paginasTotal, grupos: GC_GRUPO_IDS.length }
   });
 
   return new Response(JSON.stringify({
