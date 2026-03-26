@@ -142,6 +142,7 @@ export default function PropostaEditor() {
       setStatus(proposta.status ?? 'rascunho');
       setVersao(proposta.versao);
       setLinkUuid(proposta.link_publico_uuid ?? '');
+      setGcOrcamentoUrl(proposta.gc_orcamento_url ?? '');
     }
   }, [proposta]);
 
