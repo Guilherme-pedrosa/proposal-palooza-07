@@ -6,7 +6,7 @@ import type { WAIContexto } from '@/hooks/useWAI';
 
 interface WAIButtonProps {
   contexto: WAIContexto;
-  variant?: 'fab' | 'inline';
+  variant?: 'fab' | 'inline' | 'header';
 }
 
 export function WAIButton({ contexto, variant = 'inline' }: WAIButtonProps) {
