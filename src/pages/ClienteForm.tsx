@@ -235,7 +235,13 @@ export default function ClienteForm() {
           {tipoPessoa === 'PJ' ? (
             <div>
               <Label>CNPJ</Label>
-              <Input value={form.cnpj} onChange={(e) => set('cnpj', e.target.value)} placeholder="00.000.000/0000-00" />
+              <div className="flex gap-2">
+                <Input value={form.cnpj} onChange={(e) => set('cnpj', e.target.value)} placeholder="00.000.000/0000-00" className="flex-1" />
+                <Button variant="outline" onClick={handleCNPJ} disabled={lookingUpCnpj} title="Buscar dados pelo CNPJ">
+                  {lookingUpCnpj ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                  <span className="ml-1">Buscar</span>
+                </Button>
+              </div>
             </div>
           ) : (
             <div>
