@@ -124,7 +124,7 @@ function OpCard({ op, atividades, onQuickActivity, onCall }: {
       style={style}
       {...attributes}
       {...listeners}
-      className="p-3 space-y-2 cursor-grab active:cursor-grabbing touch-manipulation border border-border shadow-sm hover:shadow-md transition-shadow"
+      className={`p-3 space-y-2 cursor-grab active:cursor-grabbing touch-manipulation border shadow-sm hover:shadow-md transition-shadow ${dias >= 7 ? 'border-destructive/40 bg-destructive/5' : 'border-border'}`}
     >
       {/* Top badges */}
       <div className="flex items-center justify-between gap-1">
@@ -152,10 +152,13 @@ function OpCard({ op, atividades, onQuickActivity, onCall }: {
           </p>
         )}
         {dias > 0 && (
-          <p className={`flex items-center gap-1 ${dias > 5 ? 'text-red-500 font-medium' : ''}`}>
+          <p className={`flex items-center gap-1 ${
+            dias >= 7 ? 'text-destructive font-semibold' :
+            dias >= 4 ? 'text-yellow-600 font-medium' :
+            'text-muted-foreground'
+          }`}>
             <Clock className="h-3 w-3" />
-            {dias}d nesta etapa
-            {dias > 5 && <AlertTriangle className="h-3 w-3" />}
+            {dias >= 7 ? `🔴 ${dias} dias parado!` : dias >= 4 ? `⚠️ ${dias} dias aqui` : `${dias} dias aqui`}
           </p>
         )}
       </div>
