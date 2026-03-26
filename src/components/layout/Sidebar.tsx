@@ -66,6 +66,7 @@ const menuGroups: MenuGroup[] = [
   {
     label: 'Gestão',
     items: [
+      { title: 'Dashboard', icon: BarChart, href: '/dashboard' },
       { title: 'Relatórios', icon: BarChart, href: '/relatorios' },
       { title: 'Sync GC', icon: RefreshCw, href: '/sync' },
     ],
