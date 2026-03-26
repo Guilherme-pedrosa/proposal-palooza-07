@@ -45,6 +45,7 @@ export interface WAIContexto {
 }
 
 export function useWAI(contexto: WAIContexto) {
+  const { user } = useAuth();
   const [historico, setHistorico] = useState<WAIMessage[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
