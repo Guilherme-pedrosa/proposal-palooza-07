@@ -89,10 +89,13 @@ export default function PropostaEditor() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { savedTerms } = useProposal();
+  const { criarOrcamentoGC } = useGC();
   const [searchParams] = useSearchParams();
   const isNew = !id;
 
   const [saving, setSaving] = useState(false);
+  const [carregandoGC, setCarregandoGC] = useState(false);
+  const [gcOrcamentoUrl, setGcOrcamentoUrl] = useState('');
   const [catalogOpen, setCatalogOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
