@@ -21,6 +21,7 @@ export interface WAIContexto {
     observacoes?: string | null;
   };
   oportunidade?: {
+    id?: string;
     titulo: string;
     etapa?: string;
     tipo_venda?: string | null;
