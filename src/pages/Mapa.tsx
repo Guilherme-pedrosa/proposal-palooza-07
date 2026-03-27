@@ -904,7 +904,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       {/* Sync compras */}
       <div className="px-4 pb-3">
         <Button variant="outline" size="sm" className="w-full text-xs" onClick={handleSyncCompras} disabled={syncingCompras}>
-          {syncingCompras ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Sincronizando compras...</> : <><RefreshCw className="h-3 w-3 mr-1" /> Atualizar última compra GC</>}
+          {syncingCompras ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> {syncComprasProgress || 'Sincronizando compras...'}</> : <><RefreshCw className="h-3 w-3 mr-1" /> Atualizar última compra GC</>}
         </Button>
       </div>
 
