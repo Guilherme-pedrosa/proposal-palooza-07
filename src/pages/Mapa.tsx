@@ -476,6 +476,9 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     const markers: google.maps.Marker[] = [];
     const map = mapRef.current!;
 
+    const clusterableMarkers: google.maps.Marker[] = [];
+    const alwaysVisibleMarkers: google.maps.Marker[] = [];
+
     if (showClientes) {
       filteredClientes.forEach(c => {
         const color = getClientStatusColor(c.ultima_compra_gc);
@@ -504,6 +507,13 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         });
         marker.addListener('click', () => { setSelectedClient(c); setSelectedOp(null); setSelectedProspect(null); });
         markers.push(marker);
+
+        // Active (green) clients stay visible outside clusters
+        if (isActive) {
+          alwaysVisibleMarkers.push(marker);
+        } else {
+          clusterableMarkers.push(marker);
+        }
       });
     }
 
@@ -528,13 +538,19 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         });
         marker.addListener('click', () => { setSelectedOp(op); setSelectedClient(null); setSelectedProspect(null); });
         markers.push(marker);
+        clusterableMarkers.push(marker);
       });
     }
 
     markersRef.current = markers;
-    markers.forEach(m => m.setMap(map));
-    if (markers.length > 10) {
-      clustererRef.current = new MarkerClusterer({ map, markers, onClusterClick: (_, cluster, map) => { map.fitBounds(cluster.bounds!); } });
+    // Green clients are added directly to the map (never clustered)
+    alwaysVisibleMarkers.forEach(m => m.setMap(map));
+    // Other markers go through the clusterer
+    if (clusterableMarkers.length > 10) {
+      clusterableMarkers.forEach(m => m.setMap(null)); // clusterer manages them
+      clustererRef.current = new MarkerClusterer({ map, markers: clusterableMarkers, onClusterClick: (_, cluster, map) => { map.fitBounds(cluster.bounds!); } });
+    } else {
+      clusterableMarkers.forEach(m => m.setMap(map));
     }
 
     return () => {
