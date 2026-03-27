@@ -423,6 +423,25 @@ export default function PropostaEditor() {
     e.target.value = '';
   };
 
+  const handleAnexoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAnexos((prev) => [...prev, {
+          id: crypto.randomUUID(),
+          url: reader.result,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+        }]);
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
   const criarOrcamentoNoGC = async () => {
     if (!clienteId) { toast({ title: 'Selecione um cliente', variant: 'destructive' }); return; }
     const produtosSemGC = produtos.filter(p => !p.gcProdutoId);
