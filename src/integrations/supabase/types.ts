@@ -238,6 +238,54 @@ export type Database = {
         }
         Relationships: []
       }
+      company_settings: {
+        Row: {
+          address: string | null
+          brands: Json | null
+          clients: Json | null
+          cnpj: string | null
+          email: string | null
+          id: string
+          logo_url: string | null
+          mission: string | null
+          name: string
+          phone: string | null
+          updated_at: string | null
+          values: string[] | null
+          vision: string | null
+        }
+        Insert: {
+          address?: string | null
+          brands?: Json | null
+          clients?: Json | null
+          cnpj?: string | null
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          mission?: string | null
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
+          values?: string[] | null
+          vision?: string | null
+        }
+        Update: {
+          address?: string | null
+          brands?: Json | null
+          clients?: Json | null
+          cnpj?: string | null
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          mission?: string | null
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
+          values?: string[] | null
+          vision?: string | null
+        }
+        Relationships: []
+      }
       gc_sync_log: {
         Row: {
           acao: string
