@@ -485,15 +485,22 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     if (bounds) setViewportBounds(bounds);
   }, []);
 
-  // ─── Client & Oportunity markers ─────────────────
   useEffect(() => {
-    if (!mapRef.current || !isLoaded) return;
+    if (!mapRef.current || !isLoaded || !mapReady) return;
+
+    const disposeClientClusterer = () => {
+      if (!clustererRef.current) return;
+      clustererRef.current.clearMarkers();
+      (clustererRef.current as unknown as { setMap?: (map: google.maps.Map | null) => void }).setMap?.(null);
+      clustererRef.current = null;
+    };
+
     markersRef.current.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
     markersRef.current = [];
-    if (clustererRef.current) { clustererRef.current.clearMarkers(); clustererRef.current = null; }
+    disposeClientClusterer();
 
     const markers: google.maps.Marker[] = [];
-    const map = mapRef.current!;
+    const map = mapRef.current;
 
     const clusterableMarkers: google.maps.Marker[] = [];
     const alwaysVisibleMarkers: google.maps.Marker[] = [];
@@ -519,11 +526,20 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             <circle cx="20" cy="19" r="${circleR}" fill="white" opacity="0.95"/>
             <text x="20" y="${textY}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" font-family="Arial, sans-serif" fill="${color}">${initial}</text>
           </svg>`;
+
         const marker = new google.maps.Marker({
-          position: { lat: c.latitude, lng: c.longitude }, title: c.nome,
-          icon: { url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(pinSvg), scaledSize: new google.maps.Size(pinW, pinH), anchor: new google.maps.Point(pinW / 2, pinH) },
-          zIndex: isActive ? 20 : 10, clickable: true,
+          position: { lat: c.latitude, lng: c.longitude },
+          title: c.nome,
+          icon: {
+            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(pinSvg),
+            scaledSize: new google.maps.Size(pinW, pinH),
+            anchor: new google.maps.Point(pinW / 2, pinH),
+          },
+          zIndex: isActive ? 20 : 10,
+          clickable: true,
+          optimized: false,
         });
+
         marker.addListener('click', () => { setSelectedClient(c); setSelectedOp(null); setSelectedProspect(null); });
         markers.push(marker);
 
@@ -550,11 +566,20 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             <text x="20" y="14" text-anchor="middle" font-size="7" font-weight="600" font-family="Arial, sans-serif" fill="white">R$</text>
             <text x="20" y="26" text-anchor="middle" font-size="10" font-weight="bold" font-family="Arial, sans-serif" fill="white">${((op.valor_estimado ?? 0) / 1000).toFixed(0)}k</text>
           </svg>`;
+
         const marker = new google.maps.Marker({
-          position: { lat: cl.latitude, lng: cl.longitude }, title: op.titulo,
-          icon: { url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(opSvg), scaledSize: new google.maps.Size(size, size), anchor: new google.maps.Point(size / 2, size / 2) },
-          zIndex: 5, clickable: true,
+          position: { lat: cl.latitude, lng: cl.longitude },
+          title: op.titulo,
+          icon: {
+            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(opSvg),
+            scaledSize: new google.maps.Size(size, size),
+            anchor: new google.maps.Point(size / 2, size / 2),
+          },
+          zIndex: 5,
+          clickable: true,
+          optimized: false,
         });
+
         marker.addListener('click', () => { setSelectedOp(op); setSelectedClient(null); setSelectedProspect(null); });
         markers.push(marker);
         clusterableMarkers.push(marker);
@@ -562,33 +587,47 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     }
 
     markersRef.current = markers;
+
     // Green clients are added directly to the map (never clustered)
     alwaysVisibleMarkers.forEach(m => m.setMap(map));
+
     // Other markers go through the clusterer
     if (clusterableMarkers.length > 10) {
       clusterableMarkers.forEach(m => m.setMap(null)); // clusterer manages them
-      clustererRef.current = new MarkerClusterer({ map, markers: clusterableMarkers, onClusterClick: (_, cluster, map) => { map.fitBounds(cluster.bounds!); } });
+      clustererRef.current = new MarkerClusterer({
+        map,
+        markers: clusterableMarkers,
+        onClusterClick: (_, cluster, currentMap) => { currentMap.fitBounds(cluster.bounds!); },
+      });
     } else {
       clusterableMarkers.forEach(m => m.setMap(map));
     }
 
     return () => {
       markers.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
-      if (clustererRef.current) { clustererRef.current.clearMarkers(); clustererRef.current = null; }
+      disposeClientClusterer();
     };
   }, [isLoaded, mapReady, mapFilteredClientes, filteredOps, showClientes, showOportunidades, showHeatmap]);
 
   // ─── Prospect markers (separate layer — small dots) ────────────
   const prospectClustererRef = useRef<MarkerClusterer | null>(null);
   useEffect(() => {
-    if (!mapRef.current || !isLoaded) return;
+    if (!mapRef.current || !isLoaded || !mapReady) return;
+
+    const disposeProspectClusterer = () => {
+      if (!prospectClustererRef.current) return;
+      prospectClustererRef.current.clearMarkers();
+      (prospectClustererRef.current as unknown as { setMap?: (map: google.maps.Map | null) => void }).setMap?.(null);
+      prospectClustererRef.current = null;
+    };
+
     prospectMarkersRef.current.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
     prospectMarkersRef.current = [];
-    if (prospectClustererRef.current) { prospectClustererRef.current.clearMarkers(); prospectClustererRef.current = null; }
+    disposeProspectClusterer();
 
     if (!showProspeccao || geocodedProspects.length === 0) return;
 
-    const map = mapRef.current!;
+    const map = mapRef.current;
     const markers: google.maps.Marker[] = [];
 
     geocodedProspects.forEach(p => {
@@ -609,22 +648,25 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         },
         zIndex: 1,
         clickable: true,
+        optimized: false,
       });
+
       marker.addListener('click', () => { setSelectedProspect(p); setSelectedClient(null); setSelectedOp(null); });
       markers.push(marker);
     });
 
     prospectMarkersRef.current = markers;
+
     // Always cluster prospects — there are hundreds
     prospectClustererRef.current = new MarkerClusterer({
       map,
       markers,
-      onClusterClick: (_, cluster, map) => { map.fitBounds(cluster.bounds!); },
+      onClusterClick: (_, cluster, currentMap) => { currentMap.fitBounds(cluster.bounds!); },
     });
 
     return () => {
       markers.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
-      if (prospectClustererRef.current) { prospectClustererRef.current.clearMarkers(); prospectClustererRef.current = null; }
+      disposeProspectClusterer();
     };
   }, [isLoaded, mapReady, showProspeccao, geocodedProspects]);
 
