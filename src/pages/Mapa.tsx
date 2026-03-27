@@ -672,12 +672,12 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               onLoad={onMapLoad}
               onIdle={onMapIdle}
               options={{
-                mapId: 'wedo-commercial-map',
                 disableDefaultUI: false,
                 zoomControl: true,
                 streetViewControl: true,
                 mapTypeControl: true,
                 fullscreenControl: true,
+                gestureHandling: 'greedy',
               }}
             >
               {/* Empty state */}
