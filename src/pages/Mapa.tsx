@@ -887,12 +887,16 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         <div className="p-2 space-y-1">
           {filteredClientes.slice(0, 50).map(c => {
             const statusColor = getClientStatusColor(c.ultima_compra_gc);
+            const distKm = userLocation ? haversineKm(userLocation.lat, userLocation.lng, c.latitude, c.longitude) : null;
             return (
               <button key={c.id} onClick={() => centerOnClient(c)} className="w-full text-left p-3 rounded-lg hover:bg-accent/50 transition-colors border border-transparent hover:border-border">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">{c.nome}</p>
-                    <p className="text-xs text-muted-foreground truncate">{c.segmento && `${c.segmento} · `}{c.cidade}/{c.estado}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {distKm !== null && <span className="text-primary font-medium">{distKm < 1 ? `${Math.round(distKm * 1000)}m` : `${distKm.toFixed(1)}km`} · </span>}
+                      {c.segmento && `${c.segmento} · `}{c.cidade}/{c.estado}
+                    </p>
                   </div>
                   <div className="w-2.5 h-2.5 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: statusColor }} />
                 </div>
