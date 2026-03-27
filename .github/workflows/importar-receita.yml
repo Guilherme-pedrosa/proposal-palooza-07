@@ -44,7 +44,7 @@ jobs:
   estabelecimentos:
     needs: descobrir-url
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 360
     strategy:
       matrix:
         indice: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
