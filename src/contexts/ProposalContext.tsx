@@ -239,6 +239,92 @@ const instalacaoTerms: SavedTermCondition[] = [
   },
 ];
 
+// Termos específicos para Venda Rational
+const rationalTerms: SavedTermCondition[] = [
+  {
+    id: 'rat-1',
+    title: 'Aprovação e Validade',
+    description: 'Proposta válida por 10 dias corridos. Após esse prazo, sujeita a reavaliação. Aprovação via e-mail ou WhatsApp — sem necessidade de assinatura física. Valores são para aprovação total. Aprovação parcial pode alterar preços. Cancelamento após aprovação: multa de 20%. Com 30 dias de aviso prévio: sem multa. Execução em até 30 dias úteis após confirmação do pagamento.',
+    templateIds: ['rational', 'equipamentos'],
+  },
+  {
+    id: 'rat-2',
+    title: 'Garantia do Equipamento Rational',
+    description: 'Equipamento Rational: 24 meses de garantia do fabricante. Serviços WeDo (instalação, manutenção, reparo): 90 dias de garantia. Condição obrigatória: instalação por assistência técnica autorizada Rational/WeDo.',
+    templateIds: ['rational'],
+  },
+  {
+    id: 'rat-3',
+    title: 'O que Invalida a Garantia',
+    description: 'Uso de produtos químicos não homologados pelo fabricante no iCareSystem; Infraestrutura inadequada (voltagem errada, sem aterramento, pressão de água fora do range); Equipamento sem registro no ConnectedCooking; Ausência de manutenção preventiva na periodicidade recomendada (semestral); Peças consumíveis (vedações, gaxetas, lâmpadas, resistências, vidros). Ref.: Manual de Operação Rational — Capítulo "Garantia e Condições".',
+    templateIds: ['rational'],
+  },
+  {
+    id: 'rat-4',
+    title: 'Infraestrutura — Responsabilidade do Cliente',
+    description: 'O cliente deve providenciar antes da instalação:\n\n• Elétrica: 3 AC 220V ou 3N AC 400V, disjuntor dedicado (3x10A a 3x200A), aterramento NBR 5410.\n• Hidráulica: Entrada R 3/4", pressão 1,0 a 6,0 bar, dreno DN 40 ou DN 50.\n• Gás: 3/4" IG, GN 18-25 mbar ou GLP 25-57,5 mbar, conforme NBR 13.103.\n• Exaustão: Coifa dimensionada conforme ABNT NBR 14518 e NR-23.\n• Espaço: Piso nivelado, acesso livre, área menor que 1 m² (varia por modelo).\n\nInfraestrutura ausente = reagendamento com taxa de deslocamento. WeDo NÃO faz obras civis/elétricas/hidráulicas.',
+    templateIds: ['rational'],
+  },
+  {
+    id: 'rat-5',
+    title: 'Limpeza e Manutenção Rational',
+    description: 'iCareSystem AutoDose: limpeza e descalcificação automáticas com tabletes Rational originais. Manutenção preventiva semestral recomendada (peças não inclusas — orçadas à parte). Químicos não homologados no iCareSystem = perda automática da garantia.',
+    templateIds: ['rational'],
+  },
+  {
+    id: 'rat-6',
+    title: 'Instalação e Treinamento Rational',
+    description: 'Instalação por técnico autorizado: posicionamento, conexões, testes, parametrização e registro no ConnectedCooking. Treinamento incluso: 1 sessão presencial (até 2h) — operação, limpeza, ConnectedCooking. Necessário WiFi 2.4 GHz no local para ativação do ConnectedCooking (HACCP automático — RDC 216 ANVISA).',
+    templateIds: ['rational'],
+  },
+  {
+    id: 'rat-7',
+    title: 'Normas Técnicas Aplicáveis',
+    description: 'NR-10 | NR-12 | NR-13 | NR-23 | RDC 216 ANVISA | NBR 14518 | NBR 5410 | NBR 13.103.',
+    templateIds: ['rational', 'equipamentos'],
+  },
+  {
+    id: 'rat-8',
+    title: 'Aspectos Gerais — Financeiro e Jurídico',
+    description: 'Pagamento conforme proposta. Atraso: juros 1%/mês + multa 2% + IGPM. Equipamento com reserva de domínio até quitação integral. NF-e de materiais em CFOP 5.949 (LC 116/2003). ISS reduzido proporcionalmente. Foro: Comarca de Anápolis/GO.',
+    templateIds: ['rational', 'equipamentos'],
+  },
+  {
+    id: 'rat-9',
+    title: 'Horário de Atendimento',
+    description: 'Seg a Sex, 08h–18h. Fora desse horário: +50% sobre hora técnica.',
+    templateIds: ['rational', 'equipamentos'],
+  },
+];
+
+// Termos específicos para Venda de Equipamentos em Geral
+const equipamentosTerms: SavedTermCondition[] = [
+  {
+    id: 'equip-1',
+    title: 'Garantia de Equipamentos',
+    description: 'Os equipamentos possuem garantia conforme especificação do fabricante (consultar ficha técnica de cada item). Serviços WeDo (instalação, manutenção, reparo): 90 dias de garantia. Condição obrigatória: instalação por assistência técnica autorizada.',
+    templateIds: ['equipamentos'],
+  },
+  {
+    id: 'equip-2',
+    title: 'Infraestrutura — Responsabilidade do Cliente',
+    description: 'O cliente deve providenciar infraestrutura elétrica e hidráulica adequada conforme especificações técnicas de cada equipamento antes da data de instalação. Infraestrutura ausente = reagendamento com taxa de deslocamento. WeDo NÃO faz obras civis/elétricas/hidráulicas.',
+    templateIds: ['equipamentos'],
+  },
+  {
+    id: 'equip-3',
+    title: 'Instalação e Treinamento',
+    description: 'Instalação por técnico autorizado: posicionamento, conexões elétricas e hidráulicas, testes de funcionamento e parametrização. Treinamento operacional incluso: 1 sessão presencial (até 2h) — operação básica, limpeza e cuidados.',
+    templateIds: ['equipamentos'],
+  },
+  {
+    id: 'equip-4',
+    title: 'Prazo de Entrega',
+    description: 'Entrega em até 30 dias úteis após confirmação do pagamento, sujeito à disponibilidade de estoque. Para equipamentos importados, o prazo pode ser estendido conforme logística do fabricante.',
+    templateIds: ['equipamentos'],
+  },
+];
+
 // Combina todos os termos padrão
 const defaultTerms: SavedTermCondition[] = [
   ...generalTerms,
@@ -247,6 +333,8 @@ const defaultTerms: SavedTermCondition[] = [
   ...climatizacaoTerms,
   ...quimicosTerms,
   ...instalacaoTerms,
+  ...rationalTerms,
+  ...equipamentosTerms,
 ];
 
 export function ProposalProvider({ children }: { children: ReactNode }) {
