@@ -55,6 +55,7 @@ const tipoConfig: Record<string, { label: string; icon: React.ReactNode; color: 
 };
 
 export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNome, gcId }: ClienteHistoricoPanelProps) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [timeline, setTimeline] = useState<TimelineItem[]>([]);
   const [vendedorCliente, setVendedorCliente] = useState<string | null>(null);
