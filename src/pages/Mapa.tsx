@@ -140,7 +140,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const mapRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const markersRef = useRef<google.maps.Marker[]>([]);
   const clustererRef = useRef<MarkerClusterer | null>(null);
 
   const [selectedClient, setSelectedClient] = useState<ClienteGeo | null>(null);
@@ -278,27 +278,31 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   useEffect(() => {
     if (!mapRef.current || !isLoaded) return;
     // Clear old markers
-    markersRef.current.forEach(m => (m.map = null));
+    markersRef.current.forEach(m => m.setMap(null));
     markersRef.current = [];
     if (clustererRef.current) {
       clustererRef.current.clearMarkers();
       clustererRef.current = null;
     }
 
-    const markers: google.maps.marker.AdvancedMarkerElement[] = [];
+    const markers: google.maps.Marker[] = [];
 
     // Client markers
     if (showClientes) {
       filteredClientes.forEach(c => {
         const color = getClientStatusColor(c.ultima_compra_gc);
-        const size = Math.min(24, Math.max(8, (c.total_compras_gc ?? 0) / 5000 + 8));
-        const el = document.createElement('div');
-        el.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;`;
-        const marker = new google.maps.marker.AdvancedMarkerElement({
+        const marker = new google.maps.Marker({
           map: mapRef.current!,
           position: { lat: c.latitude, lng: c.longitude },
-          content: el,
           title: c.nome,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: color,
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2,
+            scale: Math.min(12, Math.max(5, (c.total_compras_gc ?? 0) / 10000 + 5)),
+          },
         });
         marker.addListener('click', () => { setSelectedClient(c); setSelectedOp(null); });
         markers.push(marker);
@@ -311,14 +315,19 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         const cl = op.cliente as any;
         if (!cl?.latitude || !cl?.longitude) return;
         const color = ETAPA_COLORS[op.etapa] || '#64748B';
-        const size = getOpRadius(op.valor_estimado ?? 0);
-        const el = document.createElement('div');
-        el.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;opacity:${showHeatmap ? 0.4 : 1};`;
-        const marker = new google.maps.marker.AdvancedMarkerElement({
+        const scale = getOpRadius(op.valor_estimado ?? 0) / 2;
+        const marker = new google.maps.Marker({
           map: mapRef.current!,
           position: { lat: cl.latitude, lng: cl.longitude },
-          content: el,
           title: op.titulo,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: color,
+            fillOpacity: showHeatmap ? 0.4 : 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2,
+            scale,
+          },
         });
         marker.addListener('click', () => { setSelectedOp(op); setSelectedClient(null); });
         markers.push(marker);
@@ -336,7 +345,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     }
 
     return () => {
-      markers.forEach(m => (m.map = null));
+      markers.forEach(m => m.setMap(null));
       if (clustererRef.current) clustererRef.current.clearMarkers();
     };
   }, [isLoaded, filteredClientes, filteredOps, showClientes, showOportunidades, showHeatmap]);
