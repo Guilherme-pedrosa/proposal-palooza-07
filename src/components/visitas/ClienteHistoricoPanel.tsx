@@ -188,6 +188,11 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
             <CalendarDays className="h-4 w-4 text-primary" />
             Histórico — {clienteNome}
           </SheetTitle>
+          {vendedorCliente && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
+              <span className="font-medium">Vendedor:</span> {vendedorCliente}
+            </p>
+          )}
         </SheetHeader>
         <ScrollArea className="h-[calc(100vh-80px)]">
           <div className="p-4">
