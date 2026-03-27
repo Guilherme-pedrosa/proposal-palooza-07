@@ -754,7 +754,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
   // ─── Sidebar ──────────────────────────────────────
   const sidebarContent = (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">{/* no h-full — parent ScrollArea handles overflow */}
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2 mb-3">
