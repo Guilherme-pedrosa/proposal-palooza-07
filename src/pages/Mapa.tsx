@@ -762,19 +762,19 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
   // ─── Sidebar ──────────────────────────────────────
   const sidebarContent = (
-    <div className="flex flex-col">{/* no h-full — parent ScrollArea handles overflow */}
+    <div className="flex min-h-full flex-col">{/* no h-full — parent ScrollArea handles overflow */}
       {/* Header */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center gap-2 mb-3">
-          <MapIcon className="h-5 w-5 text-primary" />
-          <h2 className="font-bold text-sm">Mapa Comercial</h2>
+      <div className="p-3 md:p-4 border-b border-border">
+        <div className="flex items-center gap-2 mb-2.5 md:mb-3">
+          <MapIcon className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+          <h2 className="font-bold text-xs md:text-sm">Mapa Comercial</h2>
         </div>
         <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar cliente, CNPJ, cidade..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-9 pr-8 h-9 text-sm" />
+          <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
+          <Input placeholder="Buscar cliente, CNPJ, cidade..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-8 pr-8 h-8 md:h-9 text-xs md:text-sm" />
           {busca && (
-            <button onClick={() => setBusca('')} className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground">
-              <X className="h-4 w-4" />
+            <button onClick={() => setBusca('')} className="absolute right-2.5 top-2 text-muted-foreground hover:text-foreground">
+              <X className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </button>
           )}
         </div>
@@ -784,38 +784,39 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       </div>
 
       {/* Layers */}
-      <div className="p-4 border-b border-border space-y-3">
-        <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          <Layers className="h-3.5 w-3.5" /> Camadas
+      <div className="p-3 md:p-4 border-b border-border space-y-2 md:space-y-3">
+        <div className="flex items-center gap-2 text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          <Layers className="h-3 w-3 md:h-3.5 md:w-3.5" /> Camadas
         </div>
         <div className="flex items-center gap-2">
-          <Button type="button" variant="outline" size="sm" className="h-7 text-[11px]" onClick={() => setAllLayers(true)}>
+          <Button type="button" variant="outline" size="sm" className="h-7 text-[10px] md:text-[11px]" onClick={() => setAllLayers(true)}>
             Ativar tudo
           </Button>
-          <Button type="button" variant="ghost" size="sm" className="h-7 text-[11px]" onClick={() => setAllLayers(false)}>
+          <Button type="button" variant="ghost" size="sm" className="h-7 text-[10px] md:text-[11px]" onClick={() => setAllLayers(false)}>
             Limpar
           </Button>
         </div>
         <div className="space-y-1">
           {[
-            { key: 'clientes', label: 'Clientes', icon: <Users className="h-3 w-3" />, checked: showClientes, toggle: () => setShowClientes(p => !p) },
-            { key: 'oportunidades', label: 'Oportunidades', icon: <TrendingUp className="h-3 w-3" />, checked: showOportunidades, toggle: () => setShowOportunidades(p => !p) },
-            { key: 'heatmap', label: 'Heatmap', icon: <span className="text-xs">🔥</span>, checked: showHeatmap, toggle: () => setShowHeatmap(p => !p) },
-            { key: 'prospeccao', label: 'Prospecção', icon: <span className="text-xs">🔍</span>, checked: showProspeccao, toggle: () => setShowProspeccao(p => !p) },
+            { key: 'clientes', label: 'Clientes', icon: <Users className="h-3 w-3" />, checked: showClientes, set: setShowClientes },
+            { key: 'oportunidades', label: 'Oportunidades', icon: <TrendingUp className="h-3 w-3" />, checked: showOportunidades, set: setShowOportunidades },
+            { key: 'heatmap', label: 'Heatmap', icon: <span className="text-[10px]">🔥</span>, checked: showHeatmap, set: setShowHeatmap },
+            { key: 'prospeccao', label: 'Prospecção', icon: <span className="text-[10px]">🔍</span>, checked: showProspeccao, set: setShowProspeccao },
           ].map(layer => (
             <div
               key={layer.key}
               role="button"
               tabIndex={0}
-              onClick={layer.toggle}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); layer.toggle(); }}}
+              onClick={() => layer.set(!layer.checked)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); layer.set(!layer.checked); }}}
               className="w-full flex items-center justify-between rounded-md border border-border bg-card px-2.5 py-1.5 cursor-pointer hover:bg-accent/50 transition-colors"
             >
-              <span className="text-xs flex items-center gap-1.5 min-w-0">{layer.icon} {layer.label}</span>
+              <span className="text-[11px] md:text-xs flex items-center gap-1.5 min-w-0">{layer.icon} {layer.label}</span>
               <Switch
                 checked={layer.checked}
-                onCheckedChange={layer.toggle}
-                className="shrink-0 ml-2 scale-90"
+                onCheckedChange={(checked) => layer.set(checked)}
+                onClick={(e) => e.stopPropagation()}
+                className="shrink-0 ml-2 scale-90 border-border data-[state=unchecked]:bg-muted"
               />
             </div>
           ))}
