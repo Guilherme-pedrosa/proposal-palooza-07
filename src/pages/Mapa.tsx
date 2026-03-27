@@ -514,29 +514,6 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     </div>
   );
 
-  if (!keyLoading && !mapsKey) {
-    return (
-      <MainLayout>
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center space-y-3">
-            <MapPin className="h-12 w-12 mx-auto text-muted-foreground/40" />
-            <h2 className="text-lg font-semibold">API Key do Google Maps não configurada</h2>
-            <p className="text-sm text-muted-foreground">Configure GOOGLE_MAPS_API_KEY nos secrets do projeto.</p>
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
-
-  if (keyLoading) {
-    return (
-      <MainLayout>
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </MainLayout>
-    );
-  }
 
   return (
     <MainLayout>
