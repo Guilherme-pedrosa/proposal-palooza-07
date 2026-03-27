@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
 
         const { error: updateError } = await supabase
           .from('clientes_gc')
-          .update({ latitude: point.lat, longitude: point.lng, geocodificado: true })
+          .update({ latitude: finalLat, longitude: finalLng, geocodificado: true })
           .eq('id', cliente.id)
 
         if (updateError) {
