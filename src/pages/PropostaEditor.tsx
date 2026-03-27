@@ -567,11 +567,14 @@ export default function PropostaEditor() {
             </div>
           </div>
           <div className="flex gap-2 mt-2 overflow-x-auto no-scrollbar">
-            <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={() => handleSave()} disabled={saving}>
+            <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={() => handleSave()} disabled={saving || uploadingAnexos}>
               <Save className="h-3.5 w-3.5" /> {saving ? 'Salvando...' : 'Salvar'}
             </Button>
-            <Button size="sm" className="gap-1.5 shrink-0" onClick={handleSendLink} disabled={saving}>
+            <Button size="sm" className="gap-1.5 shrink-0" onClick={handleSendLink} disabled={saving || uploadingAnexos}>
               <Send className="h-3.5 w-3.5" /> Enviar Link
+            </Button>
+            <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={handleExportPdf} disabled={saving || uploadingAnexos}>
+              <Printer className="h-3.5 w-3.5" /> PDF
             </Button>
             {gcOrcamentoUrl ? (
               <Button size="sm" variant="outline" className="gap-1.5 shrink-0" asChild>
