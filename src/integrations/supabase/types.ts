@@ -635,19 +635,24 @@ export type Database = {
           aberto_em: string | null
           aberto_por_ip: string | null
           cliente_id: string | null
+          condicoes_pagamento: string | null
           created_at: string | null
           desconto_total: number | null
           descricao: string | null
+          entrada_percent: number | null
+          forma_pagamento: string | null
           gc_orcamento_id: string | null
           gc_orcamento_url: string | null
           historico_versoes: Json | null
           id: string
           imagens: Json | null
           link_publico_uuid: string | null
+          num_parcelas: number | null
           numero: string
           observacoes_internas: string | null
           oportunidade_id: string | null
           pdf_url: string | null
+          prazo_entrega: string | null
           produtos: Json
           status: string | null
           template_id: string | null
@@ -665,19 +670,24 @@ export type Database = {
           aberto_em?: string | null
           aberto_por_ip?: string | null
           cliente_id?: string | null
+          condicoes_pagamento?: string | null
           created_at?: string | null
           desconto_total?: number | null
           descricao?: string | null
+          entrada_percent?: number | null
+          forma_pagamento?: string | null
           gc_orcamento_id?: string | null
           gc_orcamento_url?: string | null
           historico_versoes?: Json | null
           id?: string
           imagens?: Json | null
           link_publico_uuid?: string | null
+          num_parcelas?: number | null
           numero: string
           observacoes_internas?: string | null
           oportunidade_id?: string | null
           pdf_url?: string | null
+          prazo_entrega?: string | null
           produtos?: Json
           status?: string | null
           template_id?: string | null
@@ -695,19 +705,24 @@ export type Database = {
           aberto_em?: string | null
           aberto_por_ip?: string | null
           cliente_id?: string | null
+          condicoes_pagamento?: string | null
           created_at?: string | null
           desconto_total?: number | null
           descricao?: string | null
+          entrada_percent?: number | null
+          forma_pagamento?: string | null
           gc_orcamento_id?: string | null
           gc_orcamento_url?: string | null
           historico_versoes?: Json | null
           id?: string
           imagens?: Json | null
           link_publico_uuid?: string | null
+          num_parcelas?: number | null
           numero?: string
           observacoes_internas?: string | null
           oportunidade_id?: string | null
           pdf_url?: string | null
+          prazo_entrega?: string | null
           produtos?: Json
           status?: string | null
           template_id?: string | null
