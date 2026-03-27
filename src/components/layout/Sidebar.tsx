@@ -115,9 +115,13 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
       {/* Logo */}
       <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
         {(!collapsed || mobileOpen) ? (
-          <img src={company.logo || logoWedoDefault} alt="Logo" className="h-8 w-auto object-contain" />
+          <div className="bg-white rounded-lg px-3 py-1.5">
+            <img src={company.logo || logoWedoDefault} alt="Logo" className="h-8 w-auto object-contain" />
+          </div>
         ) : (
-          <img src={company.logo || logoWedoDefault} alt="Logo" className="h-7 w-auto object-contain mx-auto" />
+          <div className="bg-white rounded-md px-1.5 py-1 mx-auto">
+            <img src={company.logo || logoWedoDefault} alt="Logo" className="h-7 w-auto object-contain" />
+          </div>
         )}
       </div>
 
