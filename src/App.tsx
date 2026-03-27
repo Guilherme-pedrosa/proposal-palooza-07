@@ -86,7 +86,7 @@ function AppRoutes() {
       <Route path="/p/:uuid" element={<PropostaPublica />} />
 
       {/* Protected */}
-      <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+      <Route path="/" element={<ProtectedRoute><Navigate to="/dashboard" replace /></ProtectedRoute>} />
       <Route path="/hoje" element={<ProtectedRoute><Hoje /></ProtectedRoute>} />
       <Route path="/pipeline" element={<ProtectedRoute><Pipeline /></ProtectedRoute>} />
       <Route path="/clientes" element={<ProtectedRoute><ClientesGC /></ProtectedRoute>} />

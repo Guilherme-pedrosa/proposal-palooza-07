@@ -50,7 +50,7 @@ const menuGroups: MenuGroup[] = [
   {
     label: '',
     items: [
-      { title: 'Dashboard', icon: LayoutDashboard, href: '/' },
+      { title: 'Dashboard', icon: PieChart, href: '/dashboard' },
       { title: 'Hoje', icon: CalendarDays, href: '/hoje' },
     ],
     defaultOpen: true,
@@ -69,7 +69,6 @@ const menuGroups: MenuGroup[] = [
   {
     label: 'Gestão',
     items: [
-      { title: 'Dashboard', icon: PieChart, href: '/dashboard' },
       { title: 'Relatórios', icon: BarChart, href: '/relatorios' },
       { title: 'Sync GC', icon: RefreshCw, href: '/sync' },
     ],
