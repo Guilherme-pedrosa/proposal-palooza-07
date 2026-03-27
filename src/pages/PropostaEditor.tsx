@@ -115,6 +115,7 @@ export default function PropostaEditor() {
   const [produtos, setProdutos] = useState<PropostaProduct[]>([]);
   const [termos, setTermos] = useState<PropostaTermo[]>([]);
   const [imagens, setImagens] = useState<any[]>([]);
+  const [anexos, setAnexos] = useState<any[]>([]);
   const [validadeDias, setValidadeDias] = useState('10');
   const [condicoesPagamento, setCondicoesPagamento] = useState('');
   const [prazoEntrega, setPrazoEntrega] = useState('');
