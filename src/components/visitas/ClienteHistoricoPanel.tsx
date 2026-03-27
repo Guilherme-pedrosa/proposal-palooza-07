@@ -89,29 +89,49 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
             body: { gc_cliente_id: gcId },
           });
 
+          const extractProdutos = (entry: any) => {
+            const items = entry.produtos || entry.itens || [];
+            return items.map((p: any) => {
+              // GC wraps each item in { produto: { nome_produto, ... } } or { servico: { nome_servico, ... } }
+              const inner = p.produto || p.servico || p;
+              return inner.nome_produto || inner.nome_servico || inner.descricao || inner.nome || inner.detalhes || 'Produto';
+            }).slice(0, 5);
+          };
+
           // Vendas
           (data?.vendas || []).forEach((v: any) => {
-            const prods = (v.itens || v.produtos || []).map((p: any) => p.descricao || p.nome || 'Produto').slice(0, 5);
+            const prods = extractProdutos(v);
+            // Also include servicos if present
+            const servicos = (v.servicos || []).map((s: any) => {
+              const inner = s.servico || s;
+              return inner.nome_servico || inner.descricao || inner.nome || 'Serviço';
+            }).slice(0, 3);
+            const allProds = [...prods, ...servicos];
             items.push({
               id: `venda-${v.id}`,
               tipo: 'venda',
               data: v.data || v.created_at || '',
               titulo: `Venda #${v.numero || v.id}`,
               valor: parseFloat(v.valor_total) || 0,
-              produtos: prods.length > 0 ? prods : undefined,
+              produtos: allProds.length > 0 ? allProds : undefined,
             });
           });
 
           // Orçamentos
           (data?.orcamentos || []).forEach((o: any) => {
-            const prods = (o.itens || o.produtos || []).map((p: any) => p.descricao || p.nome || 'Produto').slice(0, 5);
+            const prods = extractProdutos(o);
+            const servicos = (o.servicos || []).map((s: any) => {
+              const inner = s.servico || s;
+              return inner.nome_servico || inner.descricao || inner.nome || 'Serviço';
+            }).slice(0, 3);
+            const allProds = [...prods, ...servicos];
             items.push({
               id: `orc-${o.id}`,
               tipo: 'orcamento',
               data: o.data || o.created_at || '',
               titulo: `Orçamento #${o.numero || o.id}`,
               valor: parseFloat(o.valor_total) || 0,
-              produtos: prods.length > 0 ? prods : undefined,
+              produtos: allProds.length > 0 ? allProds : undefined,
             });
           });
         } catch { /* ignore */ }
