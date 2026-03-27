@@ -33,6 +33,7 @@ import CompanySettings from "./pages/CompanySettings";
 import PropostaPublica from "./pages/PropostaPublica";
 import NotFound from "./pages/NotFound";
 import Mapa from "./pages/Mapa";
+import VisitaAtiva from "./pages/VisitaAtiva";
 
 const queryClient = new QueryClient();
 
