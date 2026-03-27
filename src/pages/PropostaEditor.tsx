@@ -118,6 +118,10 @@ export default function PropostaEditor() {
   const [condicoesPagamento, setCondicoesPagamento] = useState('');
   const [prazoEntrega, setPrazoEntrega] = useState('');
   const [observacoesInternas, setObservacoesInternas] = useState('');
+  const [formaPagamento, setFormaPagamento] = useState('');
+  const [numParcelas, setNumParcelas] = useState(1);
+  const [entradaPercent, setEntradaPercent] = useState(0);
+  const [leasingDialogOpen, setLeasingDialogOpen] = useState(false);
   const [status, setStatus] = useState<string>('rascunho');
   const [versao, setVersao] = useState(1);
   const [linkUuid, setLinkUuid] = useState('');
@@ -693,7 +697,7 @@ export default function PropostaEditor() {
 
         {/* Section 8: Commercial */}
         <Section title="Condições Comerciais" icon="💰">
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
               <Label>Validade</Label>
               <Select value={validadeDias} onValueChange={setValidadeDias}>
@@ -704,8 +708,113 @@ export default function PropostaEditor() {
               </Select>
               <p className="text-xs text-muted-foreground mt-1">Válida até: {format(validadeAte, 'dd/MM/yyyy')}</p>
             </div>
+
+            <Separator />
+
             <div>
-              <Label>Condições de Pagamento</Label>
+              <Label>Forma de Pagamento</Label>
+              <Select value={formaPagamento} onValueChange={(v) => {
+                setFormaPagamento(v);
+                if (v === 'avista') { setNumParcelas(1); setEntradaPercent(0); }
+                if (v === 'leasing') setLeasingDialogOpen(true);
+              }}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="avista">À Vista (PIX / Transferência)</SelectItem>
+                  <SelectItem value="boleto">Boleto</SelectItem>
+                  <SelectItem value="cartao">Cartão de Crédito</SelectItem>
+                  <SelectItem value="leasing">Leasing / Locação</SelectItem>
+                  <SelectItem value="financiamento">Financiamento</SelectItem>
+                  <SelectItem value="outro">Outro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {formaPagamento && formaPagamento !== 'avista' && formaPagamento !== 'leasing' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Entrada (%)</Label>
+                  <Input type="number" min={0} max={100} value={entradaPercent || ''} onChange={(e) => setEntradaPercent(parseFloat(e.target.value) || 0)} placeholder="0" />
+                </div>
+                <div>
+                  <Label>Nº de Parcelas</Label>
+                  <Input type="number" min={1} max={120} value={numParcelas} onChange={(e) => setNumParcelas(parseInt(e.target.value) || 1)} />
+                </div>
+              </div>
+            )}
+
+            {/* Installment calculation */}
+            {total > 0 && formaPagamento && formaPagamento !== 'leasing' && (
+              <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
+                <p className="font-medium text-foreground flex items-center gap-1">💳 Simulação de Pagamento</p>
+                {formaPagamento === 'avista' ? (
+                  <p>Valor à vista: <span className="font-bold text-primary">{formatBRL(total)}</span></p>
+                ) : (
+                  <>
+                    {entradaPercent > 0 && (
+                      <div className="flex justify-between">
+                        <span>Entrada ({entradaPercent}%)</span>
+                        <span className="font-medium">{formatBRL(total * entradaPercent / 100)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span>Saldo restante</span>
+                      <span className="font-medium">{formatBRL(total * (1 - entradaPercent / 100))}</span>
+                    </div>
+                    <Separator className="my-1" />
+                    <div className="flex justify-between font-bold">
+                      <span>{numParcelas}x de</span>
+                      <span className="text-primary">{formatBRL((total * (1 - entradaPercent / 100)) / numParcelas)}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Leasing calculation */}
+            {formaPagamento === 'leasing' && total > 0 && (
+              <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 space-y-2 text-sm">
+                <p className="font-medium text-foreground flex items-center gap-1">🏦 Leasing / Locação</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Prazo (meses)</Label>
+                    <Input type="number" min={6} max={60} value={numParcelas || 36} onChange={(e) => setNumParcelas(parseInt(e.target.value) || 36)} />
+                  </div>
+                  <div className="flex items-end">
+                    <div className="text-right w-full">
+                      <p className="text-xs text-muted-foreground">Parcela estimada</p>
+                      <p className="text-lg font-bold text-primary">{formatBRL(total / (numParcelas || 36))}/mês</p>
+                    </div>
+                  </div>
+                </div>
+                <Separator />
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">💡 Benefícios Fiscais (Lucro Real):</p>
+                  <div className="grid grid-cols-2 gap-1 text-xs">
+                    <span>Dedução IRPJ (25%)</span>
+                    <span className="text-right font-medium text-emerald-600">{formatBRL(total * 0.25)}</span>
+                    <span>Dedução CSLL (9%)</span>
+                    <span className="text-right font-medium text-emerald-600">{formatBRL(total * 0.09)}</span>
+                    <span>Crédito PIS (1,65%)</span>
+                    <span className="text-right font-medium text-emerald-600">{formatBRL(total * 0.0165)}</span>
+                    <span>Crédito COFINS (7,6%)</span>
+                    <span className="text-right font-medium text-emerald-600">{formatBRL(total * 0.076)}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between font-bold text-emerald-700 dark:text-emerald-400">
+                    <span>Economia potencial (até 43,25%)</span>
+                    <span>{formatBRL(total * 0.4325)}</span>
+                  </div>
+                </div>
+                <Button size="sm" variant="outline" className="gap-1.5 w-full mt-1 border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-950"
+                  onClick={() => setLeasingDialogOpen(true)}>
+                  📄 Gerar Apresentação Fiscal para o Cliente
+                </Button>
+              </div>
+            )}
+
+            <div>
+              <Label>Condições de Pagamento (texto livre)</Label>
               <Textarea value={condicoesPagamento} onChange={(e) => setCondicoesPagamento(e.target.value)} placeholder="Ex: 30% entrada, 70% na entrega. Boleto ou PIX." rows={2} />
             </div>
             <div>
@@ -746,6 +855,64 @@ export default function PropostaEditor() {
             </div>
             <p className="text-xs text-muted-foreground">✅ Você será notificado quando o cliente abrir</p>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Leasing Benefits Dialog */}
+      <Dialog open={leasingDialogOpen} onOpenChange={setLeasingDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>🏦 Benefícios Fiscais do Leasing</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-lg p-4 space-y-2">
+              <h3 className="font-bold text-base">Quais benefícios posso ter fazendo a locação?</h3>
+              <p>Empresas no regime de <strong>Lucro Real</strong> podem deduzir despesas de locação como custos operacionais:</p>
+              <ul className="list-disc pl-4 space-y-1">
+                <li><strong>25% IRPJ</strong> — dedução do Imposto de Renda</li>
+                <li><strong>9% CSLL</strong> — dedução da Contribuição Social</li>
+                <li><strong>1,65% PIS</strong> — crédito sobre despesas de locação</li>
+                <li><strong>7,6% COFINS</strong> — crédito sobre despesas de locação</li>
+              </ul>
+              <div className="bg-white dark:bg-background rounded p-3 border mt-2">
+                <p className="text-xs text-muted-foreground mb-1">Economia potencial nesta proposta</p>
+                <p className="text-2xl font-bold text-emerald-600">{formatBRL(total * 0.4325)}</p>
+                <p className="text-xs text-muted-foreground">até 43,25% de dedução + crédito sobre {formatBRL(total)}</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-semibold">📋 Como fazer a dedução?</h4>
+              <p>Mantenha os comprovantes de pagamento da locação e siga as diretrizes contábeis. Consulte o contador e o departamento fiscal para garantir o correto tratamento.</p>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-semibold">⚖️ Base Jurídica</h4>
+              <p className="text-xs text-muted-foreground">
+                Art. 249 e 250 do RIR — Decreto 3000/1999 • Art. 3º, IV da Lei 10.833/2003 • Art. 15, IV da Lei 10.865/2002
+              </p>
+            </div>
+
+            <Separator />
+
+            <p className="text-xs text-muted-foreground italic">
+              * Valores estimados. Cada empresa possui particularidades contábeis. Consulte seu contador para confirmar os benefícios aplicáveis.
+            </p>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" className="gap-1.5" onClick={() => {
+              const texto = `📊 BENEFÍCIOS FISCAIS - LEASING\n\nValor do contrato: ${formatBRL(total)}\n\n💰 Economia potencial (Lucro Real):\n• IRPJ (25%): ${formatBRL(total * 0.25)}\n• CSLL (9%): ${formatBRL(total * 0.09)}\n• PIS (1,65%): ${formatBRL(total * 0.0165)}\n• COFINS (7,6%): ${formatBRL(total * 0.076)}\n\n✅ Total: até ${formatBRL(total * 0.4325)} (43,25%)\n\n⚖️ Base: Art. 249/250 Decreto 3000/99, Lei 10.833/03, Lei 10.865/02\n\n* Consulte seu contador.`;
+              navigator.clipboard.writeText(texto);
+              toast({ title: '📋 Texto copiado!' });
+            }}>
+              <Copy className="h-4 w-4" /> Copiar Texto
+            </Button>
+            <Button variant="outline" className="gap-1.5" asChild>
+              <a href={`https://wa.me/?text=${encodeURIComponent(`📊 BENEFÍCIOS FISCAIS - LEASING\n\nValor: ${formatBRL(total)}\nEconomia potencial: até ${formatBRL(total * 0.4325)} (43,25%)\n\n• IRPJ 25%: ${formatBRL(total * 0.25)}\n• CSLL 9%: ${formatBRL(total * 0.09)}\n• PIS 1,65%: ${formatBRL(total * 0.0165)}\n• COFINS 7,6%: ${formatBRL(total * 0.076)}\n\n⚖️ Art. 249/250 Dec. 3000/99\n* Consulte seu contador`)}`} target="_blank" rel="noopener">
+                <MessageCircle className="h-4 w-4" /> WhatsApp
+              </a>
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </MainLayout>
