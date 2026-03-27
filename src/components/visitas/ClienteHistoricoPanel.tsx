@@ -116,6 +116,7 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
               titulo: `Venda #${v.numero || v.id}`,
               valor: parseFloat(v.valor_total) || 0,
               produtos: allProds.length > 0 ? allProds : undefined,
+              vendedor: v.nome_vendedor || v.nome_tecnico || undefined,
             });
           });
 
@@ -134,6 +135,28 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
               titulo: `Orçamento #${o.numero || o.id}`,
               valor: parseFloat(o.valor_total) || 0,
               produtos: allProds.length > 0 ? allProds : undefined,
+              vendedor: o.nome_vendedor || o.nome_tecnico || undefined,
+            });
+          });
+
+          // Ordens de Serviço
+          (data?.ordens_servicos || []).forEach((os: any) => {
+            const prods = extractProdutos(os);
+            // Equipamentos
+            const equips = (os.equipamentos || []).map((e: any) => {
+              const eq = e.equipamento || e;
+              return [eq.equipamento, eq.marca, eq.modelo].filter(Boolean).join(' — ') || 'Equipamento';
+            }).slice(0, 5);
+            const allItems = [...equips, ...prods];
+            items.push({
+              id: `os-${os.id}`,
+              tipo: 'os',
+              data: os.data || os.created_at || '',
+              titulo: `OS #${os.codigo || os.id}`,
+              valor: parseFloat(os.valor_total) || 0,
+              produtos: allItems.length > 0 ? allItems : undefined,
+              detalhes: os.observacoes || undefined,
+              vendedor: os.nome_tecnico || os.nome_vendedor || undefined,
             });
           });
         } catch { /* ignore */ }
