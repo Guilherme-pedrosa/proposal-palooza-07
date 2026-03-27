@@ -797,6 +797,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             type="button"
             onClick={() => setShowClientes((prev) => !prev)}
             className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-2 text-left hover:bg-accent/50 transition-colors"
+            aria-pressed={showClientes}
           >
             <Label className="text-sm flex items-center gap-2 cursor-pointer"><Users className="h-3.5 w-3.5" /> Clientes</Label>
             <div className="flex items-center gap-2">
@@ -805,9 +806,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               </Badge>
               <Switch
                 checked={showClientes}
-                onCheckedChange={setShowClientes}
-                className="border border-border data-[state=unchecked]:bg-muted"
-                onClick={(e) => e.stopPropagation()}
+                className="pointer-events-none border border-border data-[state=unchecked]:bg-muted"
               />
             </div>
           </button>
@@ -816,6 +815,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             type="button"
             onClick={() => setShowOportunidades((prev) => !prev)}
             className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-2 text-left hover:bg-accent/50 transition-colors"
+            aria-pressed={showOportunidades}
           >
             <Label className="text-sm flex items-center gap-2 cursor-pointer"><TrendingUp className="h-3.5 w-3.5" /> Oportunidades</Label>
             <div className="flex items-center gap-2">
@@ -824,9 +824,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               </Badge>
               <Switch
                 checked={showOportunidades}
-                onCheckedChange={setShowOportunidades}
-                className="border border-border data-[state=unchecked]:bg-muted"
-                onClick={(e) => e.stopPropagation()}
+                className="pointer-events-none border border-border data-[state=unchecked]:bg-muted"
               />
             </div>
           </button>
@@ -835,6 +833,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             type="button"
             onClick={() => setShowHeatmap((prev) => !prev)}
             className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-2 text-left hover:bg-accent/50 transition-colors"
+            aria-pressed={showHeatmap}
           >
             <Label className="text-sm flex items-center gap-2 cursor-pointer">🔥 Heatmap</Label>
             <div className="flex items-center gap-2">
@@ -843,9 +842,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               </Badge>
               <Switch
                 checked={showHeatmap}
-                onCheckedChange={setShowHeatmap}
-                className="border border-border data-[state=unchecked]:bg-muted"
-                onClick={(e) => e.stopPropagation()}
+                className="pointer-events-none border border-border data-[state=unchecked]:bg-muted"
               />
             </div>
           </button>
@@ -854,6 +851,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             type="button"
             onClick={() => setShowProspeccao((prev) => !prev)}
             className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-2 text-left hover:bg-accent/50 transition-colors"
+            aria-pressed={showProspeccao}
           >
             <Label className="text-sm flex items-center gap-2 cursor-pointer">🔍 Prospecção</Label>
             <div className="flex items-center gap-2">
@@ -862,9 +860,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               </Badge>
               <Switch
                 checked={showProspeccao}
-                onCheckedChange={setShowProspeccao}
-                className="border border-border data-[state=unchecked]:bg-muted"
-                onClick={(e) => e.stopPropagation()}
+                className="pointer-events-none border border-border data-[state=unchecked]:bg-muted"
               />
             </div>
           </button>
