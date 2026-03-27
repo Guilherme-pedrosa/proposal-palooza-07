@@ -97,6 +97,7 @@ interface ClienteGeo {
   cidade: string | null; estado: string | null; endereco: string | null;
   segmento: string | null; latitude: number; longitude: number;
   total_compras_gc: number | null; ultima_compra_gc: string | null;
+  gc_id: string;
 }
 
 interface OportunidadeGeo {
