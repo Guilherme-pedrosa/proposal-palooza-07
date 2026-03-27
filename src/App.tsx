@@ -104,6 +104,7 @@ function AppRoutes() {
       <Route path="/propostas/:id" element={<ProtectedRoute><PropostaEditor /></ProtectedRoute>} />
       <Route path="/mapa" element={<ProtectedRoute><Mapa /></ProtectedRoute>} />
       <Route path="/visita/:id" element={<ProtectedRoute><VisitaAtiva /></ProtectedRoute>} />
+      <Route path="/visitas" element={<ProtectedRoute><Visitas /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
       <Route path="/sync" element={<ProtectedRoute><SyncGC /></ProtectedRoute>} />
