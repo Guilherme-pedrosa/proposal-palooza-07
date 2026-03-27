@@ -185,6 +185,107 @@ export default function PropostaPublica() {
           </Card>
         )}
 
+        {/* Payment Conditions */}
+        {proposta.forma_pagamento && total > 0 && (
+          <Card>
+            <CardHeader className="py-3 px-4">
+              <CardTitle className="text-sm">Condições de Pagamento</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4 space-y-3">
+              {proposta.forma_pagamento === 'avista' && (
+                <div className="text-center py-2">
+                  <p className="text-sm text-muted-foreground">Pagamento à vista</p>
+                  <p className="text-2xl font-bold text-primary">{formatBRL(total)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">PIX / Transferência Bancária</p>
+                </div>
+              )}
+              {proposta.forma_pagamento !== 'avista' && proposta.forma_pagamento !== 'leasing' && (
+                <div className="space-y-2">
+                  {entradaPercent > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span>Entrada ({entradaPercent}%)</span>
+                      <span className="font-medium">{formatBRL(total * entradaPercent / 100)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm">
+                    <span>Saldo restante</span>
+                    <span className="font-medium">{formatBRL(total * (1 - entradaPercent / 100))}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>{numParcelas}x de</span>
+                    <span className="text-primary">{formatBRL((total * (1 - entradaPercent / 100)) / numParcelas)}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground capitalize">
+                    Forma: {proposta.forma_pagamento === 'boleto' ? 'Boleto Bancário' : proposta.forma_pagamento === 'cartao' ? 'Cartão de Crédito' : proposta.forma_pagamento === 'financiamento' ? 'Financiamento' : proposta.forma_pagamento}
+                  </p>
+                </div>
+              )}
+              {isLeasing && (
+                <div className="space-y-3">
+                  <div className="text-center py-2">
+                    <p className="text-sm text-muted-foreground">Leasing / Locação — {numParcelas} meses</p>
+                    <p className="text-2xl font-bold text-primary">{formatBRL(total / numParcelas)}/mês</p>
+                  </div>
+                </div>
+              )}
+              {proposta.condicoes_pagamento && (
+                <p className="text-sm text-muted-foreground whitespace-pre-line border-t pt-2">{proposta.condicoes_pagamento}</p>
+              )}
+              {proposta.prazo_entrega && (
+                <p className="text-sm text-muted-foreground">
+                  <strong>Prazo:</strong> {proposta.prazo_entrega}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Leasing Fiscal Benefits */}
+        {isLeasing && total > 0 && (
+          <Card className="border-emerald-200 bg-emerald-50/50">
+            <CardHeader className="py-3 px-4">
+              <CardTitle className="text-sm flex items-center gap-1">🏦 Benefícios Fiscais do Leasing</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4 space-y-3">
+              <p className="text-sm">
+                Empresas no regime de <strong>Lucro Real</strong> podem deduzir despesas de locação como custos operacionais:
+              </p>
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-1 text-sm">
+                  <span>Dedução IRPJ (25%)</span>
+                  <span className="text-right font-medium text-emerald-700">{formatBRL(total * 0.25)}</span>
+                  <span>Dedução CSLL (9%)</span>
+                  <span className="text-right font-medium text-emerald-700">{formatBRL(total * 0.09)}</span>
+                  <span>Crédito PIS (1,65%)</span>
+                  <span className="text-right font-medium text-emerald-700">{formatBRL(total * 0.0165)}</span>
+                  <span>Crédito COFINS (7,6%)</span>
+                  <span className="text-right font-medium text-emerald-700">{formatBRL(total * 0.076)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-bold text-emerald-700">
+                  <span>Economia potencial (até 43,25%)</span>
+                  <span>{formatBRL(total * 0.4325)}</span>
+                </div>
+              </div>
+              <Collapsible>
+                <CollapsibleTrigger className="text-xs text-emerald-600 font-medium flex items-center gap-1 hover:underline">
+                  ⚖️ Base Jurídica <ChevronDown className="h-3 w-3" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Art. 249 e 250 do RIR — Decreto 3000/1999 • Art. 3º, IV da Lei 10.833/2003 • Art. 15, IV da Lei 10.865/2002.
+                    Empresas que utilizam equipamentos para atividades produtivas têm direito ao crédito de PIS/COFINS.
+                  </p>
+                </CollapsibleContent>
+              </Collapsible>
+              <p className="text-[10px] text-muted-foreground italic">
+                * Valores estimados. Consulte seu contador para confirmar os benefícios aplicáveis à sua empresa.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Terms */}
         {termos.length > 0 && (
           <Card>
