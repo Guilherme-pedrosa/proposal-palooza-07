@@ -189,7 +189,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     },
   });
 
-  // Count pending geocoding
+  // Count pending geocoding (only records with minimum location data)
   const { data: pendingCount = 0 } = useQuery({
     queryKey: ['geo_pending_count'],
     queryFn: async () => {
@@ -197,7 +197,8 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         .from('clientes_gc')
         .select('*', { count: 'exact', head: true })
         .or('geocodificado.is.null,geocodificado.eq.false')
-        .not('cidade', 'is', null);
+        .not('cidade', 'is', null)
+        .not('estado', 'is', null);
       return count ?? 0;
     },
   });
@@ -246,6 +247,8 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     ops: filteredOps.length,
     pipeline: filteredOps.reduce((s, o) => s + (o.valor_estimado ?? 0), 0),
   }), [filteredClientes, filteredOps]);
+
+  const noGeocodedClientes = clientes.length === 0;
 
   // Heatmap data
   const heatmapData = useMemo(() => {
