@@ -626,7 +626,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       markers.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
       if (prospectClustererRef.current) { prospectClustererRef.current.clearMarkers(); prospectClustererRef.current = null; }
     };
-  }, [isLoaded, showProspeccao, geocodedProspects]);
+  }, [isLoaded, mapReady, showProspeccao, geocodedProspects]);
 
   // ─── Actions ──────────────────────────────────────
   const centerOnClient = (c: ClienteGeo) => {
