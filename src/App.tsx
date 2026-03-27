@@ -33,6 +33,7 @@ import CompanySettings from "./pages/CompanySettings";
 import PropostaPublica from "./pages/PropostaPublica";
 import NotFound from "./pages/NotFound";
 import Mapa from "./pages/Mapa";
+import VisitaAtiva from "./pages/VisitaAtiva";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +102,7 @@ function AppRoutes() {
       <Route path="/propostas/nova" element={<ProtectedRoute><PropostaEditor /></ProtectedRoute>} />
       <Route path="/propostas/:id" element={<ProtectedRoute><PropostaEditor /></ProtectedRoute>} />
       <Route path="/mapa" element={<ProtectedRoute><Mapa /></ProtectedRoute>} />
+      <Route path="/visita/:id" element={<ProtectedRoute><VisitaAtiva /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
       <Route path="/sync" element={<ProtectedRoute><SyncGC /></ProtectedRoute>} />
