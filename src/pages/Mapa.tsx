@@ -559,12 +559,13 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     };
   }, [isLoaded, filteredClientes, filteredOps, showClientes, showOportunidades, showHeatmap]);
 
-  // ─── Prospect markers (separate layer) ────────────
+  // ─── Prospect markers (separate layer — small dots) ────────────
+  const prospectClustererRef = useRef<MarkerClusterer | null>(null);
   useEffect(() => {
     if (!mapRef.current || !isLoaded) return;
-    // Clear old prospect markers
     prospectMarkersRef.current.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
     prospectMarkersRef.current = [];
+    if (prospectClustererRef.current) { prospectClustererRef.current.clearMarkers(); prospectClustererRef.current = null; }
 
     if (!showProspeccao || geocodedProspects.length === 0) return;
 
@@ -573,27 +574,21 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
     geocodedProspects.forEach(p => {
       const isClient = p.eh_cliente_wedo;
-      const borderColor = isClient ? '#D4A017' : '#94A3B8';
-      const fillColor = '#CBD5E1';
-      const initial = ((p.nome_fantasia || p.razao_social || '?').charAt(0)).toUpperCase();
-
-      const prospSvg = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 30 40">
-          <path d="M15 39C15 39 28 25 28 15C28 7.27 22.73 2 15 2C7.27 2 2 7.27 2 15C2 25 15 39 15 39Z"
-                fill="${fillColor}" stroke="${borderColor}" stroke-width="${isClient ? 3 : 2}"/>
-          <circle cx="15" cy="15" r="8" fill="white" opacity="0.9"/>
-          <text x="15" y="19" text-anchor="middle" font-size="10" font-weight="bold" font-family="Arial, sans-serif" fill="#64748B">${initial}</text>
+      const dotColor = isClient ? '#D4A017' : '#94A3B8';
+      const dotSvg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10">
+          <circle cx="5" cy="5" r="4" fill="${dotColor}" fill-opacity="0.5" stroke="white" stroke-width="1"/>
         </svg>`;
 
       const marker = new google.maps.Marker({
         position: { lat: p.latitude!, lng: p.longitude! },
         title: p.nome_fantasia || p.razao_social || p.cnpj,
         icon: {
-          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(prospSvg),
-          scaledSize: new google.maps.Size(30, 40),
-          anchor: new google.maps.Point(15, 40),
+          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(dotSvg),
+          scaledSize: new google.maps.Size(10, 10),
+          anchor: new google.maps.Point(5, 5),
         },
-        zIndex: 3,
+        zIndex: 1,
         clickable: true,
       });
       marker.addListener('click', () => { setSelectedProspect(p); setSelectedClient(null); setSelectedOp(null); });
@@ -601,10 +596,16 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     });
 
     prospectMarkersRef.current = markers;
-    markers.forEach(m => m.setMap(map));
+    // Always cluster prospects — there are hundreds
+    prospectClustererRef.current = new MarkerClusterer({
+      map,
+      markers,
+      onClusterClick: (_, cluster, map) => { map.fitBounds(cluster.bounds!); },
+    });
 
     return () => {
       markers.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
+      if (prospectClustererRef.current) { prospectClustererRef.current.clearMarkers(); prospectClustererRef.current = null; }
     };
   }, [isLoaded, showProspeccao, geocodedProspects]);
 
