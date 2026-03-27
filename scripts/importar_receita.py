@@ -65,8 +65,11 @@ CNAES_ALVO = {
 # Situação cadastral: 02 = ATIVA
 SITUACAO_ATIVA = '02'
 
-# URL base dos dados abertos da Receita Federal
-RF_BASE_URL = 'https://dadosabertos.rfb.gov.br/CNPJ/dados_abertos_cnpj'
+# URLs dos dados abertos — Mirror Casa dos Dados (CDN Cloudflare, sem bloqueio de IP)
+# A Receita Federal original (dadosabertos.rfb.gov.br) bloqueia IPs internacionais (GitHub Actions)
+# O mirror é atualizado mensalmente pela Casa dos Dados
+RF_MIRROR_URL = 'https://dados-abertos-rf-cnpj.casadosdados.com.br/arquivos'
+RF_ORIGINAL_URL = 'https://dadosabertos.rfb.gov.br/CNPJ/dados_abertos_cnpj'
 
 # Batch size para upsert no Supabase
 BATCH_SIZE = 500
@@ -122,7 +125,8 @@ def supabase_request(method, endpoint, data=None, params=None):
 def baixar_e_extrair_csv(url, nome_arquivo_csv):
     """Baixa ZIP da Receita e extrai o CSV."""
     log(f"  Baixando {url}...")
-    resp = requests.get(url, stream=True, timeout=300)
+    resp = requests.get(url, stream=True, timeout=600,
+                         headers={'User-Agent': 'WeDo-CRM/1.0'})
     if resp.status_code != 200:
         log(f"  ERRO ao baixar: {resp.status_code}")
         return None
@@ -188,40 +192,59 @@ SITUACAO_MAP = {
 # ══════════════════════════════════════════════════════════
 
 def descobrir_urls_receita():
-    """Descobre as URLs dos arquivos mais recentes da Receita Federal."""
-    log("Descobrindo URLs dos arquivos da Receita Federal...")
+    """Descobre as URLs dos arquivos mais recentes no mirror Casa dos Dados."""
+    log("Descobrindo URLs dos arquivos (mirror Casa dos Dados / CDN Cloudflare)...")
     
-    # A Receita organiza os dados em pastas por mês
-    # Formato: https://dadosabertos.rfb.gov.br/CNPJ/dados_abertos_cnpj/YYYY-MM/
-    
-    # Tentar o mês atual e o anterior
+    # O mirror organiza por data: /arquivos/YYYY-MM-DD/
+    # Listar a pasta mais recente
+    # Tentar as datas mais recentes primeiro
     agora = datetime.now()
-    meses_tentar = []
-    for delta in range(0, 3):
-        mes = agora.month - delta
+    
+    # Gerar datas candidatas (dia 16 e dia 1 dos últimos 3 meses)
+    datas_tentar = []
+    for delta_mes in range(0, 4):
+        mes = agora.month - delta_mes
         ano = agora.year
         if mes <= 0:
             mes += 12
             ano -= 1
-        meses_tentar.append(f"{ano}-{mes:02d}")
+        # A Receita publica entre dia 10 e 20 de cada mês
+        for dia in [16, 15, 14, 13, 12, 11, 20, 19, 18, 17, 23, 24, 25, 10, 27]:
+            datas_tentar.append(f"{ano}-{mes:02d}-{dia:02d}")
     
-    for mes_ref in meses_tentar:
-        url_base = f"{RF_BASE_URL}/{mes_ref}"
+    for data_ref in datas_tentar:
+        url_base = f"{RF_MIRROR_URL}/{data_ref}"
         log(f"  Tentando {url_base}...")
         
         try:
-            # Verificar se a URL existe
-            resp = requests.head(f"{url_base}/Estabelecimentos0.zip", timeout=10)
+            resp = requests.head(f"{url_base}/Estabelecimentos0.zip", timeout=15,
+                               headers={'User-Agent': 'WeDo-CRM/1.0'})
             if resp.status_code == 200:
-                log(f"  ✅ Encontrado: {mes_ref}")
-                return url_base, mes_ref
+                log(f"  ✅ Encontrado: {data_ref}")
+                return url_base, data_ref
+        except Exception as e:
+            log(f"  ❌ {e}")
+            continue
+    
+    # Fallback: tentar URL original da Receita (pode bloquear)
+    log("  Mirror não encontrado. Tentando URL original da Receita...")
+    for delta_mes in range(0, 3):
+        mes = agora.month - delta_mes
+        ano = agora.year
+        if mes <= 0:
+            mes += 12
+            ano -= 1
+        url_base = f"{RF_ORIGINAL_URL}/{ano}-{mes:02d}"
+        try:
+            resp = requests.head(f"{url_base}/Estabelecimentos0.zip", timeout=15)
+            if resp.status_code == 200:
+                log(f"  ✅ Encontrado (original): {ano}-{mes:02d}")
+                return url_base, f"{ano}-{mes:02d}"
         except:
             continue
     
-    # Fallback: URL direta sem subpasta de mês
-    url_base = "https://dadosabertos.rfb.gov.br/CNPJ"
-    log(f"  Usando URL base: {url_base}")
-    return url_base, "atual"
+    log("❌ ERRO: Nenhuma fonte de dados encontrada!")
+    sys.exit(1)
 
 # ══════════════════════════════════════════════════════════
 # PASSO 2: PROCESSAR ESTABELECIMENTOS (filtrar por CNAE)
