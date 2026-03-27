@@ -445,7 +445,13 @@ export default function PropostaEditor() {
     const envBaseUrl = import.meta.env.VITE_PUBLIC_APP_URL as string | undefined;
     if (envBaseUrl) return envBaseUrl.replace(/\/$/, '');
 
-    if (window.location.hostname.includes('--id-preview--')) {
+    const hostname = window.location.hostname;
+    const isPreviewHost =
+      hostname.includes('--id-preview--') ||
+      hostname.includes('id-preview--') ||
+      hostname.endsWith('.lovableproject.com');
+
+    if (isPreviewHost) {
       return 'https://proposal-palooza-07.lovable.app';
     }
 
