@@ -634,6 +634,7 @@ export type Database = {
           aberto_contagem: number | null
           aberto_em: string | null
           aberto_por_ip: string | null
+          anexos: Json | null
           cliente_id: string | null
           condicoes_pagamento: string | null
           created_at: string | null
@@ -669,6 +670,7 @@ export type Database = {
           aberto_contagem?: number | null
           aberto_em?: string | null
           aberto_por_ip?: string | null
+          anexos?: Json | null
           cliente_id?: string | null
           condicoes_pagamento?: string | null
           created_at?: string | null
@@ -704,6 +706,7 @@ export type Database = {
           aberto_contagem?: number | null
           aberto_em?: string | null
           aberto_por_ip?: string | null
+          anexos?: Json | null
           cliente_id?: string | null
           condicoes_pagamento?: string | null
           created_at?: string | null

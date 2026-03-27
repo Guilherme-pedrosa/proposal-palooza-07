@@ -793,76 +793,107 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           </div>
         )}
 
-        {/* Leasing Fiscal Benefits Page */}
-        {proposal.templateId && ['rational', 'equipamentos'].includes(proposal.templateId) && totalValue > 0 && (
+        {/* Condições Comerciais — Leasing */}
+        {proposal.templateId && ['rational', 'equipamentos', 'ivario'].includes(proposal.templateId) && totalValue > 0 && (
           <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
             <div className="absolute top-8 right-12">
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
             </div>
 
-            <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Condições Comerciais</h2>
-            <p className="mb-8" style={{ color: '#4b5563' }}>Simulação de pagamento e benefícios fiscais para locação de equipamentos.</p>
+            {/* Header */}
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-1 h-8 rounded-full" style={{ backgroundColor: '#22c55e' }}></div>
+                <h2 className="text-2xl font-semibold tracking-tight" style={{ color: '#111827' }}>Condições Comerciais</h2>
+              </div>
+              <p className="text-sm mt-2 pl-4" style={{ color: '#4b5563' }}>
+                Simulação de investimento e modalidades de pagamento para os equipamentos desta proposta.
+              </p>
+            </div>
 
-            {/* Payment simulation */}
-            <div className="rounded-lg p-8 mb-6" style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}>
-              <h3 className="text-xl font-bold mb-4" style={{ color: '#15803d' }}>💰 Investimento Total</h3>
-              <p className="text-4xl font-bold mb-2" style={{ color: '#15803d' }}>{formatCurrency(totalValue)}</p>
-              <p className="text-sm mb-6" style={{ color: '#6b7280' }}>Valor à vista ou parcelado conforme condições acordadas</p>
+            {/* Investimento */}
+            <div className="mb-6 pl-4" style={{ borderLeft: '2px solid #e5e7eb' }}>
+              <p className="text-xs uppercase tracking-widest font-medium mb-2" style={{ color: '#9ca3af' }}>Investimento total</p>
+              <p className="text-4xl font-bold tracking-tight" style={{ color: '#111827' }}>{formatCurrency(totalValue)}</p>
+            </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div className="rounded-lg p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }}>
-                  <p className="text-xs font-medium mb-1" style={{ color: '#6b7280' }}>À Vista (PIX)</p>
-                  <p className="text-xl font-bold" style={{ color: '#111827' }}>{formatCurrency(totalValue)}</p>
-                </div>
-                <div className="rounded-lg p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }}>
-                  <p className="text-xs font-medium mb-1" style={{ color: '#6b7280' }}>12x (Boleto)</p>
-                  <p className="text-xl font-bold" style={{ color: '#111827' }}>{formatCurrency(totalValue / 12)}/mês</p>
-                </div>
-                <div className="rounded-lg p-4 text-center" style={{ backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0' }}>
-                  <p className="text-xs font-medium mb-1" style={{ color: '#15803d' }}>Leasing 36x</p>
-                  <p className="text-xl font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue / 36)}/mês</p>
-                </div>
+            {/* Modalidades */}
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="rounded-lg p-5" style={{ backgroundColor: '#fafafa', border: '1px solid #e5e7eb' }}>
+                <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: '#6b7280' }}>À Vista</p>
+                <p className="text-xl font-bold" style={{ color: '#111827' }}>{formatCurrency(totalValue)}</p>
+                <p className="text-xs mt-1" style={{ color: '#9ca3af' }}>PIX / Transferência</p>
+              </div>
+              <div className="rounded-lg p-5" style={{ backgroundColor: '#fafafa', border: '1px solid #e5e7eb' }}>
+                <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: '#6b7280' }}>Parcelado 12x</p>
+                <p className="text-xl font-bold" style={{ color: '#111827' }}>{formatCurrency(totalValue / 12)}<span className="text-sm font-normal">/mês</span></p>
+                <p className="text-xs mt-1" style={{ color: '#9ca3af' }}>Boleto Bancário</p>
+              </div>
+              <div className="rounded-lg p-5" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+                <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: '#15803d' }}>Leasing 36x</p>
+                <p className="text-xl font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue / 36)}<span className="text-sm font-normal">/mês</span></p>
+                <p className="text-xs mt-1" style={{ color: '#16a34a' }}>Locação de equipamentos</p>
               </div>
             </div>
 
-            {/* Fiscal Benefits */}
-            <div className="rounded-lg p-8" style={{ backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0' }}>
-              <h3 className="text-xl font-bold mb-4" style={{ color: '#15803d' }}>🏦 Benefícios Fiscais — Leasing (Lucro Real)</h3>
-              <p className="text-sm mb-4" style={{ color: '#374151' }}>
-                Empresas no regime de Lucro Real podem deduzir despesas de locação como custos operacionais, gerando economia de até 43,25%.
+            {/* Separador */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="flex-1 h-px" style={{ backgroundColor: '#e5e7eb' }}></div>
+              <span className="text-xs font-medium uppercase tracking-widest" style={{ color: '#9ca3af' }}>Benefício fiscal — Leasing</span>
+              <div className="flex-1 h-px" style={{ backgroundColor: '#e5e7eb' }}></div>
+            </div>
+
+            {/* Texto explicativo */}
+            <div className="mb-5 pl-4" style={{ borderLeft: '2px solid #bbf7d0' }}>
+              <p className="text-sm leading-relaxed" style={{ color: '#374151', lineHeight: '1.7' }}>
+                Empresas enquadradas no regime de <strong style={{ color: '#111827' }}>Lucro Real</strong> podem contabilizar 
+                as parcelas de locação como <strong style={{ color: '#111827' }}>despesa operacional dedutível</strong>, 
+                reduzindo a base de cálculo de tributos federais. A economia potencial pode chegar a 
+                <strong style={{ color: '#111827' }}> 43,25%</strong> do valor do contrato.
               </p>
+            </div>
 
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="rounded p-3" style={{ backgroundColor: '#ffffff', border: '1px solid #d1fae5' }}>
-                  <p className="text-xs" style={{ color: '#6b7280' }}>Dedução IRPJ (25%)</p>
-                  <p className="text-lg font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue * 0.25)}</p>
-                </div>
-                <div className="rounded p-3" style={{ backgroundColor: '#ffffff', border: '1px solid #d1fae5' }}>
-                  <p className="text-xs" style={{ color: '#6b7280' }}>Dedução CSLL (9%)</p>
-                  <p className="text-lg font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue * 0.09)}</p>
-                </div>
-                <div className="rounded p-3" style={{ backgroundColor: '#ffffff', border: '1px solid #d1fae5' }}>
-                  <p className="text-xs" style={{ color: '#6b7280' }}>Crédito PIS (1,65%)</p>
-                  <p className="text-lg font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue * 0.0165)}</p>
-                </div>
-                <div className="rounded p-3" style={{ backgroundColor: '#ffffff', border: '1px solid #d1fae5' }}>
-                  <p className="text-xs" style={{ color: '#6b7280' }}>Crédito COFINS (7,6%)</p>
-                  <p className="text-lg font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue * 0.076)}</p>
-                </div>
-              </div>
+            {/* Tabela de tributos — limpa, sem emojis */}
+            <div className="overflow-hidden rounded-lg mb-5" style={{ border: '1px solid #e5e7eb' }}>
+              <table className="w-full">
+                <thead>
+                  <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>Tributo</th>
+                    <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>Alíquota</th>
+                    <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>Economia estimada</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { nome: 'IRPJ — Imposto de Renda Pessoa Jurídica', aliquota: '25%', valor: totalValue * 0.25 },
+                    { nome: 'CSLL — Contribuição Social sobre Lucro Líquido', aliquota: '9%', valor: totalValue * 0.09 },
+                    { nome: 'PIS — Crédito sobre despesas de locação', aliquota: '1,65%', valor: totalValue * 0.0165 },
+                    { nome: 'COFINS — Crédito sobre despesas de locação', aliquota: '7,6%', valor: totalValue * 0.076 },
+                  ].map((item, i) => (
+                    <tr key={i} style={{ backgroundColor: i % 2 === 0 ? '#ffffff' : '#f9fafb', borderBottom: '1px solid #f3f4f6' }}>
+                      <td className="px-5 py-3 text-sm" style={{ color: '#374151' }}>{item.nome}</td>
+                      <td className="px-5 py-3 text-sm text-center font-medium" style={{ color: '#111827' }}>{item.aliquota}</td>
+                      <td className="px-5 py-3 text-sm text-right font-semibold" style={{ color: '#15803d' }}>{formatCurrency(item.valor)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr style={{ backgroundColor: '#f0fdf4', borderTop: '2px solid #bbf7d0' }}>
+                    <td className="px-5 py-3 text-sm font-bold" style={{ color: '#111827' }}>Economia potencial total</td>
+                    <td className="px-5 py-3 text-sm text-center font-bold" style={{ color: '#111827' }}>43,25%</td>
+                    <td className="px-5 py-3 text-sm text-right font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue * 0.4325)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
 
-              <div className="rounded-lg p-4" style={{ backgroundColor: '#15803d' }}>
-                <div className="flex justify-between items-center text-white">
-                  <span className="font-medium">Economia potencial total (até 43,25%)</span>
-                  <span className="text-2xl font-bold">{formatCurrency(totalValue * 0.4325)}</span>
-                </div>
-              </div>
-
-              <p className="text-xs mt-4" style={{ color: '#6b7280' }}>
-                ⚖️ Base: Art. 249/250 do RIR — Decreto 3000/1999 · Art. 3º, IV Lei 10.833/2003 · Art. 15, IV Lei 10.865/2002
+            {/* Base legal e disclaimer */}
+            <div className="space-y-2">
+              <p className="text-xs" style={{ color: '#6b7280' }}>
+                <strong style={{ color: '#374151' }}>Base legal:</strong> Art. 249 e 250 do RIR — Decreto 3.000/1999 · Art. 3º, IV da Lei 10.833/2003 · Art. 15, IV da Lei 10.865/2002
               </p>
-              <p className="text-xs italic mt-1" style={{ color: '#9ca3af' }}>
-                * Valores estimados. Consulte seu contador para confirmar os benefícios aplicáveis.
+              <p className="text-xs italic" style={{ color: '#9ca3af' }}>
+                Valores estimados para fins de simulação. Cada empresa possui particularidades contábeis — consulte seu contador para confirmar os benefícios aplicáveis.
               </p>
             </div>
 

@@ -115,6 +115,7 @@ export default function PropostaEditor() {
   const [produtos, setProdutos] = useState<PropostaProduct[]>([]);
   const [termos, setTermos] = useState<PropostaTermo[]>([]);
   const [imagens, setImagens] = useState<any[]>([]);
+  const [anexos, setAnexos] = useState<any[]>([]);
   const [validadeDias, setValidadeDias] = useState('10');
   const [condicoesPagamento, setCondicoesPagamento] = useState('');
   const [prazoEntrega, setPrazoEntrega] = useState('');
@@ -205,6 +206,7 @@ export default function PropostaEditor() {
       setProdutos((proposta.produtos as PropostaProduct[]) ?? []);
       setTermos((proposta.termos_condicoes as PropostaTermo[]) ?? []);
       setImagens(proposta.imagens ?? []);
+      setAnexos((proposta as any).anexos ?? []);
       setValidadeDias(String(proposta.validade_dias ?? 10));
       setObservacoesInternas(proposta.observacoes_internas ?? '');
       setFormaPagamento(proposta.forma_pagamento ?? '');
@@ -338,7 +340,7 @@ export default function PropostaEditor() {
     if (!titulo.trim()) { toast({ title: 'Informe o título da proposta', variant: 'destructive' }); return; }
     setSaving(true);
     try {
-      const payload: Partial<PropostaRow> = {
+      const payload: Record<string, any> = {
         numero,
         titulo,
         descricao: descricao || null,
@@ -350,6 +352,7 @@ export default function PropostaEditor() {
         produtos: produtos as any,
         termos_condicoes: termos as any,
         imagens: imagens as any,
+        anexos: anexos as any,
         valor_total: total,
         desconto_total: descontoTotal,
         validade_dias: parseInt(validadeDias) || 10,
@@ -414,6 +417,25 @@ export default function PropostaEditor() {
       const reader = new FileReader();
       reader.onload = () => {
         setImagens((prev) => [...prev, { id: crypto.randomUUID(), url: reader.result, name: file.name }]);
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
+  const handleAnexoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAnexos((prev) => [...prev, {
+          id: crypto.randomUUID(),
+          url: reader.result,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+        }]);
       };
       reader.readAsDataURL(file);
     });
@@ -740,7 +762,33 @@ export default function PropostaEditor() {
           </div>
         </Section>
 
-        {/* Section 8: Commercial */}
+        {/* Section 7b: Anexos */}
+        <Section title={`Anexos (${anexos.length})`} icon="📎" defaultOpen={false}>
+          <div className="space-y-3">
+            <input type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" onChange={handleAnexoUpload} className="hidden" id="anexo-upload" />
+            <Button size="sm" variant="outline" className="gap-1" onClick={() => document.getElementById('anexo-upload')?.click()}>
+              <FileText className="h-3 w-3" /> Adicionar Anexo
+            </Button>
+            <p className="text-xs text-muted-foreground">PDF, Word, Excel, PowerPoint, TXT, CSV</p>
+            {anexos.length > 0 && (
+              <div className="space-y-2">
+                {anexos.map((anexo: any, i: number) => (
+                  <div key={anexo.id} className="flex items-center gap-2 border rounded-md p-2">
+                    <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{anexo.name}</p>
+                      <p className="text-xs text-muted-foreground">{(anexo.size / 1024).toFixed(0)} KB</p>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive shrink-0" onClick={() => setAnexos((prev) => prev.filter((_, j) => j !== i))}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Section>
+
         <Section title="Condições Comerciais" icon="💰">
           <div className="space-y-4">
             <div>

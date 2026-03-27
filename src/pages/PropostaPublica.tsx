@@ -243,44 +243,37 @@ export default function PropostaPublica() {
 
         {/* Leasing Fiscal Benefits */}
         {isLeasing && total > 0 && (
-          <Card className="border-emerald-200 bg-emerald-50/50">
+          <Card>
             <CardHeader className="py-3 px-4">
-              <CardTitle className="text-sm flex items-center gap-1">🏦 Benefícios Fiscais do Leasing</CardTitle>
+              <CardTitle className="text-sm">Benefício Fiscal — Leasing</CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4 space-y-3">
-              <p className="text-sm">
-                Empresas no regime de <strong>Lucro Real</strong> podem deduzir despesas de locação como custos operacionais:
+              <p className="text-sm" style={{ color: '#374151' }}>
+                Empresas no regime de <strong>Lucro Real</strong> podem contabilizar as parcelas de locação como despesa operacional dedutível, com economia potencial de até <strong>43,25%</strong> do valor do contrato.
               </p>
-              <div className="space-y-2">
-                <div className="grid grid-cols-2 gap-1 text-sm">
-                  <span>Dedução IRPJ (25%)</span>
-                  <span className="text-right font-medium text-emerald-700">{formatBRL(total * 0.25)}</span>
-                  <span>Dedução CSLL (9%)</span>
-                  <span className="text-right font-medium text-emerald-700">{formatBRL(total * 0.09)}</span>
-                  <span>Crédito PIS (1,65%)</span>
-                  <span className="text-right font-medium text-emerald-700">{formatBRL(total * 0.0165)}</span>
-                  <span>Crédito COFINS (7,6%)</span>
-                  <span className="text-right font-medium text-emerald-700">{formatBRL(total * 0.076)}</span>
-                </div>
-                <Separator />
-                <div className="flex justify-between font-bold text-emerald-700">
-                  <span>Economia potencial (até 43,25%)</span>
-                  <span>{formatBRL(total * 0.4325)}</span>
-                </div>
+              <div className="overflow-hidden rounded-lg border">
+                <table className="w-full text-sm">
+                  <tbody>
+                    {[
+                      { nome: 'IRPJ', aliq: '25%', val: total * 0.25 },
+                      { nome: 'CSLL', aliq: '9%', val: total * 0.09 },
+                      { nome: 'PIS', aliq: '1,65%', val: total * 0.0165 },
+                      { nome: 'COFINS', aliq: '7,6%', val: total * 0.076 },
+                    ].map((t, i) => (
+                      <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-muted/30'}>
+                        <td className="px-3 py-2 font-medium">{t.nome} ({t.aliq})</td>
+                        <td className="px-3 py-2 text-right font-semibold text-emerald-700">{formatBRL(t.val)}</td>
+                      </tr>
+                    ))}
+                    <tr className="bg-emerald-50 border-t-2 border-emerald-200">
+                      <td className="px-3 py-2 font-bold">Economia potencial</td>
+                      <td className="px-3 py-2 text-right font-bold text-emerald-700">{formatBRL(total * 0.4325)}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <Collapsible>
-                <CollapsibleTrigger className="text-xs text-emerald-600 font-medium flex items-center gap-1 hover:underline">
-                  ⚖️ Base Jurídica <ChevronDown className="h-3 w-3" />
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Art. 249 e 250 do RIR — Decreto 3000/1999 • Art. 3º, IV da Lei 10.833/2003 • Art. 15, IV da Lei 10.865/2002.
-                    Empresas que utilizam equipamentos para atividades produtivas têm direito ao crédito de PIS/COFINS.
-                  </p>
-                </CollapsibleContent>
-              </Collapsible>
-              <p className="text-[10px] text-muted-foreground italic">
-                * Valores estimados. Consulte seu contador para confirmar os benefícios aplicáveis à sua empresa.
+              <p className="text-[10px] text-muted-foreground">
+                Base: Art. 249/250 Decreto 3.000/99 · Lei 10.833/03 · Lei 10.865/02. Valores estimados — consulte seu contador.
               </p>
             </CardContent>
           </Card>
