@@ -1082,7 +1082,22 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                       <p>📊 {getClientStatusLabel(selectedClient.ultima_compra_gc)}</p>
                       {selectedClient.total_compras_gc && selectedClient.total_compras_gc > 0 && <p>💰 Total: {formatBRL(selectedClient.total_compras_gc)}</p>}
                     </div>
-                    <div className="flex gap-1 pt-1">
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {/* Check-in button */}
+                      {visitaEmAndamento?.cliente_id === selectedClient.id && visitaEmAndamento?.status === 'em_andamento' ? (
+                        <button onClick={() => navigate(`/cliente/${selectedClient.id}`)} className="text-xs px-2 py-1 rounded font-medium flex items-center gap-1" style={{ backgroundColor: '#EF4444', color: 'white' }}>
+                          ✅ Em visita — Check-out
+                        </button>
+                      ) : !visitaEmAndamento || visitaEmAndamento.status !== 'em_andamento' ? (
+                        <button
+                          onClick={() => handleCheckinFromMap(selectedClient)}
+                          disabled={checkinLoading}
+                          className="text-xs px-2 py-1 rounded font-medium flex items-center gap-1"
+                          style={{ backgroundColor: '#16A34A', color: 'white', opacity: checkinLoading ? 0.6 : 1 }}
+                        >
+                          📍 {checkinLoading ? 'Entrando...' : 'Check-in'}
+                        </button>
+                      ) : null}
                       <button onClick={() => navigate(`/cliente/${selectedClient.id}`)} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#0066FF', color: 'white' }}>Ver Perfil</button>
                       <button onClick={() => openRoute(selectedClient.latitude, selectedClient.longitude)} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#E5E7EB', color: '#374151' }}>Rota</button>
                       {(selectedClient.celular || selectedClient.telefone) && (
