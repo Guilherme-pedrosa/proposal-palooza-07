@@ -11,6 +11,7 @@ import {
   RefreshCw,
   BarChart,
   PieChart,
+  MapPin,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -58,6 +59,7 @@ const menuGroups: MenuGroup[] = [
     label: 'Comercial',
     items: [
       { title: 'Pipeline', icon: BarChart3, href: '/pipeline' },
+      { title: 'Mapa Comercial', icon: MapPin, href: '/mapa' },
       { title: 'Clientes', icon: Building2, href: '/clientes' },
       { title: 'Catálogo', icon: UtensilsCrossed, href: '/catalogo' },
       { title: 'Propostas', icon: FileText, href: '/propostas' },

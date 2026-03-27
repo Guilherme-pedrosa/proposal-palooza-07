@@ -116,7 +116,10 @@ export type Database = {
           estado: string | null
           gc_id: string
           gc_synced_at: string | null
+          geocodificado: boolean | null
           id: string
+          latitude: number | null
+          longitude: number | null
           nome: string
           observacoes: string | null
           porte: string | null
@@ -140,7 +143,10 @@ export type Database = {
           estado?: string | null
           gc_id: string
           gc_synced_at?: string | null
+          geocodificado?: boolean | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           nome: string
           observacoes?: string | null
           porte?: string | null
@@ -164,7 +170,10 @@ export type Database = {
           estado?: string | null
           gc_id?: string
           gc_synced_at?: string | null
+          geocodificado?: boolean | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           nome?: string
           observacoes?: string | null
           porte?: string | null
