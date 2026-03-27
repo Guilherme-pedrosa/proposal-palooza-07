@@ -818,7 +818,7 @@ export default function PropostaEditor() {
       </div>
 
       {/* Catalog Picker */}
-      <CatalogPickerModal open={catalogOpen} onClose={() => setCatalogOpen(false)} onSelect={addProductFromCatalog} tabelaPrecoId={tabelaPrecoId} />
+      <CatalogPickerModal open={catalogOpen} onClose={() => setCatalogOpen(false)} onSelect={addProductFromCatalog} tabelaPrecoId={defaultTabelaPrecoId} />
 
       {/* Share Modal */}
       <Dialog open={shareOpen} onOpenChange={setShareOpen}>
