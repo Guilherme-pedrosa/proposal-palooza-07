@@ -87,8 +87,8 @@ export default function VisitaAtiva() {
         const fileName = `visitas/${id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
         const { error: uploadError } = await supabase.storage
-          .from('proposals')
-          .upload(fileName, file, { upsert: true });
+          .from('visitas')
+          .upload(fileName, file, { upsert: true, contentType: file.type });
 
         if (uploadError) throw uploadError;
 
