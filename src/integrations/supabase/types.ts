@@ -778,6 +778,99 @@ export type Database = {
           },
         ]
       }
+      prospects_rf: {
+        Row: {
+          atualizado_em: string | null
+          bairro: string | null
+          capital_social: number | null
+          cep: string | null
+          cidade: string | null
+          cnae_codigo: string
+          cnae_descricao: string | null
+          cnpj: string
+          complemento: string | null
+          data_inicio_atividade: string | null
+          eh_cliente_wedo: boolean | null
+          email: string | null
+          endereco_completo: string | null
+          fonte: string | null
+          geocodificado: boolean | null
+          latitude: number | null
+          logradouro: string | null
+          longitude: number | null
+          natureza_juridica: string | null
+          nome_fantasia: string | null
+          numero: string | null
+          porte: string | null
+          razao_social: string | null
+          regime_fiscal: string | null
+          situacao_cadastral: string | null
+          telefone_1: string | null
+          telefone_2: string | null
+          uf: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          bairro?: string | null
+          capital_social?: number | null
+          cep?: string | null
+          cidade?: string | null
+          cnae_codigo: string
+          cnae_descricao?: string | null
+          cnpj: string
+          complemento?: string | null
+          data_inicio_atividade?: string | null
+          eh_cliente_wedo?: boolean | null
+          email?: string | null
+          endereco_completo?: string | null
+          fonte?: string | null
+          geocodificado?: boolean | null
+          latitude?: number | null
+          logradouro?: string | null
+          longitude?: number | null
+          natureza_juridica?: string | null
+          nome_fantasia?: string | null
+          numero?: string | null
+          porte?: string | null
+          razao_social?: string | null
+          regime_fiscal?: string | null
+          situacao_cadastral?: string | null
+          telefone_1?: string | null
+          telefone_2?: string | null
+          uf?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          bairro?: string | null
+          capital_social?: number | null
+          cep?: string | null
+          cidade?: string | null
+          cnae_codigo?: string
+          cnae_descricao?: string | null
+          cnpj?: string
+          complemento?: string | null
+          data_inicio_atividade?: string | null
+          eh_cliente_wedo?: boolean | null
+          email?: string | null
+          endereco_completo?: string | null
+          fonte?: string | null
+          geocodificado?: boolean | null
+          latitude?: number | null
+          logradouro?: string | null
+          longitude?: number | null
+          natureza_juridica?: string | null
+          nome_fantasia?: string | null
+          numero?: string | null
+          porte?: string | null
+          razao_social?: string | null
+          regime_fiscal?: string | null
+          situacao_cadastral?: string | null
+          telefone_1?: string | null
+          telefone_2?: string | null
+          uf?: string | null
+        }
+        Relationships: []
+      }
       tabelas_preco: {
         Row: {
           ativa: boolean
@@ -968,6 +1061,20 @@ export type Database = {
       }
     }
     Views: {
+      prospects_stats: {
+        Row: {
+          cnae_codigo: string | null
+          cnae_descricao: string | null
+          com_email: number | null
+          com_telefone: number | null
+          geocodificados: number | null
+          ja_clientes: number | null
+          regime_fiscal: string | null
+          total: number | null
+          uf: string | null
+        }
+        Relationships: []
+      }
       wai_custo_mes: {
         Row: {
           chamadas: number | null
@@ -980,7 +1087,7 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      marcar_prospects_clientes: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
