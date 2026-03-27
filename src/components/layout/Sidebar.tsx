@@ -60,6 +60,7 @@ const menuGroups: MenuGroup[] = [
     items: [
       { title: 'Pipeline', icon: BarChart3, href: '/pipeline' },
       { title: 'Mapa Comercial', icon: MapPin, href: '/mapa' },
+      { title: 'Visitas', icon: CalendarDays, href: '/visitas' },
       { title: 'Clientes', icon: Building2, href: '/clientes' },
       { title: 'Catálogo', icon: UtensilsCrossed, href: '/catalogo' },
       { title: 'Propostas', icon: FileText, href: '/propostas' },
