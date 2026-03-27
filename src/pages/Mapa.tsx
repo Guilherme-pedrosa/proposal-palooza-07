@@ -495,7 +495,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     const alwaysVisibleMarkers: google.maps.Marker[] = [];
 
     if (showClientes) {
-      filteredClientes.forEach(c => {
+      mapFilteredClientes.forEach(c => {
         const color = getClientStatusColor(c.ultima_compra_gc);
         const isActive = color === '#22C55E';
         const pinW = isActive ? 48 : 36;
