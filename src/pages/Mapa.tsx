@@ -814,13 +814,8 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                 onCheckedChange={layer.toggle}
                 className="shrink-0 ml-2"
               />
-              </Badge>
-              <Switch
-                checked={showProspeccao}
-                className="pointer-events-none border border-border data-[state=unchecked]:bg-muted"
-              />
             </div>
-          </button>
+          ))}
         </div>
       </div>
 
