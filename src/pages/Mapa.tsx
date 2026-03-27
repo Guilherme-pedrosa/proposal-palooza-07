@@ -832,21 +832,46 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
   return (
     <MainLayout>
-      <div className="flex h-[calc(100vh-64px)] md:h-[calc(100vh-0px)] -m-4 md:-m-6 relative">
+      {/* Mobile: calc height minus header(56px) + bottomNav(64px+pb). Desktop: full minus sidebar header */}
+      <div className="flex h-[calc(100vh-56px-64px)] md:h-[calc(100vh-0px)] -m-4 md:-m-6 -mb-20 md:-mb-6 relative">
         {/* Desktop sidebar */}
         <div className="hidden lg:flex w-80 border-r border-border bg-card flex-col shrink-0 overflow-hidden">
           <ScrollArea className="h-full">{sidebarContent}</ScrollArea>
         </div>
 
-        {/* Mobile sidebar */}
-        <div className="lg:hidden absolute top-3 left-3 z-20">
+        {/* Mobile FABs */}
+        <div className="lg:hidden absolute top-3 left-3 z-20 flex flex-col gap-2">
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
-              <Button size="icon" variant="secondary" className="shadow-lg"><Menu className="h-5 w-5" /></Button>
+              <Button size="icon" variant="secondary" className="shadow-lg h-10 w-10">
+                <Menu className="h-5 w-5" />
+              </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-80 p-0">{sidebarContent}</SheetContent>
+            <SheetContent side="left" className="w-[85vw] max-w-80 p-0">
+              <ScrollArea className="h-full">{sidebarContent}</ScrollArea>
+            </SheetContent>
           </Sheet>
         </div>
+
+        {/* Mobile KPI bar */}
+        {isMobile && (
+          <div className="absolute top-3 right-3 z-20 bg-card/95 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg flex gap-3 text-center">
+            <div>
+              <p className="text-sm font-bold">{kpis.clientes}</p>
+              <p className="text-[9px] text-muted-foreground">Clientes</p>
+            </div>
+            <div>
+              <p className="text-sm font-bold">{kpis.ops}</p>
+              <p className="text-[9px] text-muted-foreground">Ops</p>
+            </div>
+            {showProspeccao && (
+              <div>
+                <p className="text-sm font-bold text-slate-500">{kpis.prospects}</p>
+                <p className="text-[9px] text-muted-foreground">Prosp.</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Map */}
         <div className="flex-1 relative">
@@ -859,7 +884,14 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               zoom={noGeocodedClientes ? 4 : 5}
               onLoad={onMapLoad}
               onIdle={onMapIdle}
-              options={{ disableDefaultUI: false, zoomControl: true, streetViewControl: true, mapTypeControl: true, fullscreenControl: true, gestureHandling: 'greedy' }}
+              options={{
+                disableDefaultUI: isMobile,
+                zoomControl: !isMobile,
+                streetViewControl: false,
+                mapTypeControl: !isMobile,
+                fullscreenControl: false,
+                gestureHandling: 'greedy',
+              }}
             >
               {/* Empty state */}
               {noGeocodedClientes && !showProspeccao && (
