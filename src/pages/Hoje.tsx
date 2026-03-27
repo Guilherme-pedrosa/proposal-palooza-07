@@ -38,6 +38,10 @@ import { insertAtividade, updateOportunidadeEtapa, fetchMotivosPerda, formatBRL 
 import { supabase } from '@/integrations/supabase/client';
 import { WAIButton } from '@/components/WAIButton';
 import { Sparkles } from 'lucide-react';
+import { fetchVisitaEmAndamento } from '@/lib/api/visitas';
+import { VisitasBanner } from '@/components/visitas/VisitasBanner';
+import { CheckoutFormDialog } from '@/components/visitas/CheckoutFormDialog';
+import { finalizarCheckout } from '@/lib/api/visitas';
 
 const grupoConfig: Record<GrupoAtividade, { label: string; emoji: string; borderColor: string; bgColor: string }> = {
   atrasada: { label: 'EM ATRASO', emoji: '🔴', borderColor: 'border-l-red-500', bgColor: 'bg-red-50' },
