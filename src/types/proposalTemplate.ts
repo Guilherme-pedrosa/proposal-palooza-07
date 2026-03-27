@@ -171,6 +171,92 @@ O serviço inclui:
     ],
   },
   {
+    id: 'rational',
+    name: 'Venda Rational',
+    description: 'Proposta comercial para equipamentos Rational com ROI, benefícios e diferenciais técnicos',
+    icon: '🔥',
+    color: '#e11d48',
+    sections: [
+      { id: 'benefits', name: 'Benefícios e Diferenciais', description: 'ROI, economia e vantagens competitivas', enabled: true },
+      { id: 'specs', name: 'Especificações Técnicas', description: 'Modelos, capacidades e tecnologias', enabled: true },
+      { id: 'roi', name: 'Retorno sobre Investimento', description: 'Cálculo de economia e payback', enabled: true },
+    ],
+    defaultTitle: 'Proposta Comercial — Equipamentos Rational',
+    defaultDescription: `A presente proposta tem como objetivo o fornecimento de equipamentos RATIONAL, líder mundial em sistemas de cocção inteligente, com mais de 1 milhão de equipamentos instalados em cozinhas profissionais ao redor do mundo.
+
+O iCombi Pro é um forno combinado inteligente com conhecimento culinário integrado de mais de 1.000 chefs. Ele combina calor e umidade com precisão absoluta, cobrindo 95% de todas as aplicações culinárias convencionais — podendo substituir diversos equipamentos tradicionais em menos de 1 m².
+
+Principais diferenciais para o seu negócio:
+
+• Economia comprovada de até R$ 230.928/ano em um restaurante médio (200 refeições/dia)
+• Redução de até 25% no custo de insumos (carnes, peixes e aves) graças à regulagem precisa do iCookingSuite
+• Consumo de energia até 70% menor com o iProductionManager e tecnologia de controle avançada
+• Redução de até 95% nos custos com gordura — quase não é preciso usar gordura no preparo
+• Redução de até 60% no tempo de produção, eliminando atividades de rotina
+• Custo zero com amaciamento de água e descalcificação graças ao iCareSystem
+
+O equipamento oferece resultados uniformes em todas as prateleiras, com cores apetitosas, crocância perfeita e conservação de nutrientes. Qualquer profissional consegue operar o iCombi Pro graças à tela sensível ao toque intuitiva, com mais de 50 idiomas disponíveis. O sistema de limpeza automática garante higiene absoluta com dados APPCC durante a cocção.
+
+A WeDo, como distribuidora autorizada Rational, oferece instalação profissional, treinamento operacional completo e suporte técnico contínuo, garantindo que o investimento gere retorno desde o primeiro dia de operação.`,
+    defaultProducts: [
+      {
+        name: 'Forno Combinado iCombi Pro Rational',
+        description: `Forno combinado inteligente RATIONAL iCombi Pro:
+• Conhecimento culinário integrado (iCookingSuite) com percursos inteligentes
+• iDensityControl — clima preciso na câmara de cocção com resultados uniformes
+• iProductionManager — planejamento flexível e preparo simultâneo de diferentes pratos
+• iCareSystem — limpeza e descalcificação automáticas (9 programas)
+• Gerador de vapor fresco 100% higiênico
+• Sensor de temperatura de núcleo com 6 pontos de medição
+• Tela sensível ao toque com interface intuitiva
+• ConnectedCooking — gerenciamento digital via WiFi
+• Certificação ENERGY STAR
+• Temperatura máxima: 300°C
+• Inclui: instalação, configuração, treinamento operacional e garantia`,
+        unit: 'UN',
+      },
+    ],
+  },
+  {
+    id: 'equipamentos',
+    name: 'Venda de Equipamentos',
+    description: 'Proposta para venda de equipamentos de cozinha profissional em geral',
+    icon: '🏗️',
+    color: '#0ea5e9',
+    sections: [
+      { id: 'scope', name: 'Escopo do Fornecimento', description: 'Equipamentos, acessórios e serviços inclusos', enabled: true },
+      { id: 'benefits', name: 'Benefícios e Garantias', description: 'Vantagens, garantia e suporte técnico', enabled: true },
+      { id: 'delivery', name: 'Entrega e Instalação', description: 'Prazos, logística e comissionamento', enabled: true },
+    ],
+    defaultTitle: 'Proposta Comercial — Fornecimento de Equipamentos',
+    defaultDescription: `A presente proposta tem como objetivo o fornecimento de equipamentos para cozinha profissional, contemplando produtos de marcas líderes de mercado, selecionados conforme as necessidades operacionais do cliente.
+
+A WeDo atua como distribuidora autorizada das principais marcas do segmento de food service, oferecendo equipamentos de alto desempenho com suporte técnico especializado, garantia de fábrica e assistência pós-venda.
+
+O fornecimento inclui:
+• Equipamentos novos com garantia de fábrica
+• Entrega, instalação e configuração no local
+• Treinamento operacional da equipe
+• Suporte técnico e assistência pós-venda
+• Orientação sobre layout e dimensionamento
+
+Todos os equipamentos são entregues com documentação técnica completa, notas fiscais e certificados de garantia. A WeDo garante a procedência e qualidade de todos os produtos fornecidos, assegurando conformidade com as normas técnicas e sanitárias vigentes.`,
+    defaultProducts: [
+      {
+        name: 'Equipamento de Cozinha Profissional',
+        description: `Fornecimento de equipamento incluindo:
+• Equipamento novo com garantia de fábrica
+• Entrega e desembalagem no local
+• Instalação elétrica e hidráulica conforme normas
+• Configuração inicial e testes de funcionamento
+• Treinamento operacional básico
+• Manual de operação e manutenção
+• Certificado de garantia`,
+        unit: 'UN',
+      },
+    ],
+  },
+  {
     id: 'climatizacao',
     name: 'Climatização / Câmaras Frias',
     description: 'Manutenção preventiva de climatização, ar condicionado e câmaras frias com PMOC',
