@@ -916,6 +916,19 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
           </Sheet>
         </div>
 
+        {/* My Location FAB */}
+        <div className="absolute bottom-20 md:bottom-6 right-3 z-20">
+          <Button
+            size="icon"
+            variant="secondary"
+            className="shadow-lg h-10 w-10"
+            onClick={requestUserLocation}
+            disabled={locatingUser}
+            title="Minha localização"
+          >
+            {locatingUser ? <Loader2 className="h-5 w-5 animate-spin" /> : <Crosshair className="h-5 w-5 text-primary" />}
+          </Button>
+
         {/* Mobile KPI bar */}
         {isMobile && (
           <div className="absolute top-3 right-3 z-20 bg-card/95 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg flex gap-3 text-center">
