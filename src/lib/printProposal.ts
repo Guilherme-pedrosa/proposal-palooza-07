@@ -20,22 +20,38 @@ async function getImageAsBase64(url: string): Promise<string> {
   });
 }
 
-export async function openPrintWindow(proposal: Partial<Proposal>, company: CompanySettings) {
-  // Get the preview element from the page
+export async function openPrintWindow(proposal: Partial<Proposal>, company: CompanySettings): Promise<boolean> {
   const previewElement = document.querySelector('.proposal-preview');
-  
+
   if (!previewElement) {
     console.error('Preview element not found');
-    return;
+    return false;
   }
 
-  // Clone the preview content
+  // IMPORTANT: open window synchronously from user click to avoid popup blockers
+  const printWindow = window.open('', '_blank', 'width=900,height=700');
+  if (!printWindow) {
+    return false;
+  }
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Gerando PDF...</title>
+        <style>
+          body { font-family: Arial, sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; color:#334155; }
+        </style>
+      </head>
+      <body>Preparando proposta para impressão...</body>
+    </html>
+  `);
+  printWindow.document.close();
+
   const clonedContent = previewElement.cloneNode(true) as HTMLElement;
-  
-  // Get background image as base64
   const bgImageBase64 = await getImageAsBase64(industrialKitchenBg);
-  
-  // Get all current stylesheets
+
   const styles = Array.from(document.styleSheets)
     .map(sheet => {
       try {
@@ -51,7 +67,6 @@ export async function openPrintWindow(proposal: Partial<Proposal>, company: Comp
     })
     .join('\n');
 
-  // Update the cover page background to use base64 image
   const coverDiv = clonedContent.querySelector('.pdf-page');
   if (coverDiv) {
     const bgDiv = coverDiv.querySelector('.bg-cover');
@@ -69,11 +84,11 @@ export async function openPrintWindow(proposal: Partial<Proposal>, company: Comp
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
         <style>
           ${styles}
-          
+
           * {
             box-sizing: border-box;
           }
-          
+
           body {
             margin: 0;
             padding: 0;
@@ -82,18 +97,18 @@ export async function openPrintWindow(proposal: Partial<Proposal>, company: Comp
             print-color-adjust: exact !important;
             color-adjust: exact !important;
           }
-          
+
           @page {
             size: A4 portrait;
             margin: 0;
           }
-          
+
           @media print {
             body {
               margin: 0;
               padding: 0;
             }
-            
+
             .pdf-page {
               width: 210mm !important;
               height: 297mm !important;
@@ -102,23 +117,22 @@ export async function openPrintWindow(proposal: Partial<Proposal>, company: Comp
               overflow: hidden !important;
               position: relative !important;
             }
-            
+
             .pdf-page:last-child {
               page-break-after: auto !important;
             }
-            
-            /* Force background colors and images to print */
+
             * {
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
               color-adjust: exact !important;
             }
           }
-          
+
           .proposal-preview {
             width: 210mm;
           }
-          
+
           .pdf-page {
             width: 210mm;
             height: 297mm;
@@ -135,17 +149,15 @@ export async function openPrintWindow(proposal: Partial<Proposal>, company: Comp
     </html>
   `;
 
-  const printWindow = window.open('', '_blank', 'width=900,height=700');
-  
-  if (printWindow) {
-    printWindow.document.write(html);
-    printWindow.document.close();
-    
-    // Wait for fonts and images to load
-    printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.print();
-      }, 800);
-    };
-  }
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+
+  printWindow.onload = () => {
+    setTimeout(() => {
+      printWindow.print();
+    }, 800);
+  };
+
+  return true;
 }

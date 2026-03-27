@@ -153,10 +153,14 @@ export default function EditProposal() {
     navigate('/propostas');
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     setIsExporting(true);
-    openPrintWindow(proposalData, company);
-    toast.success('Janela de impressão aberta! Use "Salvar como PDF" para exportar.');
+    const opened = await openPrintWindow(proposalData, company);
+    if (opened) {
+      toast.success('Janela de impressão aberta! Use "Salvar como PDF" para exportar.');
+    } else {
+      toast.error('O navegador bloqueou a janela de impressão. Permita pop-ups e tente novamente.');
+    }
     setTimeout(() => setIsExporting(false), 1000);
   };
 

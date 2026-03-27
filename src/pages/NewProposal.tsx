@@ -143,9 +143,13 @@ export default function NewProposal() {
     navigate('/propostas');
   };
 
-  const handlePrint = () => {
-    openPrintWindow(proposalData, company);
-    toast.success('Janela de impressão aberta! Use "Salvar como PDF" para exportar.');
+  const handlePrint = async () => {
+    const opened = await openPrintWindow(proposalData, company);
+    if (opened) {
+      toast.success('Janela de impressão aberta! Use "Salvar como PDF" para exportar.');
+      return;
+    }
+    toast.error('O navegador bloqueou a janela de impressão. Permita pop-ups e tente novamente.');
   };
 
   // Show template selector if no template selected
