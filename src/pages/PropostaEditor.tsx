@@ -352,6 +352,7 @@ export default function PropostaEditor() {
         produtos: produtos as any,
         termos_condicoes: termos as any,
         imagens: imagens as any,
+        anexos: anexos as any,
         valor_total: total,
         desconto_total: descontoTotal,
         validade_dias: parseInt(validadeDias) || 10,
