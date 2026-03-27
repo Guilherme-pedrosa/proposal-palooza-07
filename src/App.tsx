@@ -35,6 +35,7 @@ import NotFound from "./pages/NotFound";
 import Mapa from "./pages/Mapa";
 import VisitaAtiva from "./pages/VisitaAtiva";
 import Visitas from "./pages/Visitas";
+import Usuarios from "./pages/Usuarios";
 
 const queryClient = new QueryClient();
 
