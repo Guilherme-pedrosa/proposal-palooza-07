@@ -19,6 +19,7 @@ import {
   STATUS_PROPOSTA, type PropostaRow, type StatusProposta,
 } from '@/lib/api/propostas';
 import { useCompany } from '@/contexts/CompanyContext';
+import logoWedoDefault from '@/assets/logo-wedo.png';
 
 export default function PropostaPublica() {
   const { uuid } = useParams();
@@ -48,7 +49,7 @@ export default function PropostaPublica() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
+      <div className="min-h-screen bg-muted p-4">
         <div className="max-w-3xl mx-auto space-y-4">
           <Skeleton className="h-12 w-3/4" />
           <Skeleton className="h-40 w-full" />
@@ -59,7 +60,7 @@ export default function PropostaPublica() {
 
   if (!proposta) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-muted flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="py-12 text-center">
             <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground/40" />
@@ -77,6 +78,7 @@ export default function PropostaPublica() {
   const isAprovada = aprovada || proposta.status === 'aprovada';
   const isCancelada = proposta.status === 'recusada';
   const diasRestantes = proposta.validade_ate ? differenceInDays(new Date(proposta.validade_ate), new Date()) : null;
+  const companyLogo = company.logo || logoWedoDefault;
 
   const subtotal = produtos.reduce((s: number, p: any) => s + (p.quantity || 0) * (p.unitPrice || 0), 0);
   const descontoTotal = produtos.reduce((s: number, p: any) => s + ((p.quantity || 0) * (p.unitPrice || 0) * ((p.discount || 0) / 100)), 0);
@@ -86,11 +88,13 @@ export default function PropostaPublica() {
   const entradaPercent = proposta.entrada_percent || 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       <div className="max-w-3xl mx-auto py-6 px-4 space-y-6">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-extrabold text-[hsl(0,78%,56%)]">WeDo</h1>
+        <div className="text-center space-y-3">
+          <div className="flex justify-center">
+            <img src={companyLogo} alt={`Logo ${company.name}`} className="h-14 w-auto object-contain" />
+          </div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider">Soluções para Cozinhas Profissionais</p>
           <Separator />
           <p className="text-lg font-semibold">PROPOSTA COMERCIAL</p>
@@ -119,8 +123,8 @@ export default function PropostaPublica() {
           </div>
         )}
         {isCancelada && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-            <p className="text-gray-600">Esta proposta não está mais disponível.</p>
+          <div className="bg-muted border border-border rounded-lg p-4 text-center">
+            <p className="text-muted-foreground">Esta proposta não está mais disponível.</p>
           </div>
         )}
 
