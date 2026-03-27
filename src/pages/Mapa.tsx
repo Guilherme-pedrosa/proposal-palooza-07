@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleMap, useJsApiLoader, InfoWindowF, HeatmapLayerF } from '@react-google-maps/api';
-import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -168,7 +167,6 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const [mapReady, setMapReady] = useState(false);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const prospectMarkersRef = useRef<google.maps.Marker[]>([]);
-  const clustererRef = useRef<MarkerClusterer | null>(null);
   const userMarkerRef = useRef<google.maps.Marker | null>(null);
 
   const { isLoaded } = useJsApiLoader({ googleMapsApiKey: mapsKey, libraries: LIBRARIES });
@@ -488,22 +486,11 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   useEffect(() => {
     if (!mapRef.current || !isLoaded || !mapReady) return;
 
-    const disposeClientClusterer = () => {
-      if (!clustererRef.current) return;
-      clustererRef.current.clearMarkers();
-      (clustererRef.current as unknown as { setMap?: (map: google.maps.Map | null) => void }).setMap?.(null);
-      clustererRef.current = null;
-    };
-
     markersRef.current.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
     markersRef.current = [];
-    disposeClientClusterer();
 
     const markers: google.maps.Marker[] = [];
     const map = mapRef.current;
-
-    const clusterableMarkers: google.maps.Marker[] = [];
-    const alwaysVisibleMarkers: google.maps.Marker[] = [];
 
     if (showClientes) {
       mapFilteredClientes.forEach(c => {
@@ -542,13 +529,6 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
         marker.addListener('click', () => { setSelectedClient(c); setSelectedOp(null); setSelectedProspect(null); });
         markers.push(marker);
-
-        // Active (green) clients stay visible outside clusters
-        if (isActive) {
-          alwaysVisibleMarkers.push(marker);
-        } else {
-          clusterableMarkers.push(marker);
-        }
       });
     }
 
@@ -582,49 +562,23 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
         marker.addListener('click', () => { setSelectedOp(op); setSelectedClient(null); setSelectedProspect(null); });
         markers.push(marker);
-        clusterableMarkers.push(marker);
       });
     }
 
     markersRef.current = markers;
-
-    // Green clients are added directly to the map (never clustered)
-    alwaysVisibleMarkers.forEach(m => m.setMap(map));
-
-    // Other markers go through the clusterer (desktop only; mobile keeps direct markers for touch reliability)
-    const shouldCluster = !isMobile && clusterableMarkers.length > 10;
-    if (shouldCluster) {
-      clusterableMarkers.forEach(m => m.setMap(null)); // clusterer manages them
-      clustererRef.current = new MarkerClusterer({
-        map,
-        markers: clusterableMarkers,
-        onClusterClick: (_, cluster, currentMap) => { currentMap.fitBounds(cluster.bounds!); },
-      });
-    } else {
-      clusterableMarkers.forEach(m => m.setMap(map));
-    }
+    markers.forEach(m => m.setMap(map));
 
     return () => {
       markers.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
-      disposeClientClusterer();
     };
-  }, [isLoaded, mapReady, mapFilteredClientes, filteredOps, showClientes, showOportunidades, showHeatmap, isMobile]);
+  }, [isLoaded, mapReady, mapFilteredClientes, filteredOps, showClientes, showOportunidades, showHeatmap]);
 
   // ─── Prospect markers (separate layer — small dots) ────────────
-  const prospectClustererRef = useRef<MarkerClusterer | null>(null);
   useEffect(() => {
     if (!mapRef.current || !isLoaded || !mapReady) return;
 
-    const disposeProspectClusterer = () => {
-      if (!prospectClustererRef.current) return;
-      prospectClustererRef.current.clearMarkers();
-      (prospectClustererRef.current as unknown as { setMap?: (map: google.maps.Map | null) => void }).setMap?.(null);
-      prospectClustererRef.current = null;
-    };
-
     prospectMarkersRef.current.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
     prospectMarkersRef.current = [];
-    disposeProspectClusterer();
 
     if (!showProspeccao || geocodedProspects.length === 0) return;
 
@@ -657,22 +611,12 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     });
 
     prospectMarkersRef.current = markers;
-
-    if (!isMobile && markers.length > 20) {
-      prospectClustererRef.current = new MarkerClusterer({
-        map,
-        markers,
-        onClusterClick: (_, cluster, currentMap) => { currentMap.fitBounds(cluster.bounds!); },
-      });
-    } else {
-      markers.forEach(m => m.setMap(map));
-    }
+    markers.forEach(m => m.setMap(map));
 
     return () => {
       markers.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
-      disposeProspectClusterer();
     };
-  }, [isLoaded, mapReady, showProspeccao, geocodedProspects, isMobile]);
+  }, [isLoaded, mapReady, showProspeccao, geocodedProspects]);
 
   // ─── Actions ──────────────────────────────────────
   const centerOnClient = (c: ClienteGeo) => {
