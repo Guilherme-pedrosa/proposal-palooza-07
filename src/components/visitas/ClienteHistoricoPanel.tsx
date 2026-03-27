@@ -32,6 +32,7 @@ interface TimelineItem {
   resultado?: string;
   duracao?: number;
   satisfacao?: number;
+  vendedor?: string;
 }
 
 const resultadoLabels: Record<string, { label: string; icon: string }> = {
