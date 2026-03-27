@@ -113,7 +113,7 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
               id: `venda-${v.id}`,
               tipo: 'venda',
               data: v.data || v.created_at || '',
-              titulo: `Venda #${v.numero || v.id}`,
+              titulo: `Venda #${v.codigo || v.numero || v.id}`,
               valor: parseFloat(v.valor_total) || 0,
               produtos: allProds.length > 0 ? allProds : undefined,
               vendedor: v.nome_vendedor || v.nome_tecnico || undefined,
@@ -132,7 +132,7 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
               id: `orc-${o.id}`,
               tipo: 'orcamento',
               data: o.data || o.created_at || '',
-              titulo: `Orçamento #${o.numero || o.id}`,
+              titulo: `Orçamento #${o.codigo || o.numero || o.id}`,
               valor: parseFloat(o.valor_total) || 0,
               produtos: allProds.length > 0 ? allProds : undefined,
               vendedor: o.nome_vendedor || o.nome_tecnico || undefined,
@@ -338,7 +338,7 @@ export function HistoricoResumo({
               id: `vd-${v.id}`,
               tipo: 'venda',
               data: v.data || '',
-              titulo: `Venda #${v.numero || v.id}`,
+              titulo: `Venda #${v.codigo || v.numero || v.id}`,
               valor: parseFloat(v.valor_total) || 0,
             });
           });
