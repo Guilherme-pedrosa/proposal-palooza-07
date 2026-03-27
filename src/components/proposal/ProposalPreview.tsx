@@ -793,6 +793,87 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           </div>
         )}
 
+        {/* Leasing Fiscal Benefits Page */}
+        {proposal.templateId && ['rational', 'equipamentos'].includes(proposal.templateId) && totalValue > 0 && (
+          <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+            <div className="absolute top-8 right-12">
+              <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
+            </div>
+
+            <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Condições Comerciais</h2>
+            <p className="mb-8" style={{ color: '#4b5563' }}>Simulação de pagamento e benefícios fiscais para locação de equipamentos.</p>
+
+            {/* Payment simulation */}
+            <div className="rounded-lg p-8 mb-6" style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}>
+              <h3 className="text-xl font-bold mb-4" style={{ color: '#15803d' }}>💰 Investimento Total</h3>
+              <p className="text-4xl font-bold mb-2" style={{ color: '#15803d' }}>{formatCurrency(totalValue)}</p>
+              <p className="text-sm mb-6" style={{ color: '#6b7280' }}>Valor à vista ou parcelado conforme condições acordadas</p>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="rounded-lg p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }}>
+                  <p className="text-xs font-medium mb-1" style={{ color: '#6b7280' }}>À Vista (PIX)</p>
+                  <p className="text-xl font-bold" style={{ color: '#111827' }}>{formatCurrency(totalValue)}</p>
+                </div>
+                <div className="rounded-lg p-4 text-center" style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }}>
+                  <p className="text-xs font-medium mb-1" style={{ color: '#6b7280' }}>12x (Boleto)</p>
+                  <p className="text-xl font-bold" style={{ color: '#111827' }}>{formatCurrency(totalValue / 12)}/mês</p>
+                </div>
+                <div className="rounded-lg p-4 text-center" style={{ backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0' }}>
+                  <p className="text-xs font-medium mb-1" style={{ color: '#15803d' }}>Leasing 36x</p>
+                  <p className="text-xl font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue / 36)}/mês</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Fiscal Benefits */}
+            <div className="rounded-lg p-8" style={{ backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0' }}>
+              <h3 className="text-xl font-bold mb-4" style={{ color: '#15803d' }}>🏦 Benefícios Fiscais — Leasing (Lucro Real)</h3>
+              <p className="text-sm mb-4" style={{ color: '#374151' }}>
+                Empresas no regime de Lucro Real podem deduzir despesas de locação como custos operacionais, gerando economia de até 43,25%.
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="rounded p-3" style={{ backgroundColor: '#ffffff', border: '1px solid #d1fae5' }}>
+                  <p className="text-xs" style={{ color: '#6b7280' }}>Dedução IRPJ (25%)</p>
+                  <p className="text-lg font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue * 0.25)}</p>
+                </div>
+                <div className="rounded p-3" style={{ backgroundColor: '#ffffff', border: '1px solid #d1fae5' }}>
+                  <p className="text-xs" style={{ color: '#6b7280' }}>Dedução CSLL (9%)</p>
+                  <p className="text-lg font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue * 0.09)}</p>
+                </div>
+                <div className="rounded p-3" style={{ backgroundColor: '#ffffff', border: '1px solid #d1fae5' }}>
+                  <p className="text-xs" style={{ color: '#6b7280' }}>Crédito PIS (1,65%)</p>
+                  <p className="text-lg font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue * 0.0165)}</p>
+                </div>
+                <div className="rounded p-3" style={{ backgroundColor: '#ffffff', border: '1px solid #d1fae5' }}>
+                  <p className="text-xs" style={{ color: '#6b7280' }}>Crédito COFINS (7,6%)</p>
+                  <p className="text-lg font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue * 0.076)}</p>
+                </div>
+              </div>
+
+              <div className="rounded-lg p-4" style={{ backgroundColor: '#15803d' }}>
+                <div className="flex justify-between items-center text-white">
+                  <span className="font-medium">Economia potencial total (até 43,25%)</span>
+                  <span className="text-2xl font-bold">{formatCurrency(totalValue * 0.4325)}</span>
+                </div>
+              </div>
+
+              <p className="text-xs mt-4" style={{ color: '#6b7280' }}>
+                ⚖️ Base: Art. 249/250 do RIR — Decreto 3000/1999 · Art. 3º, IV Lei 10.833/2003 · Art. 15, IV Lei 10.865/2002
+              </p>
+              <p className="text-xs italic mt-1" style={{ color: '#9ca3af' }}>
+                * Valores estimados. Consulte seu contador para confirmar os benefícios aplicáveis.
+              </p>
+            </div>
+
+            <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
+              {proposal.number} de {formatDate(proposal.createdAt as Date)}
+            </div>
+            <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+            <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+          </div>
+        )}
+
         {/* Signature Page */}
         <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakInside: 'avoid' }}>
           {/* Logo no topo */}

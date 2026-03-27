@@ -208,6 +208,11 @@ export default function PropostaEditor() {
       setImagens(proposta.imagens ?? []);
       setValidadeDias(String(proposta.validade_dias ?? 10));
       setObservacoesInternas(proposta.observacoes_internas ?? '');
+      setFormaPagamento(proposta.forma_pagamento ?? '');
+      setNumParcelas(proposta.num_parcelas ?? 1);
+      setEntradaPercent(proposta.entrada_percent ?? 0);
+      setCondicoesPagamento(proposta.condicoes_pagamento ?? '');
+      setPrazoEntrega(proposta.prazo_entrega ?? '');
       setStatus(proposta.status ?? 'rascunho');
       setVersao(proposta.versao);
       setLinkUuid(proposta.link_publico_uuid ?? '');
@@ -357,6 +362,11 @@ export default function PropostaEditor() {
         validade_dias: parseInt(validadeDias) || 10,
         validade_ate: validadeAte.toISOString(),
         observacoes_internas: observacoesInternas || null,
+        forma_pagamento: formaPagamento || null,
+        num_parcelas: numParcelas,
+        entrada_percent: entradaPercent,
+        condicoes_pagamento: condicoesPagamento || null,
+        prazo_entrega: prazoEntrega || null,
       };
 
       if (isNew) {
