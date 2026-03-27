@@ -100,15 +100,19 @@ export default function ClientDetail() {
     toast.success('Proposta excluída com sucesso!');
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (!selectedProposal) {
       toast.error('Erro ao gerar PDF. Tente novamente.');
       return;
     }
 
     setIsExporting(true);
-    openPrintWindow(selectedProposal, company);
-    toast.success('Janela de impressão aberta! Use "Salvar como PDF" para exportar.');
+    const opened = await openPrintWindow(selectedProposal, company);
+    if (opened) {
+      toast.success('Janela de impressão aberta! Use "Salvar como PDF" para exportar.');
+    } else {
+      toast.error('O navegador bloqueou a janela de impressão. Permita pop-ups e tente novamente.');
+    }
     setTimeout(() => setIsExporting(false), 1000);
   };
 
