@@ -1091,7 +1091,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
               {/* Heatmap */}
               {!noGeocodedClientes && showHeatmap && heatmapData.length > 0 && (
-                <HeatmapLayerF data={heatmapData} options={{ radius: 40, opacity: 0.6, gradient: ['rgba(0,0,255,0)', 'rgba(0,128,255,0.6)', 'rgba(0,255,0,0.7)', 'rgba(255,255,0,0.8)', 'rgba(255,0,0,0.9)'] }} />
+                <HeatmapLayerF data={heatmapData} options={{ radius: 30, opacity: 0.35, gradient: ['rgba(0,0,255,0)', 'rgba(0,128,255,0.4)', 'rgba(0,255,0,0.5)', 'rgba(255,255,0,0.6)', 'rgba(255,0,0,0.7)'] }} />
               )}
 
               {/* Client InfoWindow */}
