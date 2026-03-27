@@ -8,9 +8,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface MainLayoutProps {
   children?: ReactNode;
+  fullscreen?: boolean;
 }
 
-export function MainLayout({ children }: MainLayoutProps) {
+export function MainLayout({ children, fullscreen }: MainLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useIsMobile();
@@ -56,8 +57,17 @@ export function MainLayout({ children }: MainLayoutProps) {
         />
 
         {/* Content area - add bottom padding on mobile for BottomNav */}
-        <main className="flex-1 p-4 md:p-8 overflow-x-hidden page-enter pb-20 md:pb-8">
-          <div className="mx-auto max-w-7xl space-y-4">
+        <main className={cn(
+          "flex-1 page-enter",
+          fullscreen
+            ? "p-0 overflow-hidden"
+            : "p-4 md:p-8 overflow-x-hidden pb-20 md:pb-8"
+        )}>
+          <div className={cn(
+            fullscreen
+              ? "h-full flex flex-col"
+              : "mx-auto max-w-7xl space-y-4"
+          )}>
             {children || <Outlet />}
           </div>
         </main>
