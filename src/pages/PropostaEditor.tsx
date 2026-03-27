@@ -441,11 +441,22 @@ export default function PropostaEditor() {
     }
   };
 
+  const getPublicProposalBaseUrl = () => {
+    const envBaseUrl = import.meta.env.VITE_PUBLIC_APP_URL as string | undefined;
+    if (envBaseUrl) return envBaseUrl.replace(/\/$/, '');
+
+    if (window.location.hostname.includes('--id-preview--')) {
+      return 'https://proposal-palooza-07.lovable.app';
+    }
+
+    return window.location.origin;
+  };
+
   const handleSendLink = async () => {
     await handleSave('enviada');
     const uuid = proposta?.link_publico_uuid || linkUuid;
     if (uuid) {
-      const url = `${window.location.origin}/p/${uuid}`;
+      const url = `${getPublicProposalBaseUrl()}/p/${uuid}`;
       setShareUrl(url);
       setShareOpen(true);
     }
