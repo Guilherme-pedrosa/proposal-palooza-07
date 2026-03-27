@@ -111,6 +111,7 @@ function AppRoutes() {
       <Route path="/sync" element={<ProtectedRoute><SyncGC /></ProtectedRoute>} />
       <Route path="/termos" element={<ProtectedRoute><TermsConditions /></ProtectedRoute>} />
       <Route path="/configuracoes" element={<ProtectedRoute><CompanySettings /></ProtectedRoute>} />
+      <Route path="/usuarios" element={<ProtectedRoute><Usuarios /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
