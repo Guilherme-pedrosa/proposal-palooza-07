@@ -234,6 +234,13 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const [historicoClienteId, setHistoricoClienteId] = useState<{ id: string; nome: string; gcId?: string } | null>(null);
   const [legendOpen, setLegendOpen] = useState(false);
 
+  const setAllLayers = (enabled: boolean) => {
+    setShowClientes(enabled);
+    setShowOportunidades(enabled);
+    setShowHeatmap(enabled);
+    setShowProspeccao(enabled);
+  };
+
   // Visita em andamento
   const { data: visitaEmAndamento, refetch: refetchVisita } = useQuery({
     queryKey: ['visita_em_andamento', user?.id],
@@ -779,23 +786,90 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           <Layers className="h-3.5 w-3.5" /> Camadas
         </div>
+        <div className="flex items-center gap-2">
+          <Button type="button" variant="outline" size="sm" className="h-7 text-[11px]" onClick={() => setAllLayers(true)}>
+            Ativar tudo
+          </Button>
+          <Button type="button" variant="ghost" size="sm" className="h-7 text-[11px]" onClick={() => setAllLayers(false)}>
+            Limpar
+          </Button>
+        </div>
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm flex items-center gap-2"><Users className="h-3.5 w-3.5" /> Clientes</Label>
-            <Switch checked={showClientes} onCheckedChange={setShowClientes} />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label className="text-sm flex items-center gap-2"><TrendingUp className="h-3.5 w-3.5" /> Oportunidades</Label>
-            <Switch checked={showOportunidades} onCheckedChange={setShowOportunidades} />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label className="text-sm flex items-center gap-2">🔥 Heatmap</Label>
-            <Switch checked={showHeatmap} onCheckedChange={setShowHeatmap} />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label className="text-sm flex items-center gap-2">🔍 Prospecção</Label>
-            <Switch checked={showProspeccao} onCheckedChange={setShowProspeccao} />
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowClientes((prev) => !prev)}
+            className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-2 text-left hover:bg-accent/50 transition-colors"
+          >
+            <Label className="text-sm flex items-center gap-2 cursor-pointer"><Users className="h-3.5 w-3.5" /> Clientes</Label>
+            <div className="flex items-center gap-2">
+              <Badge variant={showClientes ? 'default' : 'secondary'} className="text-[10px] min-w-10 justify-center">
+                {showClientes ? 'ON' : 'OFF'}
+              </Badge>
+              <Switch
+                checked={showClientes}
+                onCheckedChange={setShowClientes}
+                className="border border-border data-[state=unchecked]:bg-muted"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowOportunidades((prev) => !prev)}
+            className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-2 text-left hover:bg-accent/50 transition-colors"
+          >
+            <Label className="text-sm flex items-center gap-2 cursor-pointer"><TrendingUp className="h-3.5 w-3.5" /> Oportunidades</Label>
+            <div className="flex items-center gap-2">
+              <Badge variant={showOportunidades ? 'default' : 'secondary'} className="text-[10px] min-w-10 justify-center">
+                {showOportunidades ? 'ON' : 'OFF'}
+              </Badge>
+              <Switch
+                checked={showOportunidades}
+                onCheckedChange={setShowOportunidades}
+                className="border border-border data-[state=unchecked]:bg-muted"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowHeatmap((prev) => !prev)}
+            className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-2 text-left hover:bg-accent/50 transition-colors"
+          >
+            <Label className="text-sm flex items-center gap-2 cursor-pointer">🔥 Heatmap</Label>
+            <div className="flex items-center gap-2">
+              <Badge variant={showHeatmap ? 'default' : 'secondary'} className="text-[10px] min-w-10 justify-center">
+                {showHeatmap ? 'ON' : 'OFF'}
+              </Badge>
+              <Switch
+                checked={showHeatmap}
+                onCheckedChange={setShowHeatmap}
+                className="border border-border data-[state=unchecked]:bg-muted"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowProspeccao((prev) => !prev)}
+            className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-2 text-left hover:bg-accent/50 transition-colors"
+          >
+            <Label className="text-sm flex items-center gap-2 cursor-pointer">🔍 Prospecção</Label>
+            <div className="flex items-center gap-2">
+              <Badge variant={showProspeccao ? 'default' : 'secondary'} className="text-[10px] min-w-10 justify-center">
+                {showProspeccao ? 'ON' : 'OFF'}
+              </Badge>
+              <Switch
+                checked={showProspeccao}
+                onCheckedChange={setShowProspeccao}
+                className="border border-border data-[state=unchecked]:bg-muted"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          </button>
         </div>
       </div>
 
