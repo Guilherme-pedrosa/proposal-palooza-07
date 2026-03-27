@@ -131,7 +131,7 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
               data: o.data || o.created_at || '',
               titulo: `Orçamento #${o.numero || o.id}`,
               valor: parseFloat(o.valor_total) || 0,
-              produtos: prods.length > 0 ? prods : undefined,
+              produtos: allProds.length > 0 ? allProds : undefined,
             });
           });
         } catch { /* ignore */ }
