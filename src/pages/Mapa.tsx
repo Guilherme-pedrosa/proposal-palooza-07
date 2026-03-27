@@ -19,6 +19,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { formatBRL } from '@/lib/api/propostas';
+import { iniciarCheckin, fetchVisitaEmAndamento, type VisitaComCliente } from '@/lib/api/visitas';
+import { LogIn, LogOut } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { toast as sonnerToast } from 'sonner';
 import {
