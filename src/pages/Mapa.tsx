@@ -799,7 +799,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-2 text-left hover:bg-accent/50 transition-colors"
             aria-pressed={showClientes}
           >
-            <Label className="text-sm flex items-center gap-2 cursor-pointer"><Users className="h-3.5 w-3.5" /> Clientes</Label>
+            <span className="text-sm flex items-center gap-2"><Users className="h-3.5 w-3.5" /> Clientes</span>
             <div className="flex items-center gap-2">
               <Badge variant={showClientes ? 'default' : 'secondary'} className="text-[10px] min-w-10 justify-center">
                 {showClientes ? 'ON' : 'OFF'}
