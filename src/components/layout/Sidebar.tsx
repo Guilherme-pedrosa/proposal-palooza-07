@@ -17,6 +17,7 @@ import {
   ChevronDown,
   X,
   LogOut,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCompany } from '@/contexts/CompanyContext';
