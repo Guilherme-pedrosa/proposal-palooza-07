@@ -93,7 +93,7 @@ export default function VisitaAtiva() {
         if (uploadError) throw uploadError;
 
         const { data: urlData } = supabase.storage
-          .from('proposals')
+          .from('visitas')
           .getPublicUrl(fileName);
 
         urls.push(urlData.publicUrl);
