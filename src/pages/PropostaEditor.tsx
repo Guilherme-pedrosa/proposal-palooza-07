@@ -118,6 +118,10 @@ export default function PropostaEditor() {
   const [condicoesPagamento, setCondicoesPagamento] = useState('');
   const [prazoEntrega, setPrazoEntrega] = useState('');
   const [observacoesInternas, setObservacoesInternas] = useState('');
+  const [formaPagamento, setFormaPagamento] = useState('');
+  const [numParcelas, setNumParcelas] = useState(1);
+  const [entradaPercent, setEntradaPercent] = useState(0);
+  const [leasingDialogOpen, setLeasingDialogOpen] = useState(false);
   const [status, setStatus] = useState<string>('rascunho');
   const [versao, setVersao] = useState(1);
   const [linkUuid, setLinkUuid] = useState('');
