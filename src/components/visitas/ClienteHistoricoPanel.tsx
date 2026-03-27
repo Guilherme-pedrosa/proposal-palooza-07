@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +24,7 @@ interface ClienteHistoricoPanelProps {
 
 interface TimelineItem {
   id: string;
+  rawId?: string; // original DB id for navigation
   tipo: 'visita' | 'venda' | 'orcamento' | 'os';
   data: string;
   titulo: string;
@@ -53,6 +55,7 @@ const tipoConfig: Record<string, { label: string; icon: React.ReactNode; color: 
 };
 
 export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNome, gcId }: ClienteHistoricoPanelProps) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [timeline, setTimeline] = useState<TimelineItem[]>([]);
   const [vendedorCliente, setVendedorCliente] = useState<string | null>(null);
@@ -73,6 +76,7 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
           .forEach(v => {
             items.push({
               id: `visita-${v.id}`,
+              rawId: v.id,
               tipo: 'visita',
               data: v.checkout_at || v.checkin_at || v.created_at,
               titulo: `Visita — ${resultadoLabels[v.resultado || '']?.label || v.resultado || 'Concluída'}`,
@@ -225,7 +229,10 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
                           'bg-purple-500'
                         }`} />
 
-                        <div className="bg-card border rounded-lg p-3 space-y-1.5">
+                        <div
+                          className={`bg-card border rounded-lg p-3 space-y-1.5 ${item.tipo === 'visita' && item.rawId ? 'cursor-pointer hover:border-primary/50 hover:shadow-sm transition-all' : ''}`}
+                          onClick={() => { if (item.tipo === 'visita' && item.rawId) { onOpenChange(false); navigate(`/visita/${item.rawId}`); } }}
+                        >
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex items-center gap-1.5">
                               <Badge variant="outline" className={`text-[10px] px-1.5 py-0 gap-1 ${cfg.color}`}>
