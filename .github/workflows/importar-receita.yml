@@ -1,47 +1,97 @@
 # ══════════════════════════════════════════════════════════
 # GITHUB ACTIONS — IMPORTAR BASE RECEITA FEDERAL
-# WeDo CRM — Roda dia 1 e 15 de cada mês às 23h (BRT = 02:00 UTC)
+# WeDo CRM — 10 jobs paralelos + enriquecimento
+# Roda dia 1 de cada mês às 02:00 UTC (23:00 BRT)
 # ══════════════════════════════════════════════════════════
-#
-# Arquivo: .github/workflows/importar-receita.yml
-# Colocar na raiz do repositório proposal-palooza-07
 
 name: Importar Base Receita Federal
 
 on:
-  # Cron: dia 1 e 15, às 02:00 UTC (23:00 BRT)
   schedule:
-    - cron: '0 2 1 * *'   # Dia 1 de cada mês
-    - cron: '0 2 15 * *'  # Dia 15 de cada mês
-  
-  # Permite rodar manualmente pelo GitHub (Actions → Run workflow)
-  workflow_dispatch:
+    - cron: '0 2 1 * *'  # Dia 1 de cada mês, 23h BRT
+  workflow_dispatch:      # Rodar manualmente
 
 jobs:
-  importar:
+  # ─── Descobrir URL base dos arquivos ───
+  descobrir-url:
     runs-on: ubuntu-latest
-    timeout-minutes: 360  # 6 horas de timeout (a base é grande)
-    
+    timeout-minutes: 5
+    outputs:
+      url_base: ${{ steps.find.outputs.url_base }}
     steps:
-      - name: Checkout repositório
-        uses: actions/checkout@v4
-      
-      - name: Configurar Python 3.11
-        uses: actions/setup-python@v5
+      - name: Descobrir URL mais recente
+        id: find
+        run: |
+          MIRROR="https://dados-abertos-rf-cnpj.casadosdados.com.br/arquivos"
+          for DELTA in 0 1 2 3; do
+            MES=$(date -d "today - ${DELTA} months" +%Y-%m 2>/dev/null || date -v-${DELTA}m +%Y-%m)
+            ANO_MES=$MES
+            for DIA in 16 15 14 13 12 11 20 19 18 17 23 24 25 10 27; do
+              URL="${MIRROR}/${ANO_MES}-${DIA}"
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" --head "${URL}/Estabelecimentos0.zip" \
+                -H "User-Agent: WeDo-CRM/1.0" --max-time 10 || echo "000")
+              if [ "$STATUS" = "200" ]; then
+                echo "url_base=${URL}" >> $GITHUB_OUTPUT
+                echo "Encontrado: ${URL}"
+                exit 0
+              fi
+            done
+          done
+          echo "ERRO: nenhuma URL encontrada"
+          exit 1
+
+  # ─── 10 jobs paralelos para Estabelecimentos ───
+  estabelecimentos:
+    needs: descobrir-url
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      matrix:
+        indice: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+      fail-fast: false
+      max-parallel: 5  # 5 de cada vez para não sobrecarregar
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
-      - name: Instalar dependências
-        run: pip install requests
-      
-      - name: Executar importação
+      - run: pip install requests
+      - name: Processar Estabelecimentos${{ matrix.indice }}
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-        run: python scripts/importar_receita.py
-      
-      - name: Notificar conclusão (opcional)
-        if: always()
+        run: python scripts/importar_estabelecimentos.py ${{ matrix.indice }} "${{ needs.descobrir-url.outputs.url_base }}"
+
+  # ─── Enriquecer com Empresas + Simples + Municípios ───
+  enriquecer:
+    needs: [descobrir-url, estabelecimentos]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests
+      - name: Enriquecer prospects
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python scripts/enriquecer_prospects.py "${{ needs.descobrir-url.outputs.url_base }}"
+
+  # ─── Notificação final ───
+  notificar:
+    needs: [estabelecimentos, enriquecer]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Resumo
         run: |
-          echo "Status: ${{ job.status }}"
-          echo "Concluído em: $(date)"
+          echo "══════════════════════════════════════"
+          echo "IMPORTAÇÃO RECEITA FEDERAL — RESUMO"
+          echo "══════════════════════════════════════"
+          echo "Estabelecimentos: ${{ needs.estabelecimentos.result }}"
+          echo "Enriquecimento:   ${{ needs.enriquecer.result }}"
+          echo "Concluído em:     $(date)"
+          echo "══════════════════════════════════════"
