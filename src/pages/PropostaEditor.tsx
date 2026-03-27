@@ -208,6 +208,11 @@ export default function PropostaEditor() {
       setImagens(proposta.imagens ?? []);
       setValidadeDias(String(proposta.validade_dias ?? 10));
       setObservacoesInternas(proposta.observacoes_internas ?? '');
+      setFormaPagamento(proposta.forma_pagamento ?? '');
+      setNumParcelas(proposta.num_parcelas ?? 1);
+      setEntradaPercent(proposta.entrada_percent ?? 0);
+      setCondicoesPagamento(proposta.condicoes_pagamento ?? '');
+      setPrazoEntrega(proposta.prazo_entrega ?? '');
       setStatus(proposta.status ?? 'rascunho');
       setVersao(proposta.versao);
       setLinkUuid(proposta.link_publico_uuid ?? '');
