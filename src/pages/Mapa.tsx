@@ -754,7 +754,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
   // ─── Sidebar ──────────────────────────────────────
   const sidebarContent = (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">{/* no h-full — parent ScrollArea handles overflow */}
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-2 mb-3">
@@ -1058,7 +1058,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       </div>
 
       {/* Client list */}
-      <ScrollArea className="flex-1">
+      <div>
         <div className="p-2 space-y-1">
           {filteredClientes.slice(0, 50).map(c => {
             const statusColor = getClientStatusColor(c.ultima_compra_gc);
@@ -1081,7 +1081,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
           })}
           {filteredClientes.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">Nenhum cliente nesta área</p>}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 
