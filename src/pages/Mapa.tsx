@@ -1064,7 +1064,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         </div>
 
         {/* My Location FAB */}
-        <div className="absolute bottom-36 md:bottom-6 right-3 z-20">
+        <div className="absolute bottom-20 md:bottom-6 right-3 z-30">
           <Button
             size="icon"
             variant="secondary"
