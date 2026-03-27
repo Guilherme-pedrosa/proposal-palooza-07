@@ -472,6 +472,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   // ─── Map lifecycle ────────────────────────────────
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
+    setMapReady(true);
     if (clientes.length > 0) {
       const bounds = new google.maps.LatLngBounds();
       clientes.forEach(c => bounds.extend({ lat: c.latitude, lng: c.longitude }));
