@@ -597,6 +597,33 @@ export default function PropostaEditor() {
           </div>
         </Section>
 
+        {/* Section 7b: Anexos */}
+        <Section title={`Anexos (${anexos.length})`} icon="📎" defaultOpen={false}>
+          <div className="space-y-3">
+            <input type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" onChange={handleAnexoUpload} className="hidden" id="anexo-upload" />
+            <Button size="sm" variant="outline" className="gap-1" onClick={() => document.getElementById('anexo-upload')?.click()}>
+              <FileText className="h-3 w-3" /> Adicionar Anexo
+            </Button>
+            <p className="text-xs text-muted-foreground">PDF, Word, Excel, PowerPoint, TXT, CSV</p>
+            {anexos.length > 0 && (
+              <div className="space-y-2">
+                {anexos.map((anexo: any, i: number) => (
+                  <div key={anexo.id} className="flex items-center gap-2 border rounded-md p-2">
+                    <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{anexo.name}</p>
+                      <p className="text-xs text-muted-foreground">{(anexo.size / 1024).toFixed(0)} KB</p>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive shrink-0" onClick={() => setAnexos((prev) => prev.filter((_, j) => j !== i))}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Section>
+
 
         {/* Section 5: Products */}
         <Section title={`Produtos e Serviços — ${formatBRL(total)}`} icon="📦">
