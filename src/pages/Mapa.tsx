@@ -853,7 +853,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-2 text-left hover:bg-accent/50 transition-colors"
             aria-pressed={showProspeccao}
           >
-            <Label className="text-sm flex items-center gap-2 cursor-pointer">🔍 Prospecção</Label>
+            <span className="text-sm flex items-center gap-2">🔍 Prospecção</span>
             <div className="flex items-center gap-2">
               <Badge variant={showProspeccao ? 'default' : 'secondary'} className="text-[10px] min-w-10 justify-center">
                 {showProspeccao ? 'ON' : 'OFF'}
