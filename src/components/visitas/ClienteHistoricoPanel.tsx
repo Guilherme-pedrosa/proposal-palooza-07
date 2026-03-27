@@ -165,8 +165,13 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
       // Sort by date descending
       items.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
 
+      // Determine vendedor do cliente: from the most recent venda or OS
+      const lastTransaction = items.find(i => i.tipo === 'venda' || i.tipo === 'os');
+      const vendNome = lastTransaction?.vendedor || null;
+
       if (!cancelled) {
         setTimeline(items);
+        setVendedorCliente(vendNome);
         setLoading(false);
       }
     }
