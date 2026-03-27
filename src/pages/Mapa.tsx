@@ -26,7 +26,7 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const LIBRARIES: ('visualization' | 'places')[] = ['visualization', 'places'];
-const MAP_CENTER = { lat: -15.78, lng: -47.93 };
+const MAP_CENTER = { lat: -15.78, lng: -47.93 }; // Brasília
 
 // Status colors for client markers
 function getClientStatusColor(ultimaCompra: string | null): string {
