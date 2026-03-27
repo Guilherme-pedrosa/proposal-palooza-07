@@ -582,15 +582,41 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   };
 
   const [syncingCompras, setSyncingCompras] = useState(false);
+  const [syncComprasProgress, setSyncComprasProgress] = useState('');
   const handleSyncCompras = async () => {
     setSyncingCompras(true);
+    let offset = 0;
+    const batchSize = 50;
+    let totalAtualizados = 0;
+    let totalErros = 0;
+    let totalSemCompra = 0;
+    let totalClientes = 0;
+
     try {
-      const { data, error } = await supabase.functions.invoke('gc-sync-ultima-compra');
-      if (error) throw error;
-      toast({ title: '✅ Sync de compras concluída', description: `${data.atualizados} atualizados, ${data.sem_compra} sem compra, ${data.erros} erros` });
+      while (true) {
+        setSyncComprasProgress(`Processando ${offset}/${totalClientes || '?'}...`);
+        const { data, error } = await supabase.functions.invoke('gc-sync-ultima-compra', {
+          body: { limit: batchSize, offset }
+        });
+        if (error) throw error;
+
+        totalClientes = data.total_clientes || 0;
+        totalAtualizados += data.atualizados || 0;
+        totalErros += data.erros || 0;
+        totalSemCompra += data.sem_compra || 0;
+
+        if (!data.tem_mais) break;
+        offset = data.proximo_offset;
+      }
+
+      toast({ title: '✅ Sync de compras concluída', description: `${totalAtualizados} atualizados, ${totalSemCompra} sem compra, ${totalErros} erros` });
       queryClient.invalidateQueries({ queryKey: ['clientes_geo'] });
-    } catch (e: any) { toast({ title: 'Erro na sync de compras', description: e.message, variant: 'destructive' }); }
-    finally { setSyncingCompras(false); }
+    } catch (e: any) {
+      toast({ title: 'Erro na sync de compras', description: e.message, variant: 'destructive' });
+    } finally {
+      setSyncingCompras(false);
+      setSyncComprasProgress('');
+    }
   };
 
   const openWhatsApp = (phone: string) => {
