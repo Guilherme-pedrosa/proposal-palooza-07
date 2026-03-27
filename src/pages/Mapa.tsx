@@ -45,6 +45,14 @@ const REGIME_OPTIONS = ['Simples Nacional', 'MEI', 'Lucro Presumido/Real'];
 const PORTE_OPTIONS = ['Micro Empresa', 'Empresa de Pequeno Porte', 'Demais'];
 
 // ─── Helpers ───────────────────────────────────────────────────
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 function getClientStatusColor(ultimaCompra: string | null): string {
   if (!ultimaCompra) return '#6B7280';
   const days = differenceInDays(new Date(), new Date(ultimaCompra));
@@ -375,8 +383,16 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       list = list.filter(c => c.nome.toLowerCase().includes(q) || c.cnpj?.includes(q) || c.cidade?.toLowerCase().includes(q));
     }
     if (viewportBounds) list = list.filter(c => viewportBounds.contains({ lat: c.latitude, lng: c.longitude }));
+    // Sort by distance from user if location available
+    if (userLocation) {
+      list = [...list].sort((a, b) => {
+        const dA = haversineKm(userLocation.lat, userLocation.lng, a.latitude, a.longitude);
+        const dB = haversineKm(userLocation.lat, userLocation.lng, b.latitude, b.longitude);
+        return dA - dB;
+      });
+    }
     return list;
-  }, [clientes, segmentoFilter, cidadeFilter, statusFilter, busca, viewportBounds]);
+  }, [clientes, segmentoFilter, cidadeFilter, statusFilter, busca, viewportBounds, userLocation]);
 
   const filteredOps = useMemo(() => oportunidades.filter(op => { const c = op.cliente as any; return c?.latitude && c?.longitude; }), [oportunidades]);
 
@@ -871,12 +887,16 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         <div className="p-2 space-y-1">
           {filteredClientes.slice(0, 50).map(c => {
             const statusColor = getClientStatusColor(c.ultima_compra_gc);
+            const distKm = userLocation ? haversineKm(userLocation.lat, userLocation.lng, c.latitude, c.longitude) : null;
             return (
               <button key={c.id} onClick={() => centerOnClient(c)} className="w-full text-left p-3 rounded-lg hover:bg-accent/50 transition-colors border border-transparent hover:border-border">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">{c.nome}</p>
-                    <p className="text-xs text-muted-foreground truncate">{c.segmento && `${c.segmento} · `}{c.cidade}/{c.estado}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {distKm !== null && <span className="text-primary font-medium">{distKm < 1 ? `${Math.round(distKm * 1000)}m` : `${distKm.toFixed(1)}km`} · </span>}
+                      {c.segmento && `${c.segmento} · `}{c.cidade}/{c.estado}
+                    </p>
                   </div>
                   <div className="w-2.5 h-2.5 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: statusColor }} />
                 </div>
