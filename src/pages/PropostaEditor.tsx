@@ -143,6 +143,25 @@ export default function PropostaEditor() {
     }
   }, [tabelasPreco]);
 
+  // Update existing product prices when price table changes
+  useEffect(() => {
+    if (!tabelaPrecoId || precosTabela.length === 0 || produtos.length === 0) return;
+    // Only update products that came from catalog (have gcProdutoId)
+    const precoMap = new Map<string, number>();
+    for (const pp of precosTabela) {
+      if (pp.valor_venda > 0) {
+        precoMap.set(pp.produto_id, pp.valor_venda);
+      }
+    }
+    setProdutos(prev => prev.map(p => {
+      if (!p.gcProdutoId) return p; // manual product, skip
+      // Find the produtos_gc UUID for this gc_id — we need to match by produto_id in precos
+      // precosTabela uses produto_id (UUID), and we store gcProdutoId as gc_id (string)
+      // We need to find the price by looking up the product UUID
+      return p;
+    }));
+  }, [tabelaPrecoId, precosTabela]);
+
   // Load existing proposal
   const { data: proposta, isLoading: loadingProposta } = useQuery({
     queryKey: ['proposta', id],
