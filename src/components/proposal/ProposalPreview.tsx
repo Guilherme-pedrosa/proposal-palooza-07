@@ -42,93 +42,56 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
       >
         {/* Cover Page */}
         <div className="relative overflow-hidden pdf-page" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid', backgroundColor: '#0A1628' }}>
-          {/* Background image — right side */}
+          {/* Background image — bottom portion */}
           <div
             className="absolute bg-cover bg-center"
             style={{
-              top: 0, right: 0, bottom: 0, width: '55%',
+              left: 0, right: 0, bottom: 0, height: '45%',
               backgroundImage: `url(${industrialKitchenBg})`,
             }}
           />
-          {/* Gradient fade left over image */}
-          <div className="absolute" style={{ top: 0, right: 0, bottom: 0, width: '55%', background: 'linear-gradient(to right, #0A1628 0%, rgba(10,22,40,0.6) 40%, rgba(10,22,40,0.25) 100%)' }} />
-          {/* Subtle bottom fade */}
-          <div className="absolute" style={{ left: 0, right: 0, bottom: 0, height: '40%', background: 'linear-gradient(to top, #0A1628 0%, transparent 100%)' }} />
+          {/* Dark overlay over the image */}
+          <div className="absolute" style={{ left: 0, right: 0, bottom: 0, height: '45%', backgroundColor: 'rgba(10,22,40,0.75)' }} />
+          {/* Gradient fade from solid navy into image area */}
+          <div className="absolute" style={{ left: 0, right: 0, bottom: '30%', height: '20%', background: 'linear-gradient(to bottom, #0A1628 0%, transparent 100%)' }} />
 
           {/* Content */}
-          <div className="relative z-10 flex flex-col" style={{ height: '297mm', padding: '48px 48px 40px 48px' }}>
-            {/* Top: Logo */}
-            <div className="flex items-center gap-4 mb-auto">
-              <div className="bg-white rounded-xl p-3 shadow-lg" style={{ boxShadow: '0 8px 32px rgba(0,102,255,0.15)' }}>
-                <img src={companyLogo} alt={company.name} className="h-12 w-auto object-contain" />
-              </div>
-              <div>
-                <p className="text-lg font-bold tracking-wide" style={{ color: '#ffffff' }}>{company.name}</p>
-                <p className="text-xs font-medium uppercase tracking-[0.2em]" style={{ color: '#0066FF' }}>Soluções para Cozinhas Profissionais</p>
-              </div>
-            </div>
-
-            {/* Center: Title block */}
-            <div style={{ marginTop: 'auto', marginBottom: 'auto', maxWidth: '55%' }}>
-              {/* Blue accent line */}
-              <div style={{ width: '64px', height: '4px', backgroundColor: '#0066FF', borderRadius: '2px', marginBottom: '24px' }} />
-              <h1 className="font-extrabold tracking-tight" style={{ fontSize: '56px', lineHeight: 1.05, color: '#ffffff', marginBottom: '8px' }}>
+          <div className="relative z-10 flex flex-col" style={{ height: '297mm', padding: '80px 56px 48px 56px' }}>
+            {/* Title block */}
+            <div style={{ marginTop: '40px' }}>
+              <h1 style={{ fontFamily: "'Georgia', 'Times New Roman', serif", fontSize: '72px', lineHeight: 1.05, color: '#ffffff', fontWeight: 700, letterSpacing: '-0.5px', marginBottom: '4px' }}>
                 Proposta
               </h1>
-              <h1 className="font-extrabold tracking-tight" style={{ fontSize: '56px', lineHeight: 1.05, color: '#0066FF', marginBottom: '32px' }}>
+              <h1 style={{ fontFamily: "'Georgia', 'Times New Roman', serif", fontSize: '72px', lineHeight: 1.05, color: '#ffffff', fontWeight: 700, letterSpacing: '-0.5px', marginBottom: '24px' }}>
                 Comercial
               </h1>
 
-              {/* Client name highlight */}
-              <div className="rounded-lg" style={{ padding: '20px 24px', backgroundColor: 'rgba(0,102,255,0.08)', borderLeft: '3px solid #0066FF', marginBottom: '24px' }}>
-                <p className="text-xs font-semibold uppercase tracking-[0.15em]" style={{ color: '#6B8CC7', marginBottom: '6px' }}>Elaborada para</p>
-                <p className="text-xl font-bold" style={{ color: '#ffffff' }}>{proposal.client?.name || 'Cliente'}</p>
-                {proposal.client?.cnpj && (
-                  <p className="text-xs mt-1" style={{ color: '#8BA3C9' }}>CNPJ: {proposal.client.cnpj}</p>
-                )}
-              </div>
+              {/* Accent line */}
+              <div style={{ width: '80px', height: '3px', backgroundColor: '#C0392B', marginBottom: '32px' }} />
+
+              {/* Client name */}
+              <p className="text-base" style={{ color: '#ffffff', marginBottom: '16px' }}>
+                Elaborada para <strong style={{ fontWeight: 700 }}>{proposal.client?.name || '[NOME DO CLIENTE]'}</strong>
+              </p>
 
               {/* Meta info */}
-              <div className="flex gap-8">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#6B8CC7', marginBottom: '4px' }}>Data de emissão</p>
-                  <p className="text-sm font-semibold" style={{ color: '#ffffff' }}>{formatDate(proposal.createdAt as Date)}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#6B8CC7', marginBottom: '4px' }}>Válida até</p>
-                  <p className="text-sm font-semibold" style={{ color: '#ffffff' }}>{formatDate(proposal.validUntil as Date)}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em]" style={{ color: '#6B8CC7', marginBottom: '4px' }}>Nº da proposta</p>
-                  <p className="text-sm font-semibold" style={{ color: '#ffffff' }}>{proposal.number || 'P0000'}</p>
-                </div>
-              </div>
+              <p className="text-sm" style={{ color: '#ffffff' }}>
+                Data: {formatDate(proposal.createdAt as Date)}
+                <span style={{ margin: '0 12px', opacity: 0.5 }}>|</span>
+                Proposta nº <strong>{proposal.number || 'WDO-0000'}</strong>
+              </p>
             </div>
 
-            {/* Bottom: Contact bar */}
-            <div className="flex items-center justify-between mt-auto" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0066FF' }} />
-                  <span className="text-xs" style={{ color: '#8BA3C9' }}>Tel: {company.phone}</span>
-                </div>
-                {company.email && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0066FF' }} />
-                    <span className="text-xs" style={{ color: '#8BA3C9' }}>{company.email}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#0066FF' }} />
-                  <span className="text-xs" style={{ color: '#8BA3C9' }}>CNPJ: {company.cnpj}</span>
-                </div>
+            {/* Spacer */}
+            <div style={{ flex: 1 }} />
+
+            {/* Logo — bottom right */}
+            <div className="flex justify-end">
+              <div className="bg-white rounded-lg p-3 shadow-lg" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
+                <img src={companyLogo} alt={company.name} className="h-14 w-auto object-contain" />
               </div>
             </div>
           </div>
-
-          {/* Decorative accent — bottom-right blue triangle */}
-          <div className="absolute" style={{ bottom: 0, right: 0, width: '120px', height: '120px', backgroundColor: '#0066FF', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
-          <div className="absolute" style={{ bottom: 0, right: '60px', width: '80px', height: '80px', backgroundColor: '#004ACC', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.85 }} />
         </div>
 
         {/* Company Presentation Page - Sobre a Empresa */}
