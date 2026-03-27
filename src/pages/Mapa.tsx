@@ -425,8 +425,9 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         totalGeocoded += data.geocoded || 0;
         totalErrors += data.errors || 0;
 
-        // If no more clients were processed or total was 0, we're done
-        if (!data.total || data.total === 0 || data.geocoded === 0) {
+        // If no more clients to process, we're done
+        const processados = (data.geocoded || 0) + (data.errors || 0) + (data.skipped || 0);
+        if (!data.total || data.total === 0 || processados === 0) {
           break;
         }
 
