@@ -1059,10 +1059,10 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         </div>
 
         {/* Mobile FABs */}
-        <div className="lg:hidden absolute top-3 left-3 z-20 flex flex-col gap-2">
+        <div className="lg:hidden absolute top-20 left-3 z-40 flex flex-col gap-2 pointer-events-none">
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
-              <Button size="icon" variant="secondary" className="shadow-lg h-10 w-10">
+              <Button size="icon" variant="secondary" className="shadow-lg h-10 w-10 pointer-events-auto" aria-label="Abrir filtros do mapa">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
