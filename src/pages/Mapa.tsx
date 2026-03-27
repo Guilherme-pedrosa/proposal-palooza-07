@@ -762,8 +762,16 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         </div>
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar cliente, CNPJ, cidade..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-9 h-9 text-sm" />
+          <Input placeholder="Buscar cliente, CNPJ, cidade..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-9 pr-8 h-9 text-sm" />
+          {busca && (
+            <button onClick={() => setBusca('')} className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
+        {busca.length >= 2 && (
+          <p className="text-[10px] text-muted-foreground mt-1">{filteredClientes.length} resultado(s)</p>
+        )}
       </div>
 
       {/* Layers */}
