@@ -143,24 +143,46 @@ export default function PropostaEditor() {
     }
   }, [tabelasPreco]);
 
+  // Build a map of gc_id -> produto UUID for price lookups
+  const { data: produtosGcMap } = useQuery({
+    queryKey: ['produtos_gc_id_map'],
+    queryFn: async () => {
+      const { data } = await supabase.from('produtos_gc').select('id, gc_id');
+      const map = new Map<string, string>();
+      for (const p of data || []) {
+        map.set(p.gc_id, p.id);
+      }
+      return map;
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
   // Update existing product prices when price table changes
   useEffect(() => {
-    if (!tabelaPrecoId || precosTabela.length === 0 || produtos.length === 0) return;
-    // Only update products that came from catalog (have gcProdutoId)
+    if (!tabelaPrecoId || precosTabela.length === 0 || produtos.length === 0 || !produtosGcMap) return;
     const precoMap = new Map<string, number>();
     for (const pp of precosTabela) {
       if (pp.valor_venda > 0) {
         precoMap.set(pp.produto_id, pp.valor_venda);
       }
     }
-    setProdutos(prev => prev.map(p => {
-      if (!p.gcProdutoId) return p; // manual product, skip
-      // Find the produtos_gc UUID for this gc_id — we need to match by produto_id in precos
-      // precosTabela uses produto_id (UUID), and we store gcProdutoId as gc_id (string)
-      // We need to find the price by looking up the product UUID
-      return p;
-    }));
-  }, [tabelaPrecoId, precosTabela]);
+    setProdutos(prev => {
+      let changed = false;
+      const updated = prev.map(p => {
+        if (!p.gcProdutoId) return p;
+        const produtoUuid = produtosGcMap.get(p.gcProdutoId);
+        if (!produtoUuid) return p;
+        const novoPreco = precoMap.get(produtoUuid);
+        if (novoPreco !== undefined && novoPreco !== p.unitPrice) {
+          changed = true;
+          const sub = p.quantity * novoPreco;
+          return { ...p, unitPrice: novoPreco, totalPrice: sub - (sub * (p.discount || 0) / 100) };
+        }
+        return p;
+      });
+      return changed ? updated : prev;
+    });
+  }, [tabelaPrecoId, precosTabela, produtosGcMap]);
 
   // Load existing proposal
   const { data: proposta, isLoading: loadingProposta } = useQuery({
