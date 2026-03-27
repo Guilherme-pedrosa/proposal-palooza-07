@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+// Sheet removido — sidebar mobile agora é div fixa, sem conflito com Select Portal
 import { Checkbox } from '@/components/ui/checkbox';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -1042,29 +1042,50 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
   return (
     <MainLayout fullscreen>
-      {/* Mobile: calc height minus header(56px) + bottomNav(64px+pb). Desktop: full minus sidebar header */}
       <div className="flex h-full relative">
-        {/* Desktop sidebar */}
-        <div className="hidden lg:flex w-80 border-r border-border bg-card flex-col shrink-0">
+        {/* Desktop sidebar — visível a partir de lg (1024px) */}
+        <div className="hidden lg:flex w-80 border-r border-border bg-card flex-col shrink-0 min-h-0">
           <ScrollArea className="flex-1">{sidebarContent}</ScrollArea>
         </div>
 
-        {/* Mobile FABs */}
-        <div className="lg:hidden absolute top-20 left-3 z-40 flex flex-col gap-2 pointer-events-none">
-          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-            <SheetTrigger asChild>
-              <Button size="icon" variant="secondary" className="shadow-lg h-10 w-10 pointer-events-auto" aria-label="Abrir filtros do mapa">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[85vw] max-w-80 p-0">
-              <ScrollArea className="h-full">{sidebarContent}</ScrollArea>
-            </SheetContent>
-          </Sheet>
-        </div>
+        {/* Mobile/Tablet sidebar — fixo à esquerda, sem Sheet/Dialog */}
+        {sidebarOpen && (
+          <>
+            <div
+              className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+              onClick={() => setSidebarOpen(false)}
+            />
+            <div className="lg:hidden fixed inset-y-0 left-0 z-50 w-[85vw] max-w-80 bg-background border-r shadow-lg flex flex-col">
+              <div className="flex items-center justify-end p-2 border-b border-border">
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="p-1.5 rounded-md hover:bg-accent"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <ScrollArea className="flex-1">{sidebarContent}</ScrollArea>
+            </div>
+          </>
+        )}
+
+        {/* FAB para abrir sidebar (mobile/tablet) */}
+        {!sidebarOpen && (
+          <div className="lg:hidden absolute top-20 left-3 z-40">
+            <Button
+              size="icon"
+              variant="secondary"
+              className="shadow-lg h-10 w-10"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Abrir filtros do mapa"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
 
         {/* My Location FAB */}
-        <div className="absolute bottom-20 right-3 z-30 md:fixed md:bottom-6 md:right-4 md:z-50">
+        <div className="absolute bottom-36 md:bottom-6 right-3 z-20">
           <Button
             size="icon"
             variant="secondary"

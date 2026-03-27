@@ -29,7 +29,7 @@ export function MainLayout({ children, fullscreen }: MainLayoutProps) {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen w-full bg-muted">
+    <div className={cn("w-full bg-muted", fullscreen ? "h-screen" : "min-h-screen")}>
       {/* Mobile overlay */}
       {isMobile && mobileOpen && (
         <div
@@ -47,7 +47,8 @@ export function MainLayout({ children, fullscreen }: MainLayoutProps) {
 
       <div
         className={cn(
-          "flex min-h-screen flex-col transition-all duration-200",
+          "flex flex-col transition-all duration-200",
+          fullscreen ? "h-screen" : "min-h-screen",
           isMobile ? "ml-0" : (collapsed ? "ml-16" : "ml-60")
         )}
       >
@@ -56,16 +57,16 @@ export function MainLayout({ children, fullscreen }: MainLayoutProps) {
           showMenuButton={isMobile}
         />
 
-        {/* Content area - add bottom padding on mobile for BottomNav */}
+        {/* Content area */}
         <main className={cn(
-          "flex-1 page-enter",
+          "page-enter",
           fullscreen
-            ? "p-0 overflow-hidden"
-            : "p-4 md:p-8 overflow-x-hidden pb-20 md:pb-8"
+            ? "flex-1 p-0 overflow-hidden min-h-0"
+            : "flex-1 p-4 md:p-8 overflow-x-hidden pb-20 md:pb-8"
         )}>
           <div className={cn(
             fullscreen
-              ? "h-full flex flex-col"
+              ? "h-full"
               : "mx-auto max-w-7xl space-y-4"
           )}>
             {children || <Outlet />}
