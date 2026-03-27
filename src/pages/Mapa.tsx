@@ -1218,6 +1218,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                         return <a href={`https://wa.me/${num}`} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-1 rounded inline-block no-underline" style={{ backgroundColor: '#22C55E', color: 'white' }}>WhatsApp</a>;
                       })()}
                       {selectedClient.telefone && <a href={`tel:${selectedClient.telefone}`} className="text-xs px-2 py-1 rounded inline-block no-underline" style={{ backgroundColor: '#E5E7EB', color: '#374151' }}>📞</a>}
+                      <a href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${selectedClient.latitude},${selectedClient.longitude}`} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-1 rounded inline-block no-underline" style={{ backgroundColor: '#F59E0B', color: 'white' }}>📷 Street View</a>
                     </div>
                   </div>
                 </InfoWindowF>
