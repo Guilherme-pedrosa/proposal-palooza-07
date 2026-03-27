@@ -47,6 +47,7 @@ interface PropostaProduct {
   discount: number;
   photoUrl?: string;
   gcProdutoId?: string;
+  tabelaPrecoId?: string;
 }
 
 interface PropostaTermo {
@@ -99,7 +100,7 @@ export default function PropostaEditor() {
   const [carregandoGC, setCarregandoGC] = useState(false);
   const [gcOrcamentoUrl, setGcOrcamentoUrl] = useState('');
   const [catalogOpen, setCatalogOpen] = useState(false);
-  const [tabelaPrecoId, setTabelaPrecoId] = useState('');
+  const [defaultTabelaPrecoId, setDefaultTabelaPrecoId] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
 
@@ -132,18 +133,21 @@ export default function PropostaEditor() {
     queryFn: tabelasPrecoApi.getAll,
   });
 
-  // Load prices for selected table
-  const { data: precosTabela = [] } = useQuery({
-    queryKey: ['precos_tabela', tabelaPrecoId],
-    queryFn: () => tabelasPrecoApi.getPrecosPorTabela(tabelaPrecoId),
-    enabled: !!tabelaPrecoId,
+  // Load all prices (all tables) for per-product price table selection
+  const { data: allPrecos = [] } = useQuery({
+    queryKey: ['all_precos'],
+    queryFn: async () => {
+      const { data } = await supabase.from('precos_produto').select('*');
+      return data ?? [];
+    },
+    staleTime: 5 * 60 * 1000,
   });
 
   // Set default price table on load
   useEffect(() => {
-    if (tabelasPreco.length > 0 && !tabelaPrecoId) {
+    if (tabelasPreco.length > 0 && !defaultTabelaPrecoId) {
       const principal = tabelasPreco.find(t => t.principal);
-      setTabelaPrecoId(principal?.id || tabelasPreco[0].id);
+      setDefaultTabelaPrecoId(principal?.id || tabelasPreco[0].id);
     }
   }, [tabelasPreco]);
 
@@ -161,32 +165,27 @@ export default function PropostaEditor() {
     staleTime: 10 * 60 * 1000,
   });
 
-  // Update existing product prices when price table changes
-  useEffect(() => {
-    if (!tabelaPrecoId || precosTabela.length === 0 || produtos.length === 0 || !produtosGcMap) return;
-    const precoMap = new Map<string, number>();
-    for (const pp of precosTabela) {
-      if (pp.valor_venda > 0) {
-        precoMap.set(pp.produto_id, pp.valor_venda);
+  // Helper: get price for a product from a specific table
+  const getPrecoFromTabela = (produtoUuid: string, tabelaId: string) => {
+    const preco = allPrecos.find(pp => pp.produto_id === produtoUuid && pp.tabela_preco_id === tabelaId);
+    return preco?.valor_venda && preco.valor_venda > 0 ? preco.valor_venda : null;
+  };
+
+  // Handle per-product price table change
+  const handleProductTabelaChange = (idx: number, newTabelaId: string) => {
+    setProdutos(prev => prev.map((p, i) => {
+      if (i !== idx) return p;
+      if (!p.gcProdutoId || !produtosGcMap) return { ...p, tabelaPrecoId: newTabelaId };
+      const produtoUuid = produtosGcMap.get(p.gcProdutoId);
+      if (!produtoUuid) return { ...p, tabelaPrecoId: newTabelaId };
+      const novoPreco = getPrecoFromTabela(produtoUuid, newTabelaId);
+      if (novoPreco !== null) {
+        const sub = p.quantity * novoPreco;
+        return { ...p, tabelaPrecoId: newTabelaId, unitPrice: novoPreco, totalPrice: sub - (sub * (p.discount || 0) / 100) };
       }
-    }
-    setProdutos(prev => {
-      let changed = false;
-      const updated = prev.map(p => {
-        if (!p.gcProdutoId) return p;
-        const produtoUuid = produtosGcMap.get(p.gcProdutoId);
-        if (!produtoUuid) return p;
-        const novoPreco = precoMap.get(produtoUuid);
-        if (novoPreco !== undefined && novoPreco !== p.unitPrice) {
-          changed = true;
-          const sub = p.quantity * novoPreco;
-          return { ...p, unitPrice: novoPreco, totalPrice: sub - (sub * (p.discount || 0) / 100) };
-        }
-        return p;
-      });
-      return changed ? updated : prev;
-    });
-  }, [tabelaPrecoId, precosTabela, produtosGcMap]);
+      return { ...p, tabelaPrecoId: newTabelaId };
+    }));
+  };
 
   // Load existing proposal
   const { data: proposta, isLoading: loadingProposta } = useQuery({
@@ -286,12 +285,10 @@ export default function PropostaEditor() {
 
   const addProductFromCatalog = (p: ProdutoGCRow) => {
     let preco = p.preco_venda || 0;
-    if (tabelaPrecoId && precosTabela.length > 0) {
-      // Use produto UUID (p.id) directly since CatalogPickerModal passes ProdutoGCRow with its UUID
-      const precoTabela = precosTabela.find(pt => pt.produto_id === p.id);
-      if (precoTabela && precoTabela.valor_venda > 0) {
-        preco = precoTabela.valor_venda;
-      }
+    // Try to get price from default table
+    if (defaultTabelaPrecoId && produtosGcMap) {
+      const novoPreco = getPrecoFromTabela(p.id, defaultTabelaPrecoId);
+      if (novoPreco !== null) preco = novoPreco;
     }
 
     const item: PropostaProduct = {
@@ -305,6 +302,7 @@ export default function PropostaEditor() {
       discount: 0,
       photoUrl: p.foto_url || undefined,
       gcProdutoId: p.gc_id,
+      tabelaPrecoId: defaultTabelaPrecoId || undefined,
     };
     setProdutos((prev) => [...prev, item]);
   };
@@ -582,26 +580,6 @@ export default function PropostaEditor() {
           </div>
         </Section>
 
-        {/* Section 4: Price Table */}
-        {tabelasPreco.length > 0 && (
-          <Section title="Tabela de Preço" icon="💰">
-            <Select value={tabelaPrecoId} onValueChange={setTabelaPrecoId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecionar tabela de preço..." />
-              </SelectTrigger>
-              <SelectContent>
-                {tabelasPreco.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {t.nome} {t.principal ? '⭐' : ''}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground mt-1">
-              A tabela selecionada define os preços ao adicionar produtos do catálogo
-            </p>
-          </Section>
-        )}
 
         {/* Section 5: Products */}
         <Section title={`Produtos e Serviços — ${formatBRL(total)}`} icon="📦">
@@ -626,6 +604,23 @@ export default function PropostaEditor() {
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
+                {tabelasPreco.length > 0 && p.gcProdutoId && (
+                  <div>
+                    <Label className="text-[10px]">Tabela de Preço</Label>
+                    <Select value={p.tabelaPrecoId || ''} onValueChange={(v) => handleProductTabelaChange(i, v)}>
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Tabela..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {tabelasPreco.map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.nome} {t.principal ? '⭐' : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div className="grid grid-cols-3 gap-2">
                   <div>
                     <Label className="text-[10px]">Qtd</Label>
@@ -840,7 +835,7 @@ export default function PropostaEditor() {
       </div>
 
       {/* Catalog Picker */}
-      <CatalogPickerModal open={catalogOpen} onClose={() => setCatalogOpen(false)} onSelect={addProductFromCatalog} tabelaPrecoId={tabelaPrecoId} />
+      <CatalogPickerModal open={catalogOpen} onClose={() => setCatalogOpen(false)} onSelect={addProductFromCatalog} tabelaPrecoId={defaultTabelaPrecoId} />
 
       {/* Share Modal */}
       <Dialog open={shareOpen} onOpenChange={setShareOpen}>
