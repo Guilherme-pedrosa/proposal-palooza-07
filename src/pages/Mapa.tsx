@@ -1058,7 +1058,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       </div>
 
       {/* Client list */}
-      <ScrollArea className="flex-1">
+      <div>
         <div className="p-2 space-y-1">
           {filteredClientes.slice(0, 50).map(c => {
             const statusColor = getClientStatusColor(c.ultima_compra_gc);
