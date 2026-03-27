@@ -218,6 +218,69 @@ A WeDo, como distribuidora autorizada Rational, oferece instalação profissiona
     ],
   },
   {
+    id: 'ivario',
+    name: 'Venda iVario',
+    description: 'Proposta comercial para iVario Pro Rational com ROI, produtividade e diferenciais técnicos',
+    icon: '🍳',
+    color: '#dc2626',
+    sections: [
+      { id: 'benefits', name: 'Benefícios e Economia', description: 'ROI, economia de energia, água e espaço', enabled: true },
+      { id: 'specs', name: 'Especificações Técnicas', description: 'Modelos, capacidades e tecnologias', enabled: true },
+      { id: 'production', name: 'Exemplos de Produção', description: 'Capacidades reais de produção por modelo', enabled: true },
+    ],
+    defaultTitle: 'Proposta Comercial — iVario® Pro Rational',
+    defaultDescription: `A presente proposta tem como objetivo o fornecimento do iVario® Pro, o sistema de cocção multifuncional da RATIONAL que substitui até 8 equipamentos convencionais: fogão, caldeirão, fritadeira, frigideira basculante, panela de pressão, chapa, banho-maria e panelas convencionais.
+
+O iVario® Pro é a revolução em cocção profissional, combinando versatilidade absoluta com eficiência operacional incomparável. Em menos de 1 m², ele centraliza todas as operações de cocção da sua cozinha, liberando espaço, reduzindo custos e aumentando a produtividade da equipe.
+
+Economia comprovada:
+• Até 40% menos consumo de energia em comparação com equipamentos convencionais
+• 4x mais rápido — aquecimento de 200°C em apenas 90 segundos com iVarioBoost
+• 90 litros menos de água consumida por serviço
+• 33% menos espaço ocupado na cozinha
+• Redução significativa de mão de obra com processos automatizados
+
+Exemplos de produção (modelo L — 100L):
+• 250 porções de molho bolonhesa em 60 min
+• 100 porções de sopa em 20 min
+• 4 kg de arroz frito em 6 min
+• 25 kg de carne cozida em 87 min (cocção sob pressão)
+• 3 kg de massa com AutoLift em 19 min
+
+Tecnologia integrada de ponta:
+• iVarioBoost — aquecimento ultrarrápido, 200°C em 90 segundos
+• iCookingSuite — ajuste automático de temperatura e tempo com percursos inteligentes
+• iZoneControl — até 4 zonas independentes de cocção na mesma cuba
+• AutoLift — levantamento automático de cestos para massas, batatas e vegetais
+• Cocção sob pressão — redução de até 35% no tempo de preparo
+• ConnectedCooking — gerenciamento digital via WiFi com HACCP automático, em conformidade com a RDC 216 da ANVISA
+
+Modelos disponíveis:
+• iVario 2-XS (2 x 17L) — ideal para operações compactas
+• iVario Pro 2-S (2 x 25L) — versatilidade em formato duplo
+• iVario Pro L (100L) — alta capacidade para grandes produções
+• iVario Pro XL (150L) — máxima capacidade para operações de alto volume
+
+A WeDo, como distribuidora autorizada Rational, oferece instalação profissional, treinamento operacional completo e suporte técnico contínuo, garantindo que o investimento gere retorno desde o primeiro dia de operação.`,
+    defaultProducts: [
+      {
+        name: 'iVario® Pro Rational',
+        description: `Sistema de cocção multifuncional RATIONAL iVario® Pro:
+• Substitui até 8 equipamentos convencionais em menos de 1 m²
+• iVarioBoost — aquecimento ultrarrápido (200°C em 90s)
+• iCookingSuite — percursos inteligentes com ajuste automático
+• iZoneControl — até 4 zonas independentes de cocção
+• AutoLift — levantamento automático de cestos
+• Cocção sob pressão integrada (-35% tempo)
+• ConnectedCooking — HACCP automático via WiFi (RDC 216 ANVISA)
+• Cuba em aço inoxidável com revestimento antiaderente
+• Tela sensível ao toque com interface intuitiva
+• Inclui: instalação, configuração, treinamento operacional e garantia`,
+        unit: 'UN',
+      },
+    ],
+  },
+  {
     id: 'equipamentos',
     name: 'Venda de Equipamentos',
     description: 'Proposta para venda de equipamentos de cozinha profissional em geral',
