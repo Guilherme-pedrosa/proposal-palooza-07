@@ -28,10 +28,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const LIBRARIES: ('visualization' | 'places')[] = ['visualization', 'places'];
 const MAP_CENTER = { lat: -15.78, lng: -47.93 };
 
-// The key needs to be a VITE_ env var to be available client-side.
-// We'll fetch it from the edge function if not set as VITE_ var.
-const GOOGLE_MAPS_KEY = (import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '') as string;
-
 // Status colors for client markers
 function getClientStatusColor(ultimaCompra: string | null): string {
   if (!ultimaCompra) return '#6B7280'; // Inativo
@@ -116,9 +112,26 @@ export default function Mapa() {
   const [geocodificando, setGeocodificando] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewportBounds, setViewportBounds] = useState<google.maps.LatLngBounds | null>(null);
+  const [mapsKey, setMapsKey] = useState<string>('');
+  const [keyLoading, setKeyLoading] = useState(true);
+
+  // Fetch Google Maps API key from edge function
+  useEffect(() => {
+    const fetchKey = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('google-maps-key');
+        if (data?.key) setMapsKey(data.key);
+      } catch (e) {
+        console.error('Failed to fetch maps key:', e);
+      } finally {
+        setKeyLoading(false);
+      }
+    };
+    fetchKey();
+  }, []);
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: GOOGLE_MAPS_KEY,
+    googleMapsApiKey: mapsKey,
     libraries: LIBRARIES,
   });
 
@@ -475,15 +488,25 @@ export default function Mapa() {
     </div>
   );
 
-  if (!GOOGLE_MAPS_KEY) {
+  if (!keyLoading && !mapsKey) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center h-96">
           <div className="text-center space-y-3">
             <MapPin className="h-12 w-12 mx-auto text-muted-foreground/40" />
             <h2 className="text-lg font-semibold">API Key do Google Maps não configurada</h2>
-            <p className="text-sm text-muted-foreground">Adicione VITE_GOOGLE_MAPS_KEY nas variáveis de ambiente.</p>
+            <p className="text-sm text-muted-foreground">Configure GOOGLE_MAPS_API_KEY nos secrets do projeto.</p>
           </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (keyLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </MainLayout>
     );
