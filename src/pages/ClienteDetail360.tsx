@@ -252,7 +252,20 @@ export default function ClienteDetail360() {
         </div>
 
         {/* Quick actions */}
-        <div className="flex gap-2 mt-4 overflow-x-auto">
+        <div className="flex gap-2 mt-4 overflow-x-auto items-center">
+          {user && (
+            <CheckInOutButton
+              clienteId={id!}
+              clienteNome={cliente.nome}
+              vendedorId={user.id}
+              oportunidadeId={oportunidadeAtiva?.id}
+              visitaEmAndamento={visitaEmAndamento}
+              onSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ['visita_em_andamento'] });
+                queryClient.invalidateQueries({ queryKey: ['visitas'] });
+              }}
+            />
+          )}
           {cliente.telefone && (
             <Button variant="outline" size="sm" asChild className="gap-1 flex-shrink-0">
               <a href={`tel:${cliente.telefone}`}><Phone className="h-3.5 w-3.5" /> Ligar</a>
