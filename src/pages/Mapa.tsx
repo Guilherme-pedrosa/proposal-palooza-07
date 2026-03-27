@@ -418,7 +418,8 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
   const hasActiveFilters = busca.length >= 2 || segmentoFilter !== 'todos' || cidadeFilter !== 'todos' || statusFilter !== 'todos';
 
-  const filteredClientes = useMemo(() => {
+  // Clients filtered by search/segment/city/status (used for MAP markers — stable across zoom)
+  const mapFilteredClientes = useMemo(() => {
     let list = clientes;
     if (segmentoFilter !== 'todos') list = list.filter(c => c.segmento === segmentoFilter);
     if (cidadeFilter !== 'todos') list = list.filter(c => c.cidade === cidadeFilter);
@@ -432,14 +433,17 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         c.cidade?.toLowerCase().includes(q)
       );
     }
-    // Only apply viewport bounds when NO search/filter is active
+    return [...list].sort((a, b) => (b.total_compras_gc ?? 0) - (a.total_compras_gc ?? 0));
+  }, [clientes, segmentoFilter, cidadeFilter, statusFilter, busca]);
+
+  // Clients filtered by viewport (used for SIDEBAR list only)
+  const filteredClientes = useMemo(() => {
+    let list = mapFilteredClientes;
     if (!hasActiveFilters && viewportBounds) {
       list = list.filter(c => viewportBounds.contains({ lat: c.latitude, lng: c.longitude }));
     }
-    // Sort by highest total purchases value
-    list = [...list].sort((a, b) => (b.total_compras_gc ?? 0) - (a.total_compras_gc ?? 0));
     return list;
-  }, [clientes, segmentoFilter, cidadeFilter, statusFilter, busca, viewportBounds, userLocation, hasActiveFilters]);
+  }, [mapFilteredClientes, viewportBounds, hasActiveFilters]);
 
   const filteredOps = useMemo(() => oportunidades.filter(op => { const c = op.cliente as any; return c?.latitude && c?.longitude; }), [oportunidades]);
 
@@ -491,7 +495,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     const alwaysVisibleMarkers: google.maps.Marker[] = [];
 
     if (showClientes) {
-      filteredClientes.forEach(c => {
+      mapFilteredClientes.forEach(c => {
         const color = getClientStatusColor(c.ultima_compra_gc);
         const isActive = color === '#22C55E';
         const pinW = isActive ? 48 : 36;
@@ -568,7 +572,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       markers.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
       if (clustererRef.current) { clustererRef.current.clearMarkers(); clustererRef.current = null; }
     };
-  }, [isLoaded, filteredClientes, filteredOps, showClientes, showOportunidades, showHeatmap]);
+  }, [isLoaded, mapFilteredClientes, filteredOps, showClientes, showOportunidades, showHeatmap]);
 
   // ─── Prospect markers (separate layer — small dots) ────────────
   const prospectClustererRef = useRef<MarkerClusterer | null>(null);
