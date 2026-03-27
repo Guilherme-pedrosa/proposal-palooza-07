@@ -43,16 +43,18 @@ export default function CompanySettings() {
   const [editingClientId, setEditingClientId] = useState<string | null>(null);
   const [editingBrandId, setEditingBrandId] = useState<string | null>(null);
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setLogo(event.target?.result as string);
-      toast.success('Logo atualizada!');
-    };
-    reader.readAsDataURL(file);
+    toast.loading('Enviando logo...', { id: 'logo-upload' });
+    const url = await uploadLogo(file);
+    if (url) {
+      setLogo(url);
+      toast.success('Logo atualizada!', { id: 'logo-upload' });
+    } else {
+      toast.error('Erro ao enviar logo.', { id: 'logo-upload' });
+    }
 
     if (inputRef.current) {
       inputRef.current.value = '';
