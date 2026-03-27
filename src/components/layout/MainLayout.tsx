@@ -66,7 +66,7 @@ export function MainLayout({ children, fullscreen }: MainLayoutProps) {
         )}>
           <div className={cn(
             fullscreen
-              ? "h-full"
+              ? "h-full min-h-0"
               : "mx-auto max-w-7xl space-y-4"
           )}>
             {children || <Outlet />}
