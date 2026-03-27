@@ -81,6 +81,9 @@ export default function PropostaPublica() {
   const subtotal = produtos.reduce((s: number, p: any) => s + (p.quantity || 0) * (p.unitPrice || 0), 0);
   const descontoTotal = produtos.reduce((s: number, p: any) => s + ((p.quantity || 0) * (p.unitPrice || 0) * ((p.discount || 0) / 100)), 0);
   const total = subtotal - descontoTotal;
+  const isLeasing = proposta.forma_pagamento === 'leasing';
+  const numParcelas = proposta.num_parcelas || 1;
+  const entradaPercent = proposta.entrada_percent || 0;
 
   return (
     <div className="min-h-screen bg-gray-50">

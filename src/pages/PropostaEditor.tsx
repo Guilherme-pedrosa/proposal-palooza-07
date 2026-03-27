@@ -362,6 +362,11 @@ export default function PropostaEditor() {
         validade_dias: parseInt(validadeDias) || 10,
         validade_ate: validadeAte.toISOString(),
         observacoes_internas: observacoesInternas || null,
+        forma_pagamento: formaPagamento || null,
+        num_parcelas: numParcelas,
+        entrada_percent: entradaPercent,
+        condicoes_pagamento: condicoesPagamento || null,
+        prazo_entrega: prazoEntrega || null,
       };
 
       if (isNew) {
