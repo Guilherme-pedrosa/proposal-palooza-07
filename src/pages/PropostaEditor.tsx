@@ -47,6 +47,7 @@ interface PropostaProduct {
   discount: number;
   photoUrl?: string;
   gcProdutoId?: string;
+  tabelaPrecoId?: string;
 }
 
 interface PropostaTermo {
