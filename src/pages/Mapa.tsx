@@ -1084,6 +1084,15 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                       <p>📊 {getClientStatusLabel(selectedClient.ultima_compra_gc)}</p>
                       {selectedClient.total_compras_gc && selectedClient.total_compras_gc > 0 && <p>💰 Total: {formatBRL(selectedClient.total_compras_gc)}</p>}
                     </div>
+                    {/* Histórico resumido */}
+                    <HistoricoResumo
+                      clienteId={selectedClient.id}
+                      gcId={selectedClient.gc_id}
+                      onVerTudo={() => {
+                        setHistoricoClienteId({ id: selectedClient.id, nome: selectedClient.nome, gcId: selectedClient.gc_id });
+                        setSelectedClient(null);
+                      }}
+                    />
                     <div className="flex flex-wrap gap-1 pt-1">
                       {/* Check-in button */}
                       {visitaEmAndamento?.cliente_id === selectedClient.id && visitaEmAndamento?.status === 'em_andamento' ? (
