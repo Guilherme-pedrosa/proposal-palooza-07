@@ -32,6 +32,7 @@ interface TimelineItem {
   resultado?: string;
   duracao?: number;
   satisfacao?: number;
+  vendedor?: string;
 }
 
 const resultadoLabels: Record<string, { label: string; icon: string }> = {
@@ -54,6 +55,7 @@ const tipoConfig: Record<string, { label: string; icon: React.ReactNode; color: 
 export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNome, gcId }: ClienteHistoricoPanelProps) {
   const [loading, setLoading] = useState(true);
   const [timeline, setTimeline] = useState<TimelineItem[]>([]);
+  const [vendedorCliente, setVendedorCliente] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -114,6 +116,7 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
               titulo: `Venda #${v.numero || v.id}`,
               valor: parseFloat(v.valor_total) || 0,
               produtos: allProds.length > 0 ? allProds : undefined,
+              vendedor: v.nome_vendedor || v.nome_tecnico || undefined,
             });
           });
 
@@ -132,6 +135,28 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
               titulo: `Orçamento #${o.numero || o.id}`,
               valor: parseFloat(o.valor_total) || 0,
               produtos: allProds.length > 0 ? allProds : undefined,
+              vendedor: o.nome_vendedor || o.nome_tecnico || undefined,
+            });
+          });
+
+          // Ordens de Serviço
+          (data?.ordens_servicos || []).forEach((os: any) => {
+            const prods = extractProdutos(os);
+            // Equipamentos
+            const equips = (os.equipamentos || []).map((e: any) => {
+              const eq = e.equipamento || e;
+              return [eq.equipamento, eq.marca, eq.modelo].filter(Boolean).join(' — ') || 'Equipamento';
+            }).slice(0, 5);
+            const allItems = [...equips, ...prods];
+            items.push({
+              id: `os-${os.id}`,
+              tipo: 'os',
+              data: os.data || os.created_at || '',
+              titulo: `OS #${os.codigo || os.id}`,
+              valor: parseFloat(os.valor_total) || 0,
+              produtos: allItems.length > 0 ? allItems : undefined,
+              detalhes: os.observacoes || undefined,
+              vendedor: os.nome_tecnico || os.nome_vendedor || undefined,
             });
           });
         } catch { /* ignore */ }
@@ -140,8 +165,13 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
       // Sort by date descending
       items.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
 
+      // Determine vendedor do cliente: from the most recent venda or OS
+      const lastTransaction = items.find(i => i.tipo === 'venda' || i.tipo === 'os');
+      const vendNome = lastTransaction?.vendedor || null;
+
       if (!cancelled) {
         setTimeline(items);
+        setVendedorCliente(vendNome);
         setLoading(false);
       }
     }
@@ -158,6 +188,11 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
             <CalendarDays className="h-4 w-4 text-primary" />
             Histórico — {clienteNome}
           </SheetTitle>
+          {vendedorCliente && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
+              <span className="font-medium">Vendedor:</span> {vendedorCliente}
+            </p>
+          )}
         </SheetHeader>
         <ScrollArea className="h-[calc(100vh-80px)]">
           <div className="p-4">
