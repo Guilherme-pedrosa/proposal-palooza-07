@@ -323,6 +323,40 @@ export default function Hoje() {
           </div>
         )}
 
+        {/* Visita em andamento banner */}
+        {visitaEmAndamento && (
+          <>
+            <VisitasBanner
+              visita={visitaEmAndamento}
+              onCheckout={() => setShowCheckoutHoje(true)}
+            />
+            <CheckoutFormDialog
+              open={showCheckoutHoje}
+              onOpenChange={setShowCheckoutHoje}
+              clienteNome={visitaEmAndamento.cliente?.nome || 'Cliente'}
+              onSubmit={async (formData) => {
+                try {
+                  const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 })
+                  );
+                  await finalizarCheckout({
+                    visita_id: visitaEmAndamento.id,
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                    ...formData,
+                  });
+                  toast({ title: '✅ Check-out concluído!' });
+                  setShowCheckoutHoje(false);
+                  queryClient.invalidateQueries({ queryKey: ['visita_em_andamento'] });
+                } catch (e: any) {
+                  toast({ title: 'Erro', description: e.message, variant: 'destructive' });
+                }
+              }}
+              loading={false}
+            />
+          </>
+        )}
+
         {/* KPI Cards */}
         <div className="flex gap-2 overflow-x-auto no-scrollbar">
           <Card className="shrink-0 min-w-[100px]">
