@@ -1014,35 +1014,37 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             </GoogleMap>
           )}
 
-          {/* Legend */}
-          <div className="absolute bottom-4 left-4 z-10 bg-card/95 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg text-xs space-y-2 max-w-[200px]">
-            <p className="font-semibold text-[11px] uppercase tracking-wider text-muted-foreground">Legenda</p>
-            {showClientes && (
-              <div className="space-y-1">
-                <p className="font-medium text-[10px] text-muted-foreground">Clientes</p>
-                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#22C55E' }} /> Ativo</div>
-                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#EAB308' }} /> Morno</div>
-                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#EF4444' }} /> Em Risco</div>
-                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#6B7280' }} /> Inativo</div>
-              </div>
-            )}
-            {showOportunidades && (
-              <div className="space-y-1">
-                <p className="font-medium text-[10px] text-muted-foreground">Oportunidades</p>
-                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#64748B' }} /> Prospecção</div>
-                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#3B82F6' }} /> Qualificação</div>
-                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#F59E0B' }} /> Proposta</div>
-                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#8B5CF6' }} /> Negociação</div>
-              </div>
-            )}
-            {showProspeccao && (
-              <div className="space-y-1">
-                <p className="font-medium text-[10px] text-muted-foreground">Prospects</p>
-                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#CBD5E1' }} /> Prospect</div>
-                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full border-2" style={{ borderColor: '#D4A017', backgroundColor: '#CBD5E1' }} /> Já cliente</div>
-              </div>
-            )}
-          </div>
+          {/* Legend - desktop only */}
+          {!isMobile && (
+            <div className="absolute bottom-4 left-4 z-10 bg-card/95 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg text-xs space-y-2 max-w-[200px]">
+              <p className="font-semibold text-[11px] uppercase tracking-wider text-muted-foreground">Legenda</p>
+              {showClientes && (
+                <div className="space-y-1">
+                  <p className="font-medium text-[10px] text-muted-foreground">Clientes</p>
+                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#22C55E' }} /> Ativo</div>
+                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#EAB308' }} /> Morno</div>
+                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#EF4444' }} /> Em Risco</div>
+                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#6B7280' }} /> Inativo</div>
+                </div>
+              )}
+              {showOportunidades && (
+                <div className="space-y-1">
+                  <p className="font-medium text-[10px] text-muted-foreground">Oportunidades</p>
+                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#64748B' }} /> Prospecção</div>
+                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#3B82F6' }} /> Qualificação</div>
+                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#F59E0B' }} /> Proposta</div>
+                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#8B5CF6' }} /> Negociação</div>
+                </div>
+              )}
+              {showProspeccao && (
+                <div className="space-y-1">
+                  <p className="font-medium text-[10px] text-muted-foreground">Prospects</p>
+                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#CBD5E1' }} /> Prospect</div>
+                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full border-2" style={{ borderColor: '#D4A017', backgroundColor: '#CBD5E1' }} /> Já cliente</div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </MainLayout>
