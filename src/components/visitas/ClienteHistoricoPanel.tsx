@@ -24,6 +24,7 @@ interface ClienteHistoricoPanelProps {
 
 interface TimelineItem {
   id: string;
+  rawId?: string; // original DB id for navigation
   tipo: 'visita' | 'venda' | 'orcamento' | 'os';
   data: string;
   titulo: string;
