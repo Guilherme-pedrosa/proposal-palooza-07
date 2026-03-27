@@ -154,6 +154,14 @@ export default function Hoje() {
     enabled: !!user,
   });
 
+  // Visita em andamento
+  const { data: visitaEmAndamento } = useQuery({
+    queryKey: ['visita_em_andamento', user?.id],
+    queryFn: () => fetchVisitaEmAndamento(user!.id),
+    enabled: !!user,
+  });
+  const [showCheckoutHoje, setShowCheckoutHoje] = useState(false);
+
   const { data: motivosPerda = [] } = useQuery({
     queryKey: ['motivos_perda'],
     queryFn: fetchMotivosPerda,
