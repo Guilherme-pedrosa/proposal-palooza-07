@@ -1087,6 +1087,7 @@ export type Database = {
       }
     }
     Functions: {
+      atualizar_segmentos_clientes: { Args: never; Returns: undefined }
       marcar_prospects_clientes: { Args: never; Returns: undefined }
     }
     Enums: {
