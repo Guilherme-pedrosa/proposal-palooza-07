@@ -285,12 +285,10 @@ export default function PropostaEditor() {
 
   const addProductFromCatalog = (p: ProdutoGCRow) => {
     let preco = p.preco_venda || 0;
-    if (tabelaPrecoId && precosTabela.length > 0) {
-      // Use produto UUID (p.id) directly since CatalogPickerModal passes ProdutoGCRow with its UUID
-      const precoTabela = precosTabela.find(pt => pt.produto_id === p.id);
-      if (precoTabela && precoTabela.valor_venda > 0) {
-        preco = precoTabela.valor_venda;
-      }
+    // Try to get price from default table
+    if (defaultTabelaPrecoId && produtosGcMap) {
+      const novoPreco = getPrecoFromTabela(p.id, defaultTabelaPrecoId);
+      if (novoPreco !== null) preco = novoPreco;
     }
 
     const item: PropostaProduct = {
@@ -304,6 +302,7 @@ export default function PropostaEditor() {
       discount: 0,
       photoUrl: p.foto_url || undefined,
       gcProdutoId: p.gc_id,
+      tabelaPrecoId: defaultTabelaPrecoId || undefined,
     };
     setProdutos((prev) => [...prev, item]);
   };
