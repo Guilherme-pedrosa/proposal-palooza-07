@@ -604,6 +604,23 @@ export default function PropostaEditor() {
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
+                {tabelasPreco.length > 0 && p.gcProdutoId && (
+                  <div>
+                    <Label className="text-[10px]">Tabela de Preço</Label>
+                    <Select value={p.tabelaPrecoId || ''} onValueChange={(v) => handleProductTabelaChange(i, v)}>
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Tabela..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {tabelasPreco.map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.nome} {t.principal ? '⭐' : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div className="grid grid-cols-3 gap-2">
                   <div>
                     <Label className="text-[10px]">Qtd</Label>
