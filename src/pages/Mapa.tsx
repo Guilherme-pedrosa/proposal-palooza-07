@@ -297,7 +297,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       zIndex: 999,
       clickable: false,
     });
-  }, [isLoaded, userLocation]);
+  }, [isLoaded, mapReady, userLocation]);
 
   const { data: clientes = [], isLoading: loadingClientes } = useQuery({
     queryKey: ['clientes_geo'],
