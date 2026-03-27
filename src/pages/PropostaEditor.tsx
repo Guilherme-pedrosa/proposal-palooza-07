@@ -697,7 +697,7 @@ export default function PropostaEditor() {
 
         {/* Section 8: Commercial */}
         <Section title="Condições Comerciais" icon="💰">
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
               <Label>Validade</Label>
               <Select value={validadeDias} onValueChange={setValidadeDias}>
@@ -708,8 +708,113 @@ export default function PropostaEditor() {
               </Select>
               <p className="text-xs text-muted-foreground mt-1">Válida até: {format(validadeAte, 'dd/MM/yyyy')}</p>
             </div>
+
+            <Separator />
+
             <div>
-              <Label>Condições de Pagamento</Label>
+              <Label>Forma de Pagamento</Label>
+              <Select value={formaPagamento} onValueChange={(v) => {
+                setFormaPagamento(v);
+                if (v === 'avista') { setNumParcelas(1); setEntradaPercent(0); }
+                if (v === 'leasing') setLeasingDialogOpen(true);
+              }}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="avista">À Vista (PIX / Transferência)</SelectItem>
+                  <SelectItem value="boleto">Boleto</SelectItem>
+                  <SelectItem value="cartao">Cartão de Crédito</SelectItem>
+                  <SelectItem value="leasing">Leasing / Locação</SelectItem>
+                  <SelectItem value="financiamento">Financiamento</SelectItem>
+                  <SelectItem value="outro">Outro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {formaPagamento && formaPagamento !== 'avista' && formaPagamento !== 'leasing' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Entrada (%)</Label>
+                  <Input type="number" min={0} max={100} value={entradaPercent || ''} onChange={(e) => setEntradaPercent(parseFloat(e.target.value) || 0)} placeholder="0" />
+                </div>
+                <div>
+                  <Label>Nº de Parcelas</Label>
+                  <Input type="number" min={1} max={120} value={numParcelas} onChange={(e) => setNumParcelas(parseInt(e.target.value) || 1)} />
+                </div>
+              </div>
+            )}
+
+            {/* Installment calculation */}
+            {total > 0 && formaPagamento && formaPagamento !== 'leasing' && (
+              <div className="bg-muted/50 rounded-lg p-3 space-y-1 text-sm">
+                <p className="font-medium text-foreground flex items-center gap-1">💳 Simulação de Pagamento</p>
+                {formaPagamento === 'avista' ? (
+                  <p>Valor à vista: <span className="font-bold text-primary">{formatBRL(total)}</span></p>
+                ) : (
+                  <>
+                    {entradaPercent > 0 && (
+                      <div className="flex justify-between">
+                        <span>Entrada ({entradaPercent}%)</span>
+                        <span className="font-medium">{formatBRL(total * entradaPercent / 100)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span>Saldo restante</span>
+                      <span className="font-medium">{formatBRL(total * (1 - entradaPercent / 100))}</span>
+                    </div>
+                    <Separator className="my-1" />
+                    <div className="flex justify-between font-bold">
+                      <span>{numParcelas}x de</span>
+                      <span className="text-primary">{formatBRL((total * (1 - entradaPercent / 100)) / numParcelas)}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Leasing calculation */}
+            {formaPagamento === 'leasing' && total > 0 && (
+              <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 space-y-2 text-sm">
+                <p className="font-medium text-foreground flex items-center gap-1">🏦 Leasing / Locação</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Prazo (meses)</Label>
+                    <Input type="number" min={6} max={60} value={numParcelas || 36} onChange={(e) => setNumParcelas(parseInt(e.target.value) || 36)} />
+                  </div>
+                  <div className="flex items-end">
+                    <div className="text-right w-full">
+                      <p className="text-xs text-muted-foreground">Parcela estimada</p>
+                      <p className="text-lg font-bold text-primary">{formatBRL(total / (numParcelas || 36))}/mês</p>
+                    </div>
+                  </div>
+                </div>
+                <Separator />
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">💡 Benefícios Fiscais (Lucro Real):</p>
+                  <div className="grid grid-cols-2 gap-1 text-xs">
+                    <span>Dedução IRPJ (25%)</span>
+                    <span className="text-right font-medium text-emerald-600">{formatBRL(total * 0.25)}</span>
+                    <span>Dedução CSLL (9%)</span>
+                    <span className="text-right font-medium text-emerald-600">{formatBRL(total * 0.09)}</span>
+                    <span>Crédito PIS (1,65%)</span>
+                    <span className="text-right font-medium text-emerald-600">{formatBRL(total * 0.0165)}</span>
+                    <span>Crédito COFINS (7,6%)</span>
+                    <span className="text-right font-medium text-emerald-600">{formatBRL(total * 0.076)}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between font-bold text-emerald-700 dark:text-emerald-400">
+                    <span>Economia potencial (até 43,25%)</span>
+                    <span>{formatBRL(total * 0.4325)}</span>
+                  </div>
+                </div>
+                <Button size="sm" variant="outline" className="gap-1.5 w-full mt-1 border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-950"
+                  onClick={() => setLeasingDialogOpen(true)}>
+                  📄 Gerar Apresentação Fiscal para o Cliente
+                </Button>
+              </div>
+            )}
+
+            <div>
+              <Label>Condições de Pagamento (texto livre)</Label>
               <Textarea value={condicoesPagamento} onChange={(e) => setCondicoesPagamento(e.target.value)} placeholder="Ex: 30% entrada, 70% na entrega. Boleto ou PIX." rows={2} />
             </div>
             <div>
