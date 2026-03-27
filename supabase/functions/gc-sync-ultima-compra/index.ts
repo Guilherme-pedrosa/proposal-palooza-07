@@ -5,10 +5,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const GC_BASE_URL = 'https://api.gestaoclick.com';
-const GC_LOJA_ID = 446246;
-const BATCH_SIZE = 20;
-const DELAY_MS = 400; // rate limit safety
+const GC_BASE_URL = 'https://api.gestaoclick.com/api';
+const GC_LOJA_ID = '446246';
+const BATCH_SIZE = 10;
+const DELAY_MS = 350; // max 3 req/s
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -48,102 +48,144 @@ Deno.serve(async (req) => {
     });
   }
 
+  console.log(`Processando ${clientes.length} clientes...`);
+
   let atualizados = 0;
   let erros = 0;
   let semCompra = 0;
 
-  // Process in batches
+  // Helper: fetch ALL pages from a GC endpoint for a given client
+  async function fetchAllGC(endpoint: string, clienteGcId: string): Promise<any[]> {
+    const allRecords: any[] = [];
+    let pagina = 1;
+    const limite = 100; // max per page
+
+    while (true) {
+      const params = new URLSearchParams({
+        loja_id: GC_LOJA_ID,
+        cliente_id: clienteGcId,
+        limite: String(limite),
+        pagina: String(pagina),
+      });
+
+      try {
+        const res = await fetch(`${GC_BASE_URL}/${endpoint}?${params}`, { headers: gcHeaders });
+        if (!res.ok) {
+          console.error(`${endpoint} HTTP ${res.status} for client ${clienteGcId}`);
+          break;
+        }
+        const body = await res.json();
+        const records = body?.data || [];
+        
+        if (!Array.isArray(records) || records.length === 0) break;
+        
+        allRecords.push(...records);
+        
+        // Check if there are more pages
+        const meta = body?.meta;
+        if (!meta?.proxima_pagina || records.length < limite) break;
+        
+        pagina++;
+        await new Promise(r => setTimeout(r, DELAY_MS));
+      } catch (e) {
+        console.error(`Erro ${endpoint} client ${clienteGcId}:`, e);
+        break;
+      }
+    }
+    return allRecords;
+  }
+
+  // Process clients in batches
   for (let i = 0; i < clientes.length; i += BATCH_SIZE) {
     const batch = clientes.slice(i, i + BATCH_SIZE);
 
-    const results = await Promise.allSettled(
-      batch.map(async (cliente, idx) => {
-        // Stagger requests within batch
-        await new Promise(r => setTimeout(r, idx * DELAY_MS));
+    for (const cliente of batch) {
+      try {
+        // 1. Fetch ALL vendas for this client
+        const vendas = await fetchAllGC('vendas', cliente.gc_id);
+        await new Promise(r => setTimeout(r, DELAY_MS));
 
-        const params = new URLSearchParams({
-          loja_id: String(GC_LOJA_ID),
-          cliente_id: String(cliente.gc_id),
-          limite: '5',
-          ordenar_por: 'data_venda',
-          ordem: 'desc',
-        });
+        // 2. Fetch ALL ordens de serviço for this client
+        const ordens = await fetchAllGC('ordens_servicos', cliente.gc_id);
+        await new Promise(r => setTimeout(r, DELAY_MS));
 
-        try {
-          // Try vendas first (most reliable for "última compra")
-          const vendasRes = await fetch(`${GC_BASE_URL}/vendas?${params}`, { headers: gcHeaders });
-          let ultimaData: string | null = null;
-          let totalCompras = 0;
-
-          if (vendasRes.ok) {
-            const vendasBody = await vendasRes.json();
-            const vendas = vendasBody?.data || [];
-            if (vendas.length > 0) {
-              // Find most recent sale date
-              ultimaData = vendas[0]?.data_venda || vendas[0]?.created_at || null;
-              // Sum total
-              totalCompras = vendas.reduce((sum: number, v: any) => {
-                return sum + (parseFloat(v.valor_total) || 0);
-              }, 0);
-            }
+        // 3. Calculate totals
+        // Vendas: field "data" is the date, "valor_total" is the value
+        let totalVendas = 0;
+        let ultimaDataVenda: string | null = null;
+        for (const v of vendas) {
+          totalVendas += parseFloat(v.valor_total || '0') || 0;
+          const dataV = v.data || null;
+          if (dataV && (!ultimaDataVenda || dataV > ultimaDataVenda)) {
+            ultimaDataVenda = dataV;
           }
-
-          // Also check orçamentos if no vendas
-          if (!ultimaData) {
-            await new Promise(r => setTimeout(r, DELAY_MS));
-            const orcParams = new URLSearchParams({
-              loja_id: String(GC_LOJA_ID),
-              cliente_id: String(cliente.gc_id),
-              limite: '5',
-              ordenar_por: 'data_orcamento',
-              ordem: 'desc',
-            });
-            const orcRes = await fetch(`${GC_BASE_URL}/orcamentos?${orcParams}`, { headers: gcHeaders });
-            if (orcRes.ok) {
-              const orcBody = await orcRes.json();
-              const orcs = orcBody?.data || [];
-              if (orcs.length > 0) {
-                ultimaData = orcs[0]?.data_orcamento || orcs[0]?.created_at || null;
-                totalCompras = orcs.reduce((sum: number, o: any) => {
-                  return sum + (parseFloat(o.valor_total) || 0);
-                }, 0);
-              }
-            }
-          }
-
-          if (ultimaData) {
-            await supabase
-              .from('clientes_gc')
-              .update({
-                ultima_compra_gc: ultimaData,
-                total_compras_gc: totalCompras,
-              })
-              .eq('id', cliente.id);
-            atualizados++;
-          } else {
-            semCompra++;
-          }
-        } catch (e) {
-          console.error(`Erro cliente ${cliente.gc_id}:`, e);
-          erros++;
         }
-      })
-    );
 
-    // Wait between batches
-    if (i + BATCH_SIZE < clientes.length) {
-      await new Promise(r => setTimeout(r, BATCH_SIZE * DELAY_MS));
+        // OS: field "data" is the date, "valor_total" is the value
+        let totalOS = 0;
+        let ultimaDataOS: string | null = null;
+        for (const o of ordens) {
+          totalOS += parseFloat(o.valor_total || '0') || 0;
+          const dataO = o.data || null;
+          if (dataO && (!ultimaDataOS || dataO > ultimaDataOS)) {
+            ultimaDataOS = dataO;
+          }
+        }
+
+        const totalCompras = totalVendas + totalOS;
+        
+        // Most recent date between vendas and OS
+        let ultimaCompra: string | null = null;
+        if (ultimaDataVenda && ultimaDataOS) {
+          ultimaCompra = ultimaDataVenda > ultimaDataOS ? ultimaDataVenda : ultimaDataOS;
+        } else {
+          ultimaCompra = ultimaDataVenda || ultimaDataOS;
+        }
+
+        if (ultimaCompra || totalCompras > 0) {
+          const updateData: Record<string, any> = {
+            total_compras_gc: totalCompras,
+          };
+          if (ultimaCompra) {
+            updateData.ultima_compra_gc = ultimaCompra;
+          }
+
+          const { error: updateErr } = await supabase
+            .from('clientes_gc')
+            .update(updateData)
+            .eq('id', cliente.id);
+
+          if (updateErr) {
+            console.error(`Erro update ${cliente.nome}:`, updateErr.message);
+            erros++;
+          } else {
+            atualizados++;
+            console.log(`✅ ${cliente.nome}: R$ ${totalCompras.toFixed(2)} (${vendas.length} vendas, ${ordens.length} OS) última: ${ultimaCompra}`);
+          }
+        } else {
+          semCompra++;
+        }
+      } catch (e) {
+        console.error(`Erro cliente ${cliente.gc_id} (${cliente.nome}):`, e);
+        erros++;
+      }
     }
+
+    // Log progress
+    console.log(`Progresso: ${Math.min(i + BATCH_SIZE, clientes.length)}/${clientes.length} (${atualizados} atualizados, ${erros} erros)`);
   }
 
-  return new Response(
-    JSON.stringify({
-      sucesso: true,
-      total_clientes: clientes.length,
-      atualizados,
-      sem_compra: semCompra,
-      erros,
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
+  const result = {
+    sucesso: true,
+    total_clientes: clientes.length,
+    atualizados,
+    sem_compra: semCompra,
+    erros,
+  };
+
+  console.log('Resultado final:', JSON.stringify(result));
+
+  return new Response(JSON.stringify(result), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
 });
