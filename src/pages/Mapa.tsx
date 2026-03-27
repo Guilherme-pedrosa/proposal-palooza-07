@@ -389,14 +389,48 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
   const handleGeocodificar = async () => {
     setGeocodificando(true);
+    let totalGeocoded = 0;
+    let totalErrors = 0;
+    let rodada = 1;
+
     try {
-      const { data, error } = await supabase.functions.invoke('geocodificar-clientes');
-      if (error) throw error;
-      toast({ title: `✅ Geocodificação concluída`, description: `${data.geocoded} clientes geocodificados, ${data.errors} erros` });
+      // Loop until no more pending clients
+      while (true) {
+        toast({ title: `🔄 Geocodificando... (rodada ${rodada})`, description: `${totalGeocoded} geocodificados até agora` });
+        
+        const { data, error } = await supabase.functions.invoke('geocodificar-clientes');
+        if (error) throw error;
+        
+        totalGeocoded += data.geocoded || 0;
+        totalErrors += data.errors || 0;
+
+        // If no more clients were processed or total was 0, we're done
+        if (!data.total || data.total === 0 || data.geocoded === 0) {
+          break;
+        }
+
+        rodada++;
+        queryClient.invalidateQueries({ queryKey: ['clientes_geo'] });
+        queryClient.invalidateQueries({ queryKey: ['geo_pending_count'] });
+        
+        // Small pause between rounds
+        await new Promise(r => setTimeout(r, 1000));
+      }
+
+      toast({ 
+        title: `✅ Geocodificação concluída!`, 
+        description: `${totalGeocoded} clientes geocodificados, ${totalErrors} erros` 
+      });
       queryClient.invalidateQueries({ queryKey: ['clientes_geo'] });
       queryClient.invalidateQueries({ queryKey: ['geo_pending_count'] });
     } catch (e: any) {
-      toast({ title: 'Erro na geocodificação', description: e.message, variant: 'destructive' });
+      toast({ 
+        title: totalGeocoded > 0 ? `⚠️ Parcialmente concluído (${totalGeocoded} ok)` : 'Erro na geocodificação', 
+        description: e.message, 
+        variant: totalGeocoded > 0 ? 'default' : 'destructive' 
+      });
+      queryClient.invalidateQueries({ queryKey: ['clientes_geo'] });
+      queryClient.invalidateQueries({ queryKey: ['geo_pending_count'] });
     } finally {
       setGeocodificando(false);
     }
