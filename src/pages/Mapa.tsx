@@ -479,18 +479,28 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     if (showClientes) {
       filteredClientes.forEach(c => {
         const color = getClientStatusColor(c.ultima_compra_gc);
+        const isActive = color === '#22C55E';
+        const pinW = isActive ? 48 : 36;
+        const pinH = isActive ? 62 : 47;
         const initial = (c.nome || '?').charAt(0).toUpperCase();
+        const glowFilter = isActive
+          ? `<feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#22C55E" flood-opacity="0.6"/><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>`
+          : `<feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>`;
+        const strokeW = isActive ? '3' : '2.5';
+        const fontSize = isActive ? '16' : '13';
+        const textY = isActive ? '24' : '23';
+        const circleR = isActive ? '12' : '10';
         const pinSvg = `
-          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="52" viewBox="0 0 40 52">
-            <defs><filter id="shadow-${c.id.slice(0,6)}" x="-20%" y="-10%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/></filter></defs>
-            <path d="M20 51C20 51 38 32.5 38 19C38 9.06 29.94 1 20 1C10.06 1 2 9.06 2 19C2 32.5 20 51 20 51Z" fill="${color}" stroke="white" stroke-width="2.5" filter="url(#shadow-${c.id.slice(0,6)})"/>
-            <circle cx="20" cy="19" r="11" fill="white" opacity="0.95"/>
-            <text x="20" y="24" text-anchor="middle" font-size="14" font-weight="bold" font-family="Arial, sans-serif" fill="${color}">${initial}</text>
+          <svg xmlns="http://www.w3.org/2000/svg" width="${pinW}" height="${pinH}" viewBox="0 0 40 52">
+            <defs><filter id="shadow-${c.id.slice(0,6)}" x="-30%" y="-20%" width="160%" height="160%">${glowFilter}</filter></defs>
+            <path d="M20 51C20 51 38 32.5 38 19C38 9.06 29.94 1 20 1C10.06 1 2 9.06 2 19C2 32.5 20 51 20 51Z" fill="${color}" stroke="white" stroke-width="${strokeW}" filter="url(#shadow-${c.id.slice(0,6)})"/>
+            <circle cx="20" cy="19" r="${circleR}" fill="white" opacity="0.95"/>
+            <text x="20" y="${textY}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" font-family="Arial, sans-serif" fill="${color}">${initial}</text>
           </svg>`;
         const marker = new google.maps.Marker({
           position: { lat: c.latitude, lng: c.longitude }, title: c.nome,
-          icon: { url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(pinSvg), scaledSize: new google.maps.Size(40, 52), anchor: new google.maps.Point(20, 52) },
-          zIndex: 10, clickable: true,
+          icon: { url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(pinSvg), scaledSize: new google.maps.Size(pinW, pinH), anchor: new google.maps.Point(pinW / 2, pinH) },
+          zIndex: isActive ? 20 : 10, clickable: true,
         });
         marker.addListener('click', () => { setSelectedClient(c); setSelectedOp(null); setSelectedProspect(null); });
         markers.push(marker);
