@@ -35,6 +35,9 @@ import {
 } from '@/lib/api/clientesGC';
 import { toast } from 'sonner';
 import type { ClienteGC, Oportunidade, Atividade, TipoAtividade } from '@/types/crm';
+import { useAuth } from '@/contexts/AuthContext';
+import { CheckInOutButton } from '@/components/visitas/CheckInOutButton';
+import { fetchVisitaEmAndamento } from '@/lib/api/visitas';
 
 const tipoAtividadeLabels: Record<string, { label: string; icon: string }> = {
   ligacao: { label: 'Ligação', icon: '📞' },
@@ -63,6 +66,7 @@ export default function ClienteDetail360() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('visao-geral');
   const [showAtividadeModal, setShowAtividadeModal] = useState(false);
   const [notaTexto, setNotaTexto] = useState('');
@@ -125,6 +129,13 @@ export default function ClienteDetail360() {
       return (data || []) as unknown as Atividade[];
     },
     enabled: !!id,
+  });
+
+  // Fetch visita em andamento
+  const { data: visitaEmAndamento } = useQuery({
+    queryKey: ['visita_em_andamento', user?.id],
+    queryFn: () => fetchVisitaEmAndamento(user!.id),
+    enabled: !!user,
   });
 
   // Save atividade
@@ -241,7 +252,20 @@ export default function ClienteDetail360() {
         </div>
 
         {/* Quick actions */}
-        <div className="flex gap-2 mt-4 overflow-x-auto">
+        <div className="flex gap-2 mt-4 overflow-x-auto items-center">
+          {user && (
+            <CheckInOutButton
+              clienteId={id!}
+              clienteNome={cliente.nome}
+              vendedorId={user.id}
+              oportunidadeId={oportunidadeAtiva?.id}
+              visitaEmAndamento={visitaEmAndamento}
+              onSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ['visita_em_andamento'] });
+                queryClient.invalidateQueries({ queryKey: ['visitas'] });
+              }}
+            />
+          )}
           {cliente.telefone && (
             <Button variant="outline" size="sm" asChild className="gap-1 flex-shrink-0">
               <a href={`tel:${cliente.telefone}`}><Phone className="h-3.5 w-3.5" /> Ligar</a>

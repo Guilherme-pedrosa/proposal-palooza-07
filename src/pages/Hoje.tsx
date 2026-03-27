@@ -38,6 +38,10 @@ import { insertAtividade, updateOportunidadeEtapa, fetchMotivosPerda, formatBRL 
 import { supabase } from '@/integrations/supabase/client';
 import { WAIButton } from '@/components/WAIButton';
 import { Sparkles } from 'lucide-react';
+import { fetchVisitaEmAndamento } from '@/lib/api/visitas';
+import { VisitasBanner } from '@/components/visitas/VisitasBanner';
+import { CheckoutFormDialog } from '@/components/visitas/CheckoutFormDialog';
+import { finalizarCheckout } from '@/lib/api/visitas';
 
 const grupoConfig: Record<GrupoAtividade, { label: string; emoji: string; borderColor: string; bgColor: string }> = {
   atrasada: { label: 'EM ATRASO', emoji: '🔴', borderColor: 'border-l-red-500', bgColor: 'bg-red-50' },
@@ -149,6 +153,14 @@ export default function Hoje() {
     queryFn: () => fetchOpsGanhasNoMes(user!.id, mes, ano),
     enabled: !!user,
   });
+
+  // Visita em andamento
+  const { data: visitaEmAndamento } = useQuery({
+    queryKey: ['visita_em_andamento', user?.id],
+    queryFn: () => fetchVisitaEmAndamento(user!.id),
+    enabled: !!user,
+  });
+  const [showCheckoutHoje, setShowCheckoutHoje] = useState(false);
 
   const { data: motivosPerda = [] } = useQuery({
     queryKey: ['motivos_perda'],
@@ -309,6 +321,40 @@ export default function Hoje() {
             </div>
             <p className="text-sm leading-relaxed whitespace-pre-wrap">{dicaDiaria}</p>
           </div>
+        )}
+
+        {/* Visita em andamento banner */}
+        {visitaEmAndamento && (
+          <>
+            <VisitasBanner
+              visita={visitaEmAndamento}
+              onCheckout={() => setShowCheckoutHoje(true)}
+            />
+            <CheckoutFormDialog
+              open={showCheckoutHoje}
+              onOpenChange={setShowCheckoutHoje}
+              clienteNome={visitaEmAndamento.cliente?.nome || 'Cliente'}
+              onSubmit={async (formData) => {
+                try {
+                  const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 })
+                  );
+                  await finalizarCheckout({
+                    visita_id: visitaEmAndamento.id,
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                    ...formData,
+                  });
+                  toast({ title: '✅ Check-out concluído!' });
+                  setShowCheckoutHoje(false);
+                  queryClient.invalidateQueries({ queryKey: ['visita_em_andamento'] });
+                } catch (e: any) {
+                  toast({ title: 'Erro', description: e.message, variant: 'destructive' });
+                }
+              }}
+              loading={false}
+            />
+          </>
         )}
 
         {/* KPI Cards */}
