@@ -591,8 +591,9 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     // Green clients are added directly to the map (never clustered)
     alwaysVisibleMarkers.forEach(m => m.setMap(map));
 
-    // Other markers go through the clusterer
-    if (clusterableMarkers.length > 10) {
+    // Other markers go through the clusterer (desktop only; mobile keeps direct markers for touch reliability)
+    const shouldCluster = !isMobile && clusterableMarkers.length > 10;
+    if (shouldCluster) {
       clusterableMarkers.forEach(m => m.setMap(null)); // clusterer manages them
       clustererRef.current = new MarkerClusterer({
         map,
@@ -607,7 +608,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       markers.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
       disposeClientClusterer();
     };
-  }, [isLoaded, mapReady, mapFilteredClientes, filteredOps, showClientes, showOportunidades, showHeatmap]);
+  }, [isLoaded, mapReady, mapFilteredClientes, filteredOps, showClientes, showOportunidades, showHeatmap, isMobile]);
 
   // ─── Prospect markers (separate layer — small dots) ────────────
   const prospectClustererRef = useRef<MarkerClusterer | null>(null);
@@ -657,18 +658,21 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
     prospectMarkersRef.current = markers;
 
-    // Always cluster prospects — there are hundreds
-    prospectClustererRef.current = new MarkerClusterer({
-      map,
-      markers,
-      onClusterClick: (_, cluster, currentMap) => { currentMap.fitBounds(cluster.bounds!); },
-    });
+    if (!isMobile && markers.length > 20) {
+      prospectClustererRef.current = new MarkerClusterer({
+        map,
+        markers,
+        onClusterClick: (_, cluster, currentMap) => { currentMap.fitBounds(cluster.bounds!); },
+      });
+    } else {
+      markers.forEach(m => m.setMap(map));
+    }
 
     return () => {
       markers.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
       disposeProspectClusterer();
     };
-  }, [isLoaded, mapReady, showProspeccao, geocodedProspects]);
+  }, [isLoaded, mapReady, showProspeccao, geocodedProspects, isMobile]);
 
   // ─── Actions ──────────────────────────────────────
   const centerOnClient = (c: ClienteGeo) => {
@@ -1131,7 +1135,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
         {/* Mobile KPI bar */}
         {isMobile && (
-          <div className="absolute top-3 right-3 z-20 bg-card/95 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg flex gap-3 text-center">
+          <div className="absolute top-3 right-3 z-20 pointer-events-none bg-card/95 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg flex gap-3 text-center">
             <div>
               <p className="text-sm font-bold">{kpis.clientes}</p>
               <p className="text-[9px] text-muted-foreground">Clientes</p>
@@ -1166,6 +1170,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                 streetViewControl: false,
                 mapTypeControl: !isMobile,
                 fullscreenControl: false,
+                  clickableIcons: false,
                 gestureHandling: 'greedy',
               }}
             >
