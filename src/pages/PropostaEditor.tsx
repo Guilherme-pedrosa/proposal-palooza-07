@@ -255,7 +255,7 @@ export default function PropostaEditor() {
     queryKey: ['cliente_sel_proposta', clienteId],
     queryFn: async () => {
       if (!clienteId) return null;
-      const { data } = await supabase.from('clientes_gc').select('id, nome, cnpj, cidade, segmento, gc_id').eq('id', clienteId).single();
+      const { data } = await supabase.from('clientes_gc').select('id, nome, razao_social, cnpj, cpf, cidade, estado, endereco, segmento, telefone, celular, email, gc_id').eq('id', clienteId).single();
       return data;
     },
     enabled: !!clienteId,
@@ -556,10 +556,29 @@ export default function PropostaEditor() {
         <Section title="Cliente" icon="🏢">
           <div className="space-y-3">
             {clienteId && clienteSelecionado ? (
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-sm py-1 px-3">{clienteSelecionado.nome}</Badge>
-                <span className="text-xs text-muted-foreground">{clienteSelecionado.cnpj} · {clienteSelecionado.cidade}</span>
-                <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => { setClienteId(''); setClienteBusca(''); }}>Trocar</Button>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-sm">{clienteSelecionado.razao_social || clienteSelecionado.nome}</p>
+                  <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => { setClienteId(''); setClienteBusca(''); }}>Trocar</Button>
+                </div>
+                {clienteSelecionado.nome !== clienteSelecionado.razao_social && clienteSelecionado.razao_social && (
+                  <p className="text-xs text-muted-foreground">Nome fantasia: {clienteSelecionado.nome}</p>
+                )}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                  {clienteSelecionado.cnpj && <p><span className="font-medium text-foreground">CNPJ:</span> {clienteSelecionado.cnpj}</p>}
+                  {clienteSelecionado.cpf && <p><span className="font-medium text-foreground">CPF:</span> {clienteSelecionado.cpf}</p>}
+                  {clienteSelecionado.segmento && <p><span className="font-medium text-foreground">Segmento:</span> {clienteSelecionado.segmento}</p>}
+                  {(clienteSelecionado.telefone || clienteSelecionado.celular) && (
+                    <p><span className="font-medium text-foreground">Tel:</span> {clienteSelecionado.telefone || clienteSelecionado.celular}</p>
+                  )}
+                  {clienteSelecionado.email && <p><span className="font-medium text-foreground">Email:</span> {clienteSelecionado.email}</p>}
+                  {(clienteSelecionado.cidade || clienteSelecionado.estado) && (
+                    <p><span className="font-medium text-foreground">Cidade:</span> {[clienteSelecionado.cidade, clienteSelecionado.estado].filter(Boolean).join(' / ')}</p>
+                  )}
+                </div>
+                {clienteSelecionado.endereco && (
+                  <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Endereço:</span> {clienteSelecionado.endereco}</p>
+                )}
               </div>
             ) : (
               <div className="relative">
