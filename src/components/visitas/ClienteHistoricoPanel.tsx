@@ -75,6 +75,7 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
           .forEach(v => {
             items.push({
               id: `visita-${v.id}`,
+              rawId: v.id,
               tipo: 'visita',
               data: v.checkout_at || v.checkin_at || v.created_at,
               titulo: `Visita — ${resultadoLabels[v.resultado || '']?.label || v.resultado || 'Concluída'}`,
