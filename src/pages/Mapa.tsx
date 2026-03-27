@@ -294,18 +294,32 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     if (showClientes) {
       filteredClientes.forEach(c => {
         const color = getClientStatusColor(c.ultima_compra_gc);
+        const initial = (c.nome || '?').charAt(0).toUpperCase();
+        
+        // SVG pin marker - much more visible
+        const pinSvg = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="52" viewBox="0 0 40 52">
+            <defs>
+              <filter id="shadow" x="-20%" y="-10%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+              </filter>
+            </defs>
+            <path d="M20 51C20 51 38 32.5 38 19C38 9.06 29.94 1 20 1C10.06 1 2 9.06 2 19C2 32.5 20 51 20 51Z" 
+                  fill="${color}" stroke="white" stroke-width="2.5" filter="url(#shadow)"/>
+            <circle cx="20" cy="19" r="11" fill="white" opacity="0.95"/>
+            <text x="20" y="24" text-anchor="middle" font-size="14" font-weight="bold" font-family="Arial, sans-serif" fill="${color}">${initial}</text>
+          </svg>`;
+        
         const marker = new google.maps.Marker({
           map: mapRef.current!,
           position: { lat: c.latitude, lng: c.longitude },
           title: c.nome,
           icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            fillColor: color,
-            fillOpacity: 1,
-            strokeColor: '#ffffff',
-            strokeWeight: 2,
-            scale: Math.min(12, Math.max(5, (c.total_compras_gc ?? 0) / 10000 + 5)),
+            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(pinSvg),
+            scaledSize: new google.maps.Size(40, 52),
+            anchor: new google.maps.Point(20, 52),
           },
+          zIndex: 10,
         });
         marker.addListener('click', () => { setSelectedClient(c); setSelectedOp(null); });
         markers.push(marker);
