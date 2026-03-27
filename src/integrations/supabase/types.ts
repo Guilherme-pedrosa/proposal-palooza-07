@@ -934,6 +934,107 @@ export type Database = {
         }
         Relationships: []
       }
+      visitas: {
+        Row: {
+          checkin_at: string | null
+          checkin_lat: number | null
+          checkin_lng: number | null
+          checkout_at: string | null
+          checkout_lat: number | null
+          checkout_lng: number | null
+          cliente_id: string
+          created_at: string
+          data_agendada: string | null
+          duracao_minutos: number | null
+          fotos: string[] | null
+          id: string
+          observacoes: string | null
+          oportunidade_id: string | null
+          proxima_acao: string | null
+          proxima_data: string | null
+          resultado: string | null
+          satisfacao: number | null
+          status: string
+          updated_at: string
+          vendedor_id: string
+        }
+        Insert: {
+          checkin_at?: string | null
+          checkin_lat?: number | null
+          checkin_lng?: number | null
+          checkout_at?: string | null
+          checkout_lat?: number | null
+          checkout_lng?: number | null
+          cliente_id: string
+          created_at?: string
+          data_agendada?: string | null
+          duracao_minutos?: number | null
+          fotos?: string[] | null
+          id?: string
+          observacoes?: string | null
+          oportunidade_id?: string | null
+          proxima_acao?: string | null
+          proxima_data?: string | null
+          resultado?: string | null
+          satisfacao?: number | null
+          status?: string
+          updated_at?: string
+          vendedor_id: string
+        }
+        Update: {
+          checkin_at?: string | null
+          checkin_lat?: number | null
+          checkin_lng?: number | null
+          checkout_at?: string | null
+          checkout_lat?: number | null
+          checkout_lng?: number | null
+          cliente_id?: string
+          created_at?: string
+          data_agendada?: string | null
+          duracao_minutos?: number | null
+          fotos?: string[] | null
+          id?: string
+          observacoes?: string | null
+          oportunidade_id?: string | null
+          proxima_acao?: string | null
+          proxima_data?: string | null
+          resultado?: string | null
+          satisfacao?: number | null
+          status?: string
+          updated_at?: string
+          vendedor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visitas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes_gc"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitas_oportunidade_id_fkey"
+            columns: ["oportunidade_id"]
+            isOneToOne: false
+            referencedRelation: "oportunidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitas_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitas_vendedor_id_fkey"
+            columns: ["vendedor_id"]
+            isOneToOne: false
+            referencedRelation: "wai_custo_mes"
+            referencedColumns: ["usuario_id"]
+          },
+        ]
+      }
       wai_conversas: {
         Row: {
           cliente_id: string | null
