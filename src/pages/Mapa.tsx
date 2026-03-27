@@ -409,6 +409,8 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     return Array.from(set).sort() as string[];
   }, [clientes]);
 
+  const hasActiveFilters = busca.length >= 2 || segmentoFilter !== 'todos' || cidadeFilter !== 'todos' || statusFilter !== 'todos';
+
   const filteredClientes = useMemo(() => {
     let list = clientes;
     if (segmentoFilter !== 'todos') list = list.filter(c => c.segmento === segmentoFilter);
@@ -416,9 +418,17 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     if (statusFilter !== 'todos') list = list.filter(c => getClientStatusLabel(c.ultima_compra_gc) === statusFilter);
     if (busca.length >= 2) {
       const q = busca.toLowerCase();
-      list = list.filter(c => c.nome.toLowerCase().includes(q) || c.cnpj?.includes(q) || c.cidade?.toLowerCase().includes(q));
+      list = list.filter(c =>
+        c.nome.toLowerCase().includes(q) ||
+        c.razao_social?.toLowerCase().includes(q) ||
+        c.cnpj?.includes(q) ||
+        c.cidade?.toLowerCase().includes(q)
+      );
     }
-    if (viewportBounds) list = list.filter(c => viewportBounds.contains({ lat: c.latitude, lng: c.longitude }));
+    // Only apply viewport bounds when NO search/filter is active
+    if (!hasActiveFilters && viewportBounds) {
+      list = list.filter(c => viewportBounds.contains({ lat: c.latitude, lng: c.longitude }));
+    }
     // Sort by distance from user if location available
     if (userLocation) {
       list = [...list].sort((a, b) => {
@@ -428,7 +438,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       });
     }
     return list;
-  }, [clientes, segmentoFilter, cidadeFilter, statusFilter, busca, viewportBounds, userLocation]);
+  }, [clientes, segmentoFilter, cidadeFilter, statusFilter, busca, viewportBounds, userLocation, hasActiveFilters]);
 
   const filteredOps = useMemo(() => oportunidades.filter(op => { const c = op.cliente as any; return c?.latitude && c?.longitude; }), [oportunidades]);
 
@@ -752,8 +762,16 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         </div>
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar cliente, CNPJ, cidade..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-9 h-9 text-sm" />
+          <Input placeholder="Buscar cliente, CNPJ, cidade..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-9 pr-8 h-9 text-sm" />
+          {busca && (
+            <button onClick={() => setBusca('')} className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
+        {busca.length >= 2 && (
+          <p className="text-[10px] text-muted-foreground mt-1">{filteredClientes.length} resultado(s)</p>
+        )}
       </div>
 
       {/* Layers */}
