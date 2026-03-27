@@ -276,9 +276,9 @@ export default function PropostaEditor() {
   };
 
   const addProductFromCatalog = (p: ProdutoGCRow) => {
-    // Find price from selected price table
     let preco = p.preco_venda || 0;
     if (tabelaPrecoId && precosTabela.length > 0) {
+      // Use produto UUID (p.id) directly since CatalogPickerModal passes ProdutoGCRow with its UUID
       const precoTabela = precosTabela.find(pt => pt.produto_id === p.id);
       if (precoTabela && precoTabela.valor_venda > 0) {
         preco = precoTabela.valor_venda;
