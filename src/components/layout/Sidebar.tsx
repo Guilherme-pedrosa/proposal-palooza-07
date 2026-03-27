@@ -17,6 +17,7 @@ import {
   ChevronDown,
   X,
   LogOut,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCompany } from '@/contexts/CompanyContext';
@@ -79,6 +80,7 @@ const menuGroups: MenuGroup[] = [
     items: [
       { title: 'Termos e Condições', icon: ClipboardList, href: '/termos' },
       { title: 'Empresa', icon: Settings, href: '/configuracoes' },
+      { title: 'Usuários', icon: Users, href: '/usuarios' },
     ],
   },
 ];

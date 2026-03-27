@@ -1237,6 +1237,7 @@ export type Database = {
     }
     Functions: {
       atualizar_segmentos_clientes: { Args: never; Returns: undefined }
+      is_admin_or_gestor: { Args: { _user_id: string }; Returns: boolean }
       marcar_prospects_clientes: { Args: never; Returns: undefined }
     }
     Enums: {

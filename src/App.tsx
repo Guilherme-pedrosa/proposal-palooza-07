@@ -35,6 +35,7 @@ import NotFound from "./pages/NotFound";
 import Mapa from "./pages/Mapa";
 import VisitaAtiva from "./pages/VisitaAtiva";
 import Visitas from "./pages/Visitas";
+import Usuarios from "./pages/Usuarios";
 
 const queryClient = new QueryClient();
 
@@ -110,6 +111,7 @@ function AppRoutes() {
       <Route path="/sync" element={<ProtectedRoute><SyncGC /></ProtectedRoute>} />
       <Route path="/termos" element={<ProtectedRoute><TermsConditions /></ProtectedRoute>} />
       <Route path="/configuracoes" element={<ProtectedRoute><CompanySettings /></ProtectedRoute>} />
+      <Route path="/usuarios" element={<ProtectedRoute><Usuarios /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
