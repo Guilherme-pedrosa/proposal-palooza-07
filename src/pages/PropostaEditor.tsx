@@ -261,7 +261,7 @@ export default function PropostaEditor() {
 
   const handleSelectTemplate = (tplId: string) => {
     if (templateId && produtos.length > 0) {
-      if (!confirm('Trocar template vai pré-preencher termos. Continuar?')) return;
+      if (!confirm('Trocar template vai limpar os produtos. Continuar?')) return;
     }
     setTemplateId(tplId);
     const tpl = proposalTemplates.find((t) => t.id === tplId);
