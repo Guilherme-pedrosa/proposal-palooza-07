@@ -332,19 +332,31 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         const cl = op.cliente as any;
         if (!cl?.latitude || !cl?.longitude) return;
         const color = ETAPA_COLORS[op.etapa] || '#64748B';
-        const scale = getOpRadius(op.valor_estimado ?? 0) / 2;
+        const size = Math.min(48, Math.max(32, getOpRadius(op.valor_estimado ?? 0)));
+        const opacity = showHeatmap ? 0.5 : 1;
+        
+        const opSvg = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 40 40">
+            <defs>
+              <filter id="opshadow" x="-20%" y="-10%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/>
+              </filter>
+            </defs>
+            <circle cx="20" cy="20" r="17" fill="${color}" opacity="${opacity}" stroke="white" stroke-width="2.5" filter="url(#opshadow)"/>
+            <text x="20" y="14" text-anchor="middle" font-size="7" font-weight="600" font-family="Arial, sans-serif" fill="white">R$</text>
+            <text x="20" y="26" text-anchor="middle" font-size="10" font-weight="bold" font-family="Arial, sans-serif" fill="white">${((op.valor_estimado ?? 0) / 1000).toFixed(0)}k</text>
+          </svg>`;
+
         const marker = new google.maps.Marker({
           map: mapRef.current!,
           position: { lat: cl.latitude, lng: cl.longitude },
           title: op.titulo,
           icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            fillColor: color,
-            fillOpacity: showHeatmap ? 0.4 : 1,
-            strokeColor: '#ffffff',
-            strokeWeight: 2,
-            scale,
+            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(opSvg),
+            scaledSize: new google.maps.Size(size, size),
+            anchor: new google.maps.Point(size / 2, size / 2),
           },
+          zIndex: 5,
         });
         marker.addListener('click', () => { setSelectedOp(op); setSelectedClient(null); });
         markers.push(marker);
