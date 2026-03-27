@@ -86,21 +86,33 @@ serve(async (req) => {
         break;
       }
 
-      const registros = clientes.map((c: any) => ({
-        gc_id: String(c.id),
-        tipo_pessoa: c.tipo_pessoa || 'PJ',
-        nome: c.nome || c.razao_social || 'Sem nome',
-        razao_social: c.razao_social,
-        cnpj: c.cnpj,
-        cpf: c.cpf,
-        telefone: c.telefone,
-        celular: c.celular,
-        email: c.email,
-        cidade: c.cidade,
-        estado: c.estado,
-        ativo: c.ativo !== false,
-        gc_synced_at: new Date().toISOString(),
-      }));
+      const registros = clientes.map((c: any) => {
+        const enderecoGc = c?.enderecos?.[0]?.endereco;
+        const logradouro = enderecoGc?.logradouro ?? c.logradouro ?? null;
+        const numero = enderecoGc?.numero ? String(enderecoGc.numero) : null;
+        const complemento = enderecoGc?.complemento ? String(enderecoGc.complemento) : null;
+        const bairro = enderecoGc?.bairro ? String(enderecoGc.bairro) : null;
+        const enderecoMontado = [logradouro, numero, complemento, bairro].filter(Boolean).join(', ') || null;
+        const cidade = enderecoGc?.nome_cidade ?? c.cidade ?? null;
+        const estado = enderecoGc?.estado ?? c.estado ?? null;
+
+        return {
+          gc_id: String(c.id),
+          tipo_pessoa: c.tipo_pessoa || 'PJ',
+          nome: c.nome || c.razao_social || 'Sem nome',
+          razao_social: c.razao_social,
+          cnpj: c.cnpj,
+          cpf: c.cpf,
+          telefone: c.telefone,
+          celular: c.celular,
+          email: c.email,
+          endereco: enderecoMontado,
+          cidade,
+          estado,
+          ativo: c.ativo !== false,
+          gc_synced_at: new Date().toISOString(),
+        };
+      });
 
       const { error } = await supabase
         .from('clientes_gc')

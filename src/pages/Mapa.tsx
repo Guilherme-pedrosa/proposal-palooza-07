@@ -189,7 +189,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     },
   });
 
-  // Count pending geocoding
+  // Count pending geocoding (only records with minimum location data)
   const { data: pendingCount = 0 } = useQuery({
     queryKey: ['geo_pending_count'],
     queryFn: async () => {
@@ -197,7 +197,8 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         .from('clientes_gc')
         .select('*', { count: 'exact', head: true })
         .or('geocodificado.is.null,geocodificado.eq.false')
-        .not('cidade', 'is', null);
+        .not('cidade', 'is', null)
+        .not('estado', 'is', null);
       return count ?? 0;
     },
   });
@@ -246,6 +247,8 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     ops: filteredOps.length,
     pipeline: filteredOps.reduce((s, o) => s + (o.valor_estimado ?? 0), 0),
   }), [filteredClientes, filteredOps]);
+
+  const noGeocodedClientes = clientes.length === 0;
 
   // Heatmap data
   const heatmapData = useMemo(() => {
@@ -556,7 +559,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             <GoogleMap
               mapContainerStyle={{ width: '100%', height: '100%' }}
               center={MAP_CENTER}
-              zoom={5}
+              zoom={noGeocodedClientes ? 4 : 5}
               onLoad={onMapLoad}
               onIdle={onMapIdle}
               options={{
@@ -568,8 +571,34 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                 fullscreenControl: true,
               }}
             >
+              {/* Empty state */}
+              {noGeocodedClientes && (
+                <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                  <div className="pointer-events-auto bg-card border border-border rounded-xl p-6 max-w-md text-center shadow-lg space-y-3">
+                    <h3 className="font-semibold text-lg">Nenhum cliente no mapa ainda</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Sincronize seus clientes do GestãoClick primeiro, depois clique em Geocodificar.
+                    </p>
+                    <Button
+                      onClick={handleGeocodificar}
+                      disabled={geocodificando || pendingCount === 0}
+                      className="w-full"
+                    >
+                      {geocodificando ? (
+                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Geocodificando...</>
+                      ) : (
+                        <>🔄 Geocodificar Clientes</>
+                      )}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Nenhum cliente geocodificado. Sincronize os clientes do GestãoClick e clique em Geocodificar.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Heatmap */}
-              {showHeatmap && heatmapData.length > 0 && (
+              {!noGeocodedClientes && showHeatmap && heatmapData.length > 0 && (
                 <HeatmapLayerF
                   data={heatmapData}
                   options={{
@@ -587,7 +616,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               )}
 
               {/* Client InfoWindow */}
-              {selectedClient && (
+              {!noGeocodedClientes && selectedClient && (
                 <InfoWindowF
                   position={{ lat: selectedClient.latitude, lng: selectedClient.longitude }}
                   onCloseClick={() => setSelectedClient(null)}
@@ -635,7 +664,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               )}
 
               {/* Opportunity InfoWindow */}
-              {selectedOp && (() => {
+              {!noGeocodedClientes && selectedOp && (() => {
                 const cl = selectedOp.cliente as any;
                 return cl?.latitude && cl?.longitude ? (
                   <InfoWindowF
