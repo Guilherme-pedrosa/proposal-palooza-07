@@ -80,6 +80,7 @@ const menuGroups: MenuGroup[] = [
     items: [
       { title: 'Termos e Condições', icon: ClipboardList, href: '/termos' },
       { title: 'Empresa', icon: Settings, href: '/configuracoes' },
+      { title: 'Usuários', icon: Users, href: '/usuarios' },
     ],
   },
 ];
