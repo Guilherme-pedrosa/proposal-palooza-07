@@ -28,6 +28,11 @@ export interface PropostaRow {
   pdf_url: string | null;
   gc_orcamento_id: string | null;
   gc_orcamento_url: string | null;
+  forma_pagamento: string | null;
+  num_parcelas: number | null;
+  entrada_percent: number | null;
+  condicoes_pagamento: string | null;
+  prazo_entrega: string | null;
   created_at: string | null;
   updated_at: string | null;
   // Joined
