@@ -1193,6 +1193,15 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             </GoogleMap>
           )}
 
+          {/* Histórico panel */}
+          <ClienteHistoricoPanel
+            open={!!historicoClienteId}
+            onOpenChange={(open) => !open && setHistoricoClienteId(null)}
+            clienteId={historicoClienteId?.id || ''}
+            clienteNome={historicoClienteId?.nome || ''}
+            gcId={historicoClienteId?.gcId}
+          />
+
           {/* Legend - desktop only */}
           {!isMobile && (
             <div className="absolute bottom-4 left-4 z-10 bg-card/95 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg text-xs space-y-2 max-w-[200px]">
