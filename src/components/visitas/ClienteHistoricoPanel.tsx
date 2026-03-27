@@ -306,11 +306,14 @@ export function HistoricoResumo({
 }) {
   const [items, setItems] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [vendedorNome, setVendedorNome] = useState<string | null>(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       const result: TimelineItem[] = [];
+      let vendedor: string | null = null;
 
       try {
         const visitas = await fetchVisitasCliente(clienteId);
@@ -326,14 +329,22 @@ export function HistoricoResumo({
               duracao: v.duracao_minutos || undefined,
             });
           });
-      } catch { /* */ }
+      } catch (e) { console.warn('HistoricoResumo: erro ao buscar visitas', e); }
 
       if (gcId) {
         try {
           const { data } = await supabase.functions.invoke('gc-buscar-historico-cliente', {
             body: { gc_cliente_id: gcId },
           });
-          (data?.vendas || []).slice(0, 2).forEach((v: any) => {
+          const vendas = data?.vendas || [];
+          const oss = data?.ordens_servicos || [];
+
+          // Extract vendedor from most recent transaction
+          const firstVenda = vendas[0];
+          const firstOS = oss[0];
+          vendedor = firstVenda?.nome_vendedor || firstVenda?.nome_tecnico || firstOS?.nome_tecnico || firstOS?.nome_vendedor || null;
+
+          vendas.slice(0, 2).forEach((v: any) => {
             result.push({
               id: `vd-${v.id}`,
               tipo: 'venda',
@@ -342,12 +353,26 @@ export function HistoricoResumo({
               valor: parseFloat(v.valor_total) || 0,
             });
           });
-        } catch { /* */ }
+
+          oss.slice(0, 2).forEach((os: any) => {
+            result.push({
+              id: `os-${os.id}`,
+              tipo: 'os',
+              data: os.data || '',
+              titulo: `OS #${os.codigo || os.id}`,
+              valor: parseFloat(os.valor_total) || 0,
+            });
+          });
+        } catch (e) {
+          console.warn('HistoricoResumo: erro ao buscar histórico GC', e);
+          if (!cancelled) setError(true);
+        }
       }
 
       result.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
       if (!cancelled) {
-        setItems(result.slice(0, 3));
+        setItems(result.slice(0, 4));
+        setVendedorNome(vendedor);
         setLoading(false);
       }
     }
@@ -355,16 +380,29 @@ export function HistoricoResumo({
     return () => { cancelled = true; };
   }, [clienteId, gcId]);
 
-  if (loading) return <p className="text-[10px]" style={{ color: '#9CA3AF' }}>Carregando histórico...</p>;
-  if (items.length === 0) return null;
+  if (loading) return (
+    <div>
+      <p className="text-[10px] font-semibold mb-1" style={{ color: '#6B7280' }}>📋 ÚLTIMAS INTERAÇÕES</p>
+      <p className="text-[10px]" style={{ color: '#9CA3AF' }}>Carregando histórico...</p>
+    </div>
+  );
+  if (items.length === 0 && !vendedorNome) return null;
 
   return (
     <div>
+      {vendedorNome && (
+        <p className="text-[10px] font-medium mb-1" style={{ color: '#374151' }}>
+          👤 Vendedor: <strong>{vendedorNome}</strong>
+        </p>
+      )}
       <p className="text-[10px] font-semibold mb-1" style={{ color: '#6B7280' }}>📋 ÚLTIMAS INTERAÇÕES</p>
       {items.map(item => (
         <div key={item.id} className="flex items-center gap-1.5 py-0.5" style={{ fontSize: '10px', color: '#374151' }}>
-          <span>{item.tipo === 'visita' ? '📍' : item.tipo === 'venda' ? '🛒' : '📄'}</span>
+          <span>{item.tipo === 'visita' ? '📍' : item.tipo === 'venda' ? '🛒' : item.tipo === 'os' ? '🔧' : '📄'}</span>
           <span className="truncate flex-1">{item.titulo}</span>
+          {item.valor && item.valor > 0 && (
+            <span style={{ color: '#374151', fontWeight: 600 }}>{formatBRL(item.valor)}</span>
+          )}
           <span style={{ color: '#9CA3AF' }}>
             {item.data ? format(new Date(item.data), 'dd/MM', { locale: ptBR }) : ''}
           </span>
