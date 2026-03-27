@@ -19,6 +19,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { formatBRL } from '@/lib/api/propostas';
+import { iniciarCheckin, fetchVisitaEmAndamento, type VisitaComCliente } from '@/lib/api/visitas';
+import { LogIn, LogOut } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { toast as sonnerToast } from 'sonner';
 import {
@@ -226,6 +228,36 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const [prospCidade, setProspCidade] = useState('');
   const [prospOcultarClientes, setProspOcultarClientes] = useState(false);
   const [convertingCnpj, setConvertingCnpj] = useState<string | null>(null);
+  const [checkinLoading, setCheckinLoading] = useState(false);
+
+  // Visita em andamento
+  const { data: visitaEmAndamento, refetch: refetchVisita } = useQuery({
+    queryKey: ['visita_em_andamento', user?.id],
+    queryFn: () => fetchVisitaEmAndamento(user!.id),
+    enabled: !!user,
+  });
+
+  const handleCheckinFromMap = async (cliente: ClienteGeo) => {
+    if (!user) return;
+    setCheckinLoading(true);
+    try {
+      const lat = userLocation?.lat || cliente.latitude;
+      const lng = userLocation?.lng || cliente.longitude;
+      await iniciarCheckin({
+        cliente_id: cliente.id,
+        vendedor_id: user.id,
+        lat,
+        lng,
+      });
+      sonnerToast.success(`📍 Check-in em ${cliente.nome} realizado!`);
+      refetchVisita();
+      setSelectedClient(null);
+    } catch (e: any) {
+      sonnerToast.error('Erro ao fazer check-in: ' + (e.message || ''));
+    } finally {
+      setCheckinLoading(false);
+    }
+  };
 
   // ─── User location marker ─────────────────────────
   useEffect(() => {
@@ -1050,7 +1082,22 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                       <p>📊 {getClientStatusLabel(selectedClient.ultima_compra_gc)}</p>
                       {selectedClient.total_compras_gc && selectedClient.total_compras_gc > 0 && <p>💰 Total: {formatBRL(selectedClient.total_compras_gc)}</p>}
                     </div>
-                    <div className="flex gap-1 pt-1">
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {/* Check-in button */}
+                      {visitaEmAndamento?.cliente_id === selectedClient.id && visitaEmAndamento?.status === 'em_andamento' ? (
+                        <button onClick={() => navigate(`/cliente/${selectedClient.id}`)} className="text-xs px-2 py-1 rounded font-medium flex items-center gap-1" style={{ backgroundColor: '#EF4444', color: 'white' }}>
+                          ✅ Em visita — Check-out
+                        </button>
+                      ) : !visitaEmAndamento || visitaEmAndamento.status !== 'em_andamento' ? (
+                        <button
+                          onClick={() => handleCheckinFromMap(selectedClient)}
+                          disabled={checkinLoading}
+                          className="text-xs px-2 py-1 rounded font-medium flex items-center gap-1"
+                          style={{ backgroundColor: '#16A34A', color: 'white', opacity: checkinLoading ? 0.6 : 1 }}
+                        >
+                          📍 {checkinLoading ? 'Entrando...' : 'Check-in'}
+                        </button>
+                      ) : null}
                       <button onClick={() => navigate(`/cliente/${selectedClient.id}`)} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#0066FF', color: 'white' }}>Ver Perfil</button>
                       <button onClick={() => openRoute(selectedClient.latitude, selectedClient.longitude)} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#E5E7EB', color: '#374151' }}>Rota</button>
                       {(selectedClient.celular || selectedClient.telefone) && (
