@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,25 +16,27 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { format, addDays } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import {
   ArrowLeft, Save, Send, FileText, ChevronDown, Plus, Trash2, Image as ImageIcon,
-  Copy, MessageCircle, Mail, Printer, Link2, Search, Loader2
+  Copy, MessageCircle, Mail, Printer, Search, Loader2
 } from 'lucide-react';
 import { WAIButton } from '@/components/WAIButton';
 import { supabase } from '@/integrations/supabase/client';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { NumberInput } from '@/components/ui/number-input';
 import { CatalogPickerModal } from '@/components/proposal/CatalogPickerModal';
+import { usePrintProposal } from '@/components/proposal/PrintProposal';
 import {
   fetchPropostaById, createProposta, updateProposta, getNextPropostaNumber,
-  STATUS_PROPOSTA, formatBRL, type PropostaRow, type StatusProposta,
+  STATUS_PROPOSTA, formatBRL, type StatusProposta,
 } from '@/lib/api/propostas';
 import { proposalTemplates } from '@/types/proposalTemplate';
 import { useProposal } from '@/contexts/ProposalContext';
 import { useGC } from '@/contexts/GCContext';
-import { tabelasPrecoApi, type TabelaPreco } from '@/lib/api/tabelasPreco';
+import { useCompany } from '@/contexts/CompanyContext';
+import { tabelasPrecoApi } from '@/lib/api/tabelasPreco';
 import type { ProdutoGCRow } from '@/lib/api/produtosGC';
+import type { Proposal as ProposalPrintType } from '@/types/proposal';
 
 interface PropostaProduct {
   id: string;
@@ -91,12 +93,15 @@ export default function PropostaEditor() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { company } = useCompany();
+  const { printProposal } = usePrintProposal();
   const { savedTerms } = useProposal();
   const { criarOrcamentoGC } = useGC();
   const [searchParams] = useSearchParams();
   const isNew = !id;
 
   const [saving, setSaving] = useState(false);
+  const [uploadingAnexos, setUploadingAnexos] = useState(false);
   const [carregandoGC, setCarregandoGC] = useState(false);
   const [gcOrcamentoUrl, setGcOrcamentoUrl] = useState('');
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -336,8 +341,50 @@ export default function PropostaEditor() {
 
   const validadeAte = addDays(new Date(), parseInt(validadeDias) || 10);
 
+  const toPrintStatus = (value: string): 'draft' | 'sent' | 'approved' | 'rejected' => {
+    if (value === 'enviada') return 'sent';
+    if (value === 'aprovada') return 'approved';
+    if (value === 'recusada') return 'rejected';
+    return 'draft';
+  };
+
+  const buildPrintProposal = (): Partial<ProposalPrintType> => ({
+    number: numero,
+    createdAt: proposta?.created_at ? new Date(proposta.created_at) : new Date(),
+    validUntil: validadeAte,
+    client: {
+      id: clienteSelecionado?.id || clienteId || '',
+      name: clienteSelecionado?.razao_social || clienteSelecionado?.nome || 'Cliente',
+      email: clienteSelecionado?.email || undefined,
+      phone: clienteSelecionado?.telefone || clienteSelecionado?.celular || undefined,
+      address: clienteSelecionado?.endereco || undefined,
+      cnpj: clienteSelecionado?.cnpj || undefined,
+    },
+    title: titulo,
+    description: descricao,
+    products: produtos.map((p) => ({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      unit: p.unit,
+      quantity: p.quantity,
+      unitPrice: p.unitPrice,
+      totalPrice: p.totalPrice,
+      discount: p.discount,
+    })),
+    termsConditions: termos.map((t) => ({ id: t.id, title: t.title, description: t.description })),
+    images: imagens.map((img) => ({ id: img.id, url: img.url, name: img.name || 'Imagem' })),
+    totalValue: total,
+    status: toPrintStatus(status),
+    companyName: company.name,
+    companyPhone: company.phone,
+    companyEmail: company.email || undefined,
+    templateId: templateId || undefined,
+  });
+
   const handleSave = async (newStatus?: string) => {
     if (!titulo.trim()) { toast({ title: 'Informe o título da proposta', variant: 'destructive' }); return; }
+    if (uploadingAnexos) { toast({ title: 'Aguarde o upload dos anexos terminar', variant: 'destructive' }); return; }
     setSaving(true);
     try {
       const payload: Record<string, any> = {
@@ -370,7 +417,6 @@ export default function PropostaEditor() {
         toast({ title: '💾 Proposta salva!' });
         navigate(`/propostas/${created.id}`, { replace: true });
       } else {
-        // Versioning: if status !== rascunho and we're saving, bump version
         if (proposta && proposta.status !== 'rascunho' && !newStatus) {
           const hist = proposta.historico_versoes ?? [];
           hist.push({
@@ -405,6 +451,14 @@ export default function PropostaEditor() {
     }
   };
 
+  const handleExportPdf = async () => {
+    try {
+      await printProposal(buildPrintProposal(), company);
+    } catch (err: any) {
+      toast({ title: 'Erro ao exportar PDF', description: err?.message, variant: 'destructive' });
+    }
+  };
+
   const copyLink = () => {
     navigator.clipboard.writeText(shareUrl);
     toast({ title: '📋 Link copiado!' });
@@ -425,27 +479,30 @@ export default function PropostaEditor() {
 
   const handleAnexoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
-    for (const file of Array.from(files)) {
-      const fileId = crypto.randomUUID();
-      const ext = file.name.split('.').pop() || 'bin';
-      const path = `anexos/${fileId}.${ext}`;
-      const { error } = await supabase.storage.from('proposals').upload(path, file);
-      if (error) {
-        toast({ title: `Erro ao enviar ${file.name}`, description: error.message, variant: 'destructive' });
-        continue;
+    if (!files || !user?.id) return;
+    setUploadingAnexos(true);
+    try {
+      for (const file of Array.from(files)) {
+        const fileId = crypto.randomUUID();
+        const ext = file.name.split('.').pop() || 'bin';
+        const path = `${user.id}/${fileId}.${ext}`;
+        const { error } = await supabase.storage.from('proposals').upload(path, file, { upsert: false });
+        if (error) {
+          toast({ title: `Erro ao enviar ${file.name}`, description: error.message, variant: 'destructive' });
+          continue;
+        }
+        setAnexos((prev) => [...prev, {
+          id: fileId,
+          storagePath: path,
+          name: file.name,
+          type: file.type,
+          size: file.size,
+        }]);
       }
-      const { data: urlData } = supabase.storage.from('proposals').getPublicUrl(path);
-      setAnexos((prev) => [...prev, {
-        id: fileId,
-        url: urlData.publicUrl,
-        storagePath: path,
-        name: file.name,
-        type: file.type,
-        size: file.size,
-      }]);
+    } finally {
+      setUploadingAnexos(false);
+      e.target.value = '';
     }
-    e.target.value = '';
   };
 
   const criarOrcamentoNoGC = async () => {
@@ -510,11 +567,14 @@ export default function PropostaEditor() {
             </div>
           </div>
           <div className="flex gap-2 mt-2 overflow-x-auto no-scrollbar">
-            <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={() => handleSave()} disabled={saving}>
+            <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={() => handleSave()} disabled={saving || uploadingAnexos}>
               <Save className="h-3.5 w-3.5" /> {saving ? 'Salvando...' : 'Salvar'}
             </Button>
-            <Button size="sm" className="gap-1.5 shrink-0" onClick={handleSendLink} disabled={saving}>
+            <Button size="sm" className="gap-1.5 shrink-0" onClick={handleSendLink} disabled={saving || uploadingAnexos}>
               <Send className="h-3.5 w-3.5" /> Enviar Link
+            </Button>
+            <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={handleExportPdf} disabled={saving || uploadingAnexos}>
+              <Printer className="h-3.5 w-3.5" /> PDF
             </Button>
             {gcOrcamentoUrl ? (
               <Button size="sm" variant="outline" className="gap-1.5 shrink-0" asChild>
