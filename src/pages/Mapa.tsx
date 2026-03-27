@@ -1042,9 +1042,9 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
   return (
     <MainLayout fullscreen>
-      <div className="flex h-full relative overflow-hidden">
+      <div className="flex h-full relative overflow-hidden isolate">
         {/* Desktop sidebar — visível a partir de lg (1024px) */}
-        <div className="hidden lg:flex w-80 border-r border-border bg-card flex-col shrink-0 h-full overflow-hidden">
+        <div className="hidden lg:flex w-80 border-r border-border bg-card flex-col shrink-0 h-full overflow-hidden relative z-30">
           <ScrollArea className="h-full">{sidebarContent}</ScrollArea>
         </div>
 
@@ -1119,7 +1119,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         )}
 
         {/* Map */}
-        <div className="flex-1 relative">
+        <div className="flex-1 min-w-0 relative z-0 overflow-hidden">
           {!isLoaded ? (
             <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : (
