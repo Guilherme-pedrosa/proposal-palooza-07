@@ -165,6 +165,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const mapRef = useRef<google.maps.Map | null>(null);
+  const [mapReady, setMapReady] = useState(false);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const prospectMarkersRef = useRef<google.maps.Marker[]>([]);
   const clustererRef = useRef<MarkerClusterer | null>(null);
@@ -296,7 +297,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       zIndex: 999,
       clickable: false,
     });
-  }, [isLoaded, userLocation]);
+  }, [isLoaded, mapReady, userLocation]);
 
   const { data: clientes = [], isLoading: loadingClientes } = useQuery({
     queryKey: ['clientes_geo'],
@@ -471,6 +472,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   // ─── Map lifecycle ────────────────────────────────
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
+    setMapReady(true);
     if (clientes.length > 0) {
       const bounds = new google.maps.LatLngBounds();
       clientes.forEach(c => bounds.extend({ lat: c.latitude, lng: c.longitude }));
@@ -574,7 +576,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       markers.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
       if (clustererRef.current) { clustererRef.current.clearMarkers(); clustererRef.current = null; }
     };
-  }, [isLoaded, mapFilteredClientes, filteredOps, showClientes, showOportunidades, showHeatmap]);
+  }, [isLoaded, mapReady, mapFilteredClientes, filteredOps, showClientes, showOportunidades, showHeatmap]);
 
   // ─── Prospect markers (separate layer — small dots) ────────────
   const prospectClustererRef = useRef<MarkerClusterer | null>(null);
@@ -624,7 +626,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       markers.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
       if (prospectClustererRef.current) { prospectClustererRef.current.clearMarkers(); prospectClustererRef.current = null; }
     };
-  }, [isLoaded, showProspeccao, geocodedProspects]);
+  }, [isLoaded, mapReady, showProspeccao, geocodedProspects]);
 
   // ─── Actions ──────────────────────────────────────
   const centerOnClient = (c: ClienteGeo) => {
