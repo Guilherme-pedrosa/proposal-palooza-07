@@ -653,20 +653,65 @@ export default function PropostaEditor() {
         {/* Section 6: Terms */}
         <Section title={`Termos e Condições (${termos.length})`} icon="📚">
           <div className="space-y-3">
-            <Button size="sm" variant="outline" className="gap-1" onClick={addTermo}>
-              <Plus className="h-3 w-3" /> Adicionar Cláusula
-            </Button>
-            {termos.map((t, i) => (
-              <div key={t.id} className="border rounded-lg p-3 space-y-2">
-                <div className="flex gap-2">
-                  <Input value={t.title} onChange={(e) => updateTermo(i, 'title', e.target.value)} placeholder="Título da cláusula" className="text-sm h-8 flex-1" />
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive shrink-0" onClick={() => removeTermo(i)}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+            {/* Selectable saved terms */}
+            {(() => {
+              const available = savedTerms.filter(st =>
+                st.templateIds.length === 0 || (templateId && st.templateIds.includes(templateId))
+              );
+              if (available.length === 0) return (
+                <p className="text-sm text-muted-foreground">Nenhum termo disponível para este template.</p>
+              );
+              return (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground font-medium">Selecione os termos desejados:</p>
+                  <div className="max-h-60 overflow-y-auto space-y-1.5 border rounded-lg p-2">
+                    {available.map((st) => {
+                      const isSelected = termos.some(t => t.id === st.id);
+                      return (
+                        <label
+                          key={st.id}
+                          className={`flex items-start gap-2 p-2 rounded-md cursor-pointer transition-colors text-sm ${
+                            isSelected ? 'bg-primary/10 border border-primary/30' : 'hover:bg-muted/50'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {
+                              if (isSelected) {
+                                setTermos(prev => prev.filter(t => t.id !== st.id));
+                              } else {
+                                setTermos(prev => [...prev, { id: st.id, title: st.title, description: st.description }]);
+                              }
+                            }}
+                            className="mt-0.5 rounded border-border"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <span className="font-medium">{st.title}</span>
+                            <p className="text-xs text-muted-foreground line-clamp-2">{st.description}</p>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
-                <Textarea value={t.description} onChange={(e) => updateTermo(i, 'description', e.target.value)} placeholder="Texto da cláusula" rows={2} className="text-sm" />
+              );
+            })()}
+
+            {/* Selected terms summary */}
+            {termos.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-xs text-muted-foreground font-medium">Termos selecionados ({termos.length}):</p>
+                {termos.map((t) => (
+                  <div key={t.id} className="flex items-center gap-2 text-sm border rounded-md p-2">
+                    <span className="flex-1 font-medium truncate">{t.title}</span>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive shrink-0" onClick={() => setTermos(prev => prev.filter(x => x.id !== t.id))}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         </Section>
 
