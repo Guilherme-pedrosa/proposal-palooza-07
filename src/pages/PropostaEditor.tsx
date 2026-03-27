@@ -580,26 +580,6 @@ export default function PropostaEditor() {
           </div>
         </Section>
 
-        {/* Section 4: Price Table */}
-        {tabelasPreco.length > 0 && (
-          <Section title="Tabela de Preço" icon="💰">
-            <Select value={tabelaPrecoId} onValueChange={setTabelaPrecoId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecionar tabela de preço..." />
-              </SelectTrigger>
-              <SelectContent>
-                {tabelasPreco.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {t.nome} {t.principal ? '⭐' : ''}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground mt-1">
-              A tabela selecionada define os preços ao adicionar produtos do catálogo
-            </p>
-          </Section>
-        )}
 
         {/* Section 5: Products */}
         <Section title={`Produtos e Serviços — ${formatBRL(total)}`} icon="📦">
