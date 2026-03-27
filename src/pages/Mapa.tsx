@@ -156,6 +156,67 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const markersRef = useRef<google.maps.Marker[]>([]);
   const prospectMarkersRef = useRef<google.maps.Marker[]>([]);
   const clustererRef = useRef<MarkerClusterer | null>(null);
+  const userMarkerRef = useRef<google.maps.Marker | null>(null);
+
+  // ─── User geolocation ─────────────────────────────
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locatingUser, setLocatingUser] = useState(false);
+
+  const requestUserLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      sonnerToast.error('Geolocalização não suportada neste navegador.');
+      return;
+    }
+    setLocatingUser(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserLocation(loc);
+        setLocatingUser(false);
+        if (mapRef.current) {
+          mapRef.current.panTo(loc);
+          mapRef.current.setZoom(13);
+        }
+      },
+      (err) => {
+        setLocatingUser(false);
+        sonnerToast.error('Não foi possível obter sua localização. Verifique as permissões.');
+        console.error('Geolocation error:', err);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
+
+  // Request location on mount
+  useEffect(() => {
+    requestUserLocation();
+  }, []);
+
+  // User location marker
+  useEffect(() => {
+    if (!mapRef.current || !isLoaded || !userLocation) return;
+    if (userMarkerRef.current) {
+      userMarkerRef.current.setPosition(userLocation);
+      return;
+    }
+    const blueDotSvg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+        <circle cx="14" cy="14" r="13" fill="#4285F4" fill-opacity="0.2" stroke="#4285F4" stroke-width="1.5"/>
+        <circle cx="14" cy="14" r="6" fill="#4285F4" stroke="white" stroke-width="2.5"/>
+      </svg>`;
+    userMarkerRef.current = new google.maps.Marker({
+      position: userLocation,
+      map: mapRef.current,
+      title: 'Minha localização',
+      icon: {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(blueDotSvg),
+        scaledSize: new google.maps.Size(28, 28),
+        anchor: new google.maps.Point(14, 14),
+      },
+      zIndex: 999,
+      clickable: false,
+    });
+  }, [isLoaded, userLocation]);
 
   // ─── Layer & filter state ──────────────────────────
   const [selectedClient, setSelectedClient] = useState<ClienteGeo | null>(null);
