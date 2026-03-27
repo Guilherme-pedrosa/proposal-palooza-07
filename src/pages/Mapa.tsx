@@ -533,6 +533,19 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         </div>
       )}
 
+      {/* Sync compras button */}
+      <div className="px-4 pb-3">
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full text-xs"
+          onClick={handleSyncCompras}
+          disabled={syncingCompras}
+        >
+          {syncingCompras ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Sincronizando compras...</> : <><RefreshCw className="h-3 w-3 mr-1" /> Atualizar última compra GC</>}
+        </Button>
+      </div>
+
       {/* Client list */}
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
