@@ -261,18 +261,13 @@ export default function PropostaEditor() {
 
   const handleSelectTemplate = (tplId: string) => {
     if (templateId && produtos.length > 0) {
-      if (!confirm('Trocar template vai pré-preencher termos. Continuar?')) return;
+      if (!confirm('Trocar template vai limpar os produtos. Continuar?')) return;
     }
     setTemplateId(tplId);
     const tpl = proposalTemplates.find((t) => t.id === tplId);
     if (tpl) {
       if (!titulo) setTitulo(tpl.defaultTitle);
       if (!descricao) setDescricao(tpl.defaultDescription);
-      // Pre-fill terms
-      const tplTerms = savedTerms
-        .filter((t) => t.templateIds.length === 0 || t.templateIds.includes(tplId))
-        .map((t) => ({ id: crypto.randomUUID(), title: t.title, description: t.description }));
-      setTermos(tplTerms);
       // Pre-fill products
       if (produtos.length === 0 && tpl.defaultProducts.length > 0) {
         setProdutos(tpl.defaultProducts.map((dp) => ({
