@@ -21,7 +21,7 @@ import { formatBRL } from '@/lib/api/propostas';
 import { format, differenceInDays } from 'date-fns';
 import {
   MapPin, Search, Layers, Filter, Phone, MessageCircle, ExternalLink,
-  Navigation, Users, TrendingUp, Loader2, Menu, X, Crosshair, MapIcon
+  Navigation, Users, TrendingUp, Loader2, Menu, X, Crosshair, MapIcon, RefreshCw
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -402,6 +402,21 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     }
   };
 
+  const [syncingCompras, setSyncingCompras] = useState(false);
+  const handleSyncCompras = async () => {
+    setSyncingCompras(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('gc-sync-ultima-compra');
+      if (error) throw error;
+      toast({ title: '✅ Sync de compras concluída', description: `${data.atualizados} atualizados, ${data.sem_compra} sem compra, ${data.erros} erros` });
+      queryClient.invalidateQueries({ queryKey: ['clientes_geo'] });
+    } catch (e: any) {
+      toast({ title: 'Erro na sync de compras', description: e.message, variant: 'destructive' });
+    } finally {
+      setSyncingCompras(false);
+    }
+  };
+
   const openWhatsApp = (phone: string) => {
     const clean = phone.replace(/\D/g, '');
     const num = clean.startsWith('55') ? clean : `55${clean}`;
@@ -517,6 +532,19 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
           </Button>
         </div>
       )}
+
+      {/* Sync compras button */}
+      <div className="px-4 pb-3">
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full text-xs"
+          onClick={handleSyncCompras}
+          disabled={syncingCompras}
+        >
+          {syncingCompras ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Sincronizando compras...</> : <><RefreshCw className="h-3 w-3 mr-1" /> Atualizar última compra GC</>}
+        </Button>
+      </div>
 
       {/* Client list */}
       <ScrollArea className="flex-1">
