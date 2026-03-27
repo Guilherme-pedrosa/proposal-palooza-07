@@ -576,7 +576,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       markers.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
       if (clustererRef.current) { clustererRef.current.clearMarkers(); clustererRef.current = null; }
     };
-  }, [isLoaded, mapFilteredClientes, filteredOps, showClientes, showOportunidades, showHeatmap]);
+  }, [isLoaded, mapReady, mapFilteredClientes, filteredOps, showClientes, showOportunidades, showHeatmap]);
 
   // ─── Prospect markers (separate layer — small dots) ────────────
   const prospectClustererRef = useRef<MarkerClusterer | null>(null);
