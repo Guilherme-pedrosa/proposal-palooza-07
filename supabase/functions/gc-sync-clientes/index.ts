@@ -135,6 +135,9 @@ serve(async (req) => {
     }
   }
 
+  // Atualizar segmentos via CNAE da Receita Federal
+  await supabase.rpc('atualizar_segmentos_clientes');
+
   await supabase.from('gc_sync_log').insert({
     entidade: 'clientes',
     acao: 'sync_completo',
