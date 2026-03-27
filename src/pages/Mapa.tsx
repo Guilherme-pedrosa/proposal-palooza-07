@@ -1219,6 +1219,16 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                       })()}
                       {selectedClient.telefone && <a href={`tel:${selectedClient.telefone}`} className="text-xs px-2 py-1 rounded inline-block no-underline" style={{ backgroundColor: '#E5E7EB', color: '#374151' }}>📞</a>}
                       <a href={`https://www.google.com/maps/@${selectedClient.latitude},${selectedClient.longitude},3a,75y,90t/data=!3m7!1e1!3m5!1s!2e0!3e11!7i16384!8i8192`} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-1 rounded inline-block no-underline" style={{ backgroundColor: '#F59E0B', color: 'white' }}>📷 Street View</a>
+                      {!visitaEmAndamento && (
+                        <button
+                          onClick={() => handleCheckinFromMap(selectedClient)}
+                          disabled={checkinLoading}
+                          className="text-xs px-2 py-1 rounded flex items-center gap-1"
+                          style={{ backgroundColor: '#8B5CF6', color: 'white' }}
+                        >
+                          {checkinLoading ? <><Loader2 className="h-3 w-3 animate-spin" /> Checkin...</> : <><LogIn className="h-3 w-3" /> Check-in</>}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </InfoWindowF>
