@@ -131,6 +131,13 @@ export default function ClienteDetail360() {
     enabled: !!id,
   });
 
+  // Fetch visita em andamento
+  const { data: visitaEmAndamento } = useQuery({
+    queryKey: ['visita_em_andamento', user?.id],
+    queryFn: () => fetchVisitaEmAndamento(user!.id),
+    enabled: !!user,
+  });
+
   // Save atividade
   const saveAtividade = useMutation({
     mutationFn: async (atv: any) => {
