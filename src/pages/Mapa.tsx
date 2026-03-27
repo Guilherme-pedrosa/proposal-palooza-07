@@ -28,7 +28,9 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const LIBRARIES: ('visualization' | 'places')[] = ['visualization', 'places'];
 const MAP_CENTER = { lat: -15.78, lng: -47.93 };
 
-const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY as string || '';
+// The key needs to be a VITE_ env var to be available client-side.
+// We'll fetch it from the edge function if not set as VITE_ var.
+const GOOGLE_MAPS_KEY = (import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '') as string;
 
 // Status colors for client markers
 function getClientStatusColor(ultimaCompra: string | null): string {
