@@ -32,7 +32,7 @@ import { toast } from 'sonner';
 import logoWedoDefault from '@/assets/logo-wedo.png';
 
 export default function CompanySettings() {
-  const { company, updateCompany, setLogo } = useCompany();
+  const { company, updateCompany, setLogo, uploadLogo } = useCompany();
   const { theme, toggleTheme } = useTheme();
   const inputRef = useRef<HTMLInputElement>(null);
   const clientLogoInputRef = useRef<HTMLInputElement>(null);
