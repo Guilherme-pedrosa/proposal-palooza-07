@@ -158,6 +158,8 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const userMarkerRef = useRef<google.maps.Marker | null>(null);
 
+  const { isLoaded } = useJsApiLoader({ googleMapsApiKey: mapsKey, libraries: LIBRARIES });
+
   // ─── User geolocation ─────────────────────────────
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locatingUser, setLocatingUser] = useState(false);
@@ -192,9 +194,6 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     requestUserLocation();
   }, []);
 
-
-
-
   // ─── Layer & filter state ──────────────────────────
   const [selectedClient, setSelectedClient] = useState<ClienteGeo | null>(null);
   const [selectedOp, setSelectedOp] = useState<OportunidadeGeo | null>(null);
@@ -219,8 +218,6 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const [prospCidade, setProspCidade] = useState('');
   const [prospOcultarClientes, setProspOcultarClientes] = useState(false);
   const [convertingCnpj, setConvertingCnpj] = useState<string | null>(null);
-
-  const { isLoaded } = useJsApiLoader({ googleMapsApiKey: mapsKey, libraries: LIBRARIES });
 
   // ─── User location marker ─────────────────────────
   useEffect(() => {
