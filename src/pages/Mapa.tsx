@@ -232,6 +232,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const [convertingCnpj, setConvertingCnpj] = useState<string | null>(null);
   const [checkinLoading, setCheckinLoading] = useState(false);
   const [historicoClienteId, setHistoricoClienteId] = useState<{ id: string; nome: string; gcId?: string } | null>(null);
+  const [legendOpen, setLegendOpen] = useState(false);
 
   // Visita em andamento
   const { data: visitaEmAndamento, refetch: refetchVisita } = useQuery({
