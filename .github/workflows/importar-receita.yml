@@ -1,0 +1,47 @@
+# ══════════════════════════════════════════════════════════
+# GITHUB ACTIONS — IMPORTAR BASE RECEITA FEDERAL
+# WeDo CRM — Roda dia 1 e 15 de cada mês às 23h (BRT = 02:00 UTC)
+# ══════════════════════════════════════════════════════════
+#
+# Arquivo: .github/workflows/importar-receita.yml
+# Colocar na raiz do repositório proposal-palooza-07
+
+name: Importar Base Receita Federal
+
+on:
+  # Cron: dia 1 e 15, às 02:00 UTC (23:00 BRT)
+  schedule:
+    - cron: '0 2 1 * *'   # Dia 1 de cada mês
+    - cron: '0 2 15 * *'  # Dia 15 de cada mês
+  
+  # Permite rodar manualmente pelo GitHub (Actions → Run workflow)
+  workflow_dispatch:
+
+jobs:
+  importar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # 6 horas de timeout (a base é grande)
+    
+    steps:
+      - name: Checkout repositório
+        uses: actions/checkout@v4
+      
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Instalar dependências
+        run: pip install requests
+      
+      - name: Executar importação
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python scripts/importar_receita.py
+      
+      - name: Notificar conclusão (opcional)
+        if: always()
+        run: |
+          echo "Status: ${{ job.status }}"
+          echo "Concluído em: $(date)"
