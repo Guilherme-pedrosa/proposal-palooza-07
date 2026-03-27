@@ -35,6 +35,9 @@ import {
 } from '@/lib/api/clientesGC';
 import { toast } from 'sonner';
 import type { ClienteGC, Oportunidade, Atividade, TipoAtividade } from '@/types/crm';
+import { useAuth } from '@/contexts/AuthContext';
+import { CheckInOutButton } from '@/components/visitas/CheckInOutButton';
+import { fetchVisitaEmAndamento } from '@/lib/api/visitas';
 
 const tipoAtividadeLabels: Record<string, { label: string; icon: string }> = {
   ligacao: { label: 'Ligação', icon: '📞' },
