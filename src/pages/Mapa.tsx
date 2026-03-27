@@ -230,6 +230,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const [prospOcultarClientes, setProspOcultarClientes] = useState(false);
   const [convertingCnpj, setConvertingCnpj] = useState<string | null>(null);
   const [checkinLoading, setCheckinLoading] = useState(false);
+  const [historicoClienteId, setHistoricoClienteId] = useState<{ id: string; nome: string; gcId?: string } | null>(null);
 
   // Visita em andamento
   const { data: visitaEmAndamento, refetch: refetchVisita } = useQuery({
