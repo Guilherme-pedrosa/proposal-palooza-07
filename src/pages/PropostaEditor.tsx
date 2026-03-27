@@ -857,6 +857,64 @@ export default function PropostaEditor() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Leasing Benefits Dialog */}
+      <Dialog open={leasingDialogOpen} onOpenChange={setLeasingDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>🏦 Benefícios Fiscais do Leasing</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-lg p-4 space-y-2">
+              <h3 className="font-bold text-base">Quais benefícios posso ter fazendo a locação?</h3>
+              <p>Empresas no regime de <strong>Lucro Real</strong> podem deduzir despesas de locação como custos operacionais:</p>
+              <ul className="list-disc pl-4 space-y-1">
+                <li><strong>25% IRPJ</strong> — dedução do Imposto de Renda</li>
+                <li><strong>9% CSLL</strong> — dedução da Contribuição Social</li>
+                <li><strong>1,65% PIS</strong> — crédito sobre despesas de locação</li>
+                <li><strong>7,6% COFINS</strong> — crédito sobre despesas de locação</li>
+              </ul>
+              <div className="bg-white dark:bg-background rounded p-3 border mt-2">
+                <p className="text-xs text-muted-foreground mb-1">Economia potencial nesta proposta</p>
+                <p className="text-2xl font-bold text-emerald-600">{formatBRL(total * 0.4325)}</p>
+                <p className="text-xs text-muted-foreground">até 43,25% de dedução + crédito sobre {formatBRL(total)}</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-semibold">📋 Como fazer a dedução?</h4>
+              <p>Mantenha os comprovantes de pagamento da locação e siga as diretrizes contábeis. Consulte o contador e o departamento fiscal para garantir o correto tratamento.</p>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-semibold">⚖️ Base Jurídica</h4>
+              <p className="text-xs text-muted-foreground">
+                Art. 249 e 250 do RIR — Decreto 3000/1999 • Art. 3º, IV da Lei 10.833/2003 • Art. 15, IV da Lei 10.865/2002
+              </p>
+            </div>
+
+            <Separator />
+
+            <p className="text-xs text-muted-foreground italic">
+              * Valores estimados. Cada empresa possui particularidades contábeis. Consulte seu contador para confirmar os benefícios aplicáveis.
+            </p>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" className="gap-1.5" onClick={() => {
+              const texto = `📊 BENEFÍCIOS FISCAIS - LEASING\n\nValor do contrato: ${formatBRL(total)}\n\n💰 Economia potencial (Lucro Real):\n• IRPJ (25%): ${formatBRL(total * 0.25)}\n• CSLL (9%): ${formatBRL(total * 0.09)}\n• PIS (1,65%): ${formatBRL(total * 0.0165)}\n• COFINS (7,6%): ${formatBRL(total * 0.076)}\n\n✅ Total: até ${formatBRL(total * 0.4325)} (43,25%)\n\n⚖️ Base: Art. 249/250 Decreto 3000/99, Lei 10.833/03, Lei 10.865/02\n\n* Consulte seu contador.`;
+              navigator.clipboard.writeText(texto);
+              toast({ title: '📋 Texto copiado!' });
+            }}>
+              <Copy className="h-4 w-4" /> Copiar Texto
+            </Button>
+            <Button variant="outline" className="gap-1.5" asChild>
+              <a href={`https://wa.me/?text=${encodeURIComponent(`📊 BENEFÍCIOS FISCAIS - LEASING\n\nValor: ${formatBRL(total)}\nEconomia potencial: até ${formatBRL(total * 0.4325)} (43,25%)\n\n• IRPJ 25%: ${formatBRL(total * 0.25)}\n• CSLL 9%: ${formatBRL(total * 0.09)}\n• PIS 1,65%: ${formatBRL(total * 0.0165)}\n• COFINS 7,6%: ${formatBRL(total * 0.076)}\n\n⚖️ Art. 249/250 Dec. 3000/99\n* Consulte seu contador`)}`} target="_blank" rel="noopener">
+                <MessageCircle className="h-4 w-4" /> WhatsApp
+              </a>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 }
