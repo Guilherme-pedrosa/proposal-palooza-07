@@ -281,7 +281,10 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   useEffect(() => {
     if (!mapRef.current || !isLoaded) return;
     // Clear old markers
-    markersRef.current.forEach(m => m.setMap(null));
+    markersRef.current.forEach(m => {
+      google.maps.event.clearInstanceListeners(m);
+      m.setMap(null);
+    });
     markersRef.current = [];
     if (clustererRef.current) {
       clustererRef.current.clearMarkers();
@@ -289,6 +292,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     }
 
     const markers: google.maps.Marker[] = [];
+    const map = mapRef.current!;
 
     // Client markers
     if (showClientes) {
@@ -296,22 +300,20 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         const color = getClientStatusColor(c.ultima_compra_gc);
         const initial = (c.nome || '?').charAt(0).toUpperCase();
         
-        // SVG pin marker - much more visible
         const pinSvg = `
           <svg xmlns="http://www.w3.org/2000/svg" width="40" height="52" viewBox="0 0 40 52">
             <defs>
-              <filter id="shadow" x="-20%" y="-10%" width="140%" height="140%">
+              <filter id="shadow-${c.id.slice(0,6)}" x="-20%" y="-10%" width="140%" height="140%">
                 <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
               </filter>
             </defs>
             <path d="M20 51C20 51 38 32.5 38 19C38 9.06 29.94 1 20 1C10.06 1 2 9.06 2 19C2 32.5 20 51 20 51Z" 
-                  fill="${color}" stroke="white" stroke-width="2.5" filter="url(#shadow)"/>
+                  fill="${color}" stroke="white" stroke-width="2.5" filter="url(#shadow-${c.id.slice(0,6)})"/>
             <circle cx="20" cy="19" r="11" fill="white" opacity="0.95"/>
             <text x="20" y="24" text-anchor="middle" font-size="14" font-weight="bold" font-family="Arial, sans-serif" fill="${color}">${initial}</text>
           </svg>`;
         
         const marker = new google.maps.Marker({
-          map: mapRef.current!,
           position: { lat: c.latitude, lng: c.longitude },
           title: c.nome,
           icon: {
@@ -320,8 +322,12 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             anchor: new google.maps.Point(20, 52),
           },
           zIndex: 10,
+          clickable: true,
         });
-        marker.addListener('click', () => { setSelectedClient(c); setSelectedOp(null); });
+        marker.addListener('click', () => {
+          setSelectedClient(c);
+          setSelectedOp(null);
+        });
         markers.push(marker);
       });
     }
@@ -338,17 +344,16 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         const opSvg = `
           <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 40 40">
             <defs>
-              <filter id="opshadow" x="-20%" y="-10%" width="140%" height="140%">
+              <filter id="opshadow-${op.id.slice(0,6)}" x="-20%" y="-10%" width="140%" height="140%">
                 <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/>
               </filter>
             </defs>
-            <circle cx="20" cy="20" r="17" fill="${color}" opacity="${opacity}" stroke="white" stroke-width="2.5" filter="url(#opshadow)"/>
+            <circle cx="20" cy="20" r="17" fill="${color}" opacity="${opacity}" stroke="white" stroke-width="2.5" filter="url(#opshadow-${op.id.slice(0,6)})"/>
             <text x="20" y="14" text-anchor="middle" font-size="7" font-weight="600" font-family="Arial, sans-serif" fill="white">R$</text>
             <text x="20" y="26" text-anchor="middle" font-size="10" font-weight="bold" font-family="Arial, sans-serif" fill="white">${((op.valor_estimado ?? 0) / 1000).toFixed(0)}k</text>
           </svg>`;
 
         const marker = new google.maps.Marker({
-          map: mapRef.current!,
           position: { lat: cl.latitude, lng: cl.longitude },
           title: op.titulo,
           icon: {
@@ -357,25 +362,41 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             anchor: new google.maps.Point(size / 2, size / 2),
           },
           zIndex: 5,
+          clickable: true,
         });
-        marker.addListener('click', () => { setSelectedOp(op); setSelectedClient(null); });
+        marker.addListener('click', () => {
+          setSelectedOp(op);
+          setSelectedClient(null);
+        });
         markers.push(marker);
       });
     }
 
     markersRef.current = markers;
 
+    // Add all markers to map first (without clusterer initially to ensure click works)
+    markers.forEach(m => m.setMap(map));
+
     // Clustering
     if (markers.length > 10) {
       clustererRef.current = new MarkerClusterer({
-        map: mapRef.current!,
+        map,
         markers,
+        onClusterClick: (_, cluster, map) => {
+          map.fitBounds(cluster.bounds!);
+        },
       });
     }
 
     return () => {
-      markers.forEach(m => m.setMap(null));
-      if (clustererRef.current) clustererRef.current.clearMarkers();
+      markers.forEach(m => {
+        google.maps.event.clearInstanceListeners(m);
+        m.setMap(null);
+      });
+      if (clustererRef.current) {
+        clustererRef.current.clearMarkers();
+        clustererRef.current = null;
+      }
     };
   }, [isLoaded, filteredClientes, filteredOps, showClientes, showOportunidades, showHeatmap]);
 
