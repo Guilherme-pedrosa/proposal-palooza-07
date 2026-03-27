@@ -436,14 +436,8 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     if (!hasActiveFilters && viewportBounds) {
       list = list.filter(c => viewportBounds.contains({ lat: c.latitude, lng: c.longitude }));
     }
-    // Sort by distance from user if location available
-    if (userLocation) {
-      list = [...list].sort((a, b) => {
-        const dA = haversineKm(userLocation.lat, userLocation.lng, a.latitude, a.longitude);
-        const dB = haversineKm(userLocation.lat, userLocation.lng, b.latitude, b.longitude);
-        return dA - dB;
-      });
-    }
+    // Sort by highest total purchases value
+    list = [...list].sort((a, b) => (b.total_compras_gc ?? 0) - (a.total_compras_gc ?? 0));
     return list;
   }, [clientes, segmentoFilter, cidadeFilter, statusFilter, busca, viewportBounds, userLocation, hasActiveFilters]);
 
