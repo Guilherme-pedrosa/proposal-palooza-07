@@ -1209,27 +1209,15 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                       }}
                     />
                     <div className="flex flex-wrap gap-1 pt-1">
-                      {/* Check-in button */}
-                      {visitaEmAndamento?.cliente_id === selectedClient.id && visitaEmAndamento?.status === 'em_andamento' ? (
-                        <button onClick={() => navigate(`/cliente/${selectedClient.id}`)} className="text-xs px-2 py-1 rounded font-medium flex items-center gap-1" style={{ backgroundColor: '#EF4444', color: 'white' }}>
-                          ✅ Em visita — Check-out
-                        </button>
-                      ) : !visitaEmAndamento || visitaEmAndamento.status !== 'em_andamento' ? (
-                        <button
-                          onClick={() => handleCheckinFromMap(selectedClient)}
-                          disabled={checkinLoading}
-                          className="text-xs px-2 py-1 rounded font-medium flex items-center gap-1"
-                          style={{ backgroundColor: '#16A34A', color: 'white', opacity: checkinLoading ? 0.6 : 1 }}
-                        >
-                          📍 {checkinLoading ? 'Entrando...' : 'Check-in'}
-                        </button>
-                      ) : null}
-                      <button onClick={() => navigate(`/cliente/${selectedClient.id}`)} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#0066FF', color: 'white' }}>Ver Perfil</button>
-                      <button onClick={() => openRoute(selectedClient.latitude, selectedClient.longitude)} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#E5E7EB', color: '#374151' }}>Rota</button>
-                      {(selectedClient.celular || selectedClient.telefone) && (
-                        <button onClick={() => openWhatsApp(selectedClient.celular || selectedClient.telefone!)} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#22C55E', color: 'white' }}>WhatsApp</button>
-                      )}
-                      {selectedClient.telefone && <a href={`tel:${selectedClient.telefone}`} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#E5E7EB', color: '#374151' }}>📞</a>}
+                      <a href={`/cliente/${selectedClient.id}`} className="text-xs px-2 py-1 rounded inline-block no-underline" style={{ backgroundColor: '#0066FF', color: 'white' }}>Ver Perfil</a>
+                      <a href={`https://www.google.com/maps/dir/?api=1&destination=${selectedClient.latitude},${selectedClient.longitude}`} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-1 rounded inline-block no-underline" style={{ backgroundColor: '#E5E7EB', color: '#374151' }}>Rota</a>
+                      {(selectedClient.celular || selectedClient.telefone) && (() => {
+                        const phone = selectedClient.celular || selectedClient.telefone!;
+                        const clean = phone.replace(/\D/g, '');
+                        const num = clean.startsWith('55') ? clean : `55${clean}`;
+                        return <a href={`https://wa.me/${num}`} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-1 rounded inline-block no-underline" style={{ backgroundColor: '#22C55E', color: 'white' }}>WhatsApp</a>;
+                      })()}
+                      {selectedClient.telefone && <a href={`tel:${selectedClient.telefone}`} className="text-xs px-2 py-1 rounded inline-block no-underline" style={{ backgroundColor: '#E5E7EB', color: '#374151' }}>📞</a>}
                     </div>
                   </div>
                 </InfoWindowF>
