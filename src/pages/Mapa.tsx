@@ -91,6 +91,49 @@ interface OportunidadeGeo {
 }
 
 export default function Mapa() {
+  const [mapsKey, setMapsKey] = useState<string>('');
+  const [keyLoading, setKeyLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchKey = async () => {
+      try {
+        const { data } = await supabase.functions.invoke('google-maps-key');
+        if (data?.key) setMapsKey(data.key);
+      } catch (e) {
+        console.error('Failed to fetch maps key:', e);
+      } finally {
+        setKeyLoading(false);
+      }
+    };
+    fetchKey();
+  }, []);
+
+  if (keyLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-[80vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <span className="ml-2 text-muted-foreground">Carregando mapa…</span>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!mapsKey) {
+    return (
+      <MainLayout>
+        <div className="flex flex-col items-center justify-center h-[80vh] gap-4">
+          <MapIcon className="h-12 w-12 text-muted-foreground" />
+          <p className="text-muted-foreground">Chave do Google Maps não configurada.</p>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  return <MapaInner mapsKey={mapsKey} />;
+}
+
+function MapaInner({ mapsKey }: { mapsKey: string }) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, perfil } = useAuth();
@@ -112,23 +155,6 @@ export default function Mapa() {
   const [geocodificando, setGeocodificando] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewportBounds, setViewportBounds] = useState<google.maps.LatLngBounds | null>(null);
-  const [mapsKey, setMapsKey] = useState<string>('');
-  const [keyLoading, setKeyLoading] = useState(true);
-
-  // Fetch Google Maps API key from edge function
-  useEffect(() => {
-    const fetchKey = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('google-maps-key');
-        if (data?.key) setMapsKey(data.key);
-      } catch (e) {
-        console.error('Failed to fetch maps key:', e);
-      } finally {
-        setKeyLoading(false);
-      }
-    };
-    fetchKey();
-  }, []);
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: mapsKey,
