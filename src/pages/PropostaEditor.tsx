@@ -255,7 +255,7 @@ export default function PropostaEditor() {
     queryKey: ['cliente_sel_proposta', clienteId],
     queryFn: async () => {
       if (!clienteId) return null;
-      const { data } = await supabase.from('clientes_gc').select('id, nome, cnpj, cidade, segmento, gc_id').eq('id', clienteId).single();
+      const { data } = await supabase.from('clientes_gc').select('id, nome, razao_social, cnpj, cpf, cidade, estado, endereco, segmento, telefone, celular, email, gc_id').eq('id', clienteId).single();
       return data;
     },
     enabled: !!clienteId,
