@@ -115,12 +115,9 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
       {/* Logo */}
       <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
         {(!collapsed || mobileOpen) ? (
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-extrabold text-[hsl(0,78%,56%)]">WeDo</span>
-            <span className="text-[11px] font-medium text-sidebar-foreground/50 uppercase tracking-wider">CRM</span>
-          </div>
+          <img src={company.logo || logoWedoDefault} alt="Logo" className="h-8 w-auto object-contain" />
         ) : (
-          <span className="text-lg font-bold text-[hsl(0,78%,56%)] mx-auto">W</span>
+          <img src={company.logo || logoWedoDefault} alt="Logo" className="h-7 w-auto object-contain mx-auto" />
         )}
       </div>
 
