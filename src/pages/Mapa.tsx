@@ -402,6 +402,21 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     }
   };
 
+  const [syncingCompras, setSyncingCompras] = useState(false);
+  const handleSyncCompras = async () => {
+    setSyncingCompras(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('gc-sync-ultima-compra');
+      if (error) throw error;
+      toast({ title: '✅ Sync de compras concluída', description: `${data.atualizados} atualizados, ${data.sem_compra} sem compra, ${data.erros} erros` });
+      queryClient.invalidateQueries({ queryKey: ['clientes_geo'] });
+    } catch (e: any) {
+      toast({ title: 'Erro na sync de compras', description: e.message, variant: 'destructive' });
+    } finally {
+      setSyncingCompras(false);
+    }
+  };
+
   const openWhatsApp = (phone: string) => {
     const clean = phone.replace(/\D/g, '');
     const num = clean.startsWith('55') ? clean : `55${clean}`;
