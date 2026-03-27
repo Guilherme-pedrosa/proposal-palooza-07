@@ -383,8 +383,16 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       list = list.filter(c => c.nome.toLowerCase().includes(q) || c.cnpj?.includes(q) || c.cidade?.toLowerCase().includes(q));
     }
     if (viewportBounds) list = list.filter(c => viewportBounds.contains({ lat: c.latitude, lng: c.longitude }));
+    // Sort by distance from user if location available
+    if (userLocation) {
+      list = [...list].sort((a, b) => {
+        const dA = haversineKm(userLocation.lat, userLocation.lng, a.latitude, a.longitude);
+        const dB = haversineKm(userLocation.lat, userLocation.lng, b.latitude, b.longitude);
+        return dA - dB;
+      });
+    }
     return list;
-  }, [clientes, segmentoFilter, cidadeFilter, statusFilter, busca, viewportBounds]);
+  }, [clientes, segmentoFilter, cidadeFilter, statusFilter, busca, viewportBounds, userLocation]);
 
   const filteredOps = useMemo(() => oportunidades.filter(op => { const c = op.cliente as any; return c?.latitude && c?.longitude; }), [oportunidades]);
 
