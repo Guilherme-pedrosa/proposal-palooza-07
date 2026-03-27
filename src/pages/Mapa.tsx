@@ -1081,7 +1081,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
           })}
           {filteredClientes.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">Nenhum cliente nesta área</p>}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 
