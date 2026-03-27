@@ -122,20 +122,22 @@ Deno.serve(async (req) => {
           continue
         }
 
-        // Validate distance from city center (use cached city coords)
+        // Validate distance from city center - if too far, use city center as fallback
         const cityCoords = await getCityCoords(cliente.cidade, cliente.estado)
+        let finalLat = point.lat
+        let finalLng = point.lng
         if (cityCoords) {
           const distanceKm = haversineKm(point.lat, point.lng, cityCoords.lat, cityCoords.lng)
-          if (distanceKm > 150) {
-            console.log(`Too far for: ${cliente.nome} - ${distanceKm.toFixed(0)}km from ${cliente.cidade}`)
-            skipped++
-            continue
+          if (distanceKm > 300) {
+            console.log(`Too far for: ${cliente.nome} - ${distanceKm.toFixed(0)}km from ${cliente.cidade}, using city center`)
+            finalLat = cityCoords.lat
+            finalLng = cityCoords.lng
           }
         }
 
         const { error: updateError } = await supabase
           .from('clientes_gc')
-          .update({ latitude: point.lat, longitude: point.lng, geocodificado: true })
+          .update({ latitude: finalLat, longitude: finalLng, geocodificado: true })
           .eq('id', cliente.id)
 
         if (updateError) {
