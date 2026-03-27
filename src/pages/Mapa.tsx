@@ -228,6 +228,36 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const [prospCidade, setProspCidade] = useState('');
   const [prospOcultarClientes, setProspOcultarClientes] = useState(false);
   const [convertingCnpj, setConvertingCnpj] = useState<string | null>(null);
+  const [checkinLoading, setCheckinLoading] = useState(false);
+
+  // Visita em andamento
+  const { data: visitaEmAndamento, refetch: refetchVisita } = useQuery({
+    queryKey: ['visita_em_andamento', user?.id],
+    queryFn: () => fetchVisitaEmAndamento(user!.id),
+    enabled: !!user,
+  });
+
+  const handleCheckinFromMap = async (cliente: ClienteGeo) => {
+    if (!user) return;
+    setCheckinLoading(true);
+    try {
+      const lat = userLocation?.lat || cliente.latitude;
+      const lng = userLocation?.lng || cliente.longitude;
+      await iniciarCheckin({
+        cliente_id: cliente.id,
+        vendedor_id: user.id,
+        lat,
+        lng,
+      });
+      sonnerToast.success(`📍 Check-in em ${cliente.nome} realizado!`);
+      refetchVisita();
+      setSelectedClient(null);
+    } catch (e: any) {
+      sonnerToast.error('Erro ao fazer check-in: ' + (e.message || ''));
+    } finally {
+      setCheckinLoading(false);
+    }
+  };
 
   // ─── User location marker ─────────────────────────
   useEffect(() => {
