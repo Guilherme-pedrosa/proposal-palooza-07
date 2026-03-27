@@ -32,6 +32,7 @@ import TermsConditions from "./pages/TermsConditions";
 import CompanySettings from "./pages/CompanySettings";
 import PropostaPublica from "./pages/PropostaPublica";
 import NotFound from "./pages/NotFound";
+import Mapa from "./pages/Mapa";
 
 const queryClient = new QueryClient();
 
@@ -99,6 +100,7 @@ function AppRoutes() {
       <Route path="/propostas" element={<ProtectedRoute><Proposals /></ProtectedRoute>} />
       <Route path="/propostas/nova" element={<ProtectedRoute><PropostaEditor /></ProtectedRoute>} />
       <Route path="/propostas/:id" element={<ProtectedRoute><PropostaEditor /></ProtectedRoute>} />
+      <Route path="/mapa" element={<ProtectedRoute><Mapa /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
       <Route path="/sync" element={<ProtectedRoute><SyncGC /></ProtectedRoute>} />
