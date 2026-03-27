@@ -1041,12 +1041,12 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   );
 
   return (
-    <MainLayout>
+    <MainLayout fullscreen>
       {/* Mobile: calc height minus header(56px) + bottomNav(64px+pb). Desktop: full minus sidebar header */}
-      <div className="flex h-[calc(100vh-56px-64px)] md:h-[calc(100vh-0px)] -m-4 md:-m-6 -mb-20 md:-mb-6 relative">
+      <div className="flex h-full relative">
         {/* Desktop sidebar */}
-        <div className="hidden lg:flex w-80 border-r border-border bg-card flex-col shrink-0 overflow-hidden">
-          <ScrollArea className="h-full">{sidebarContent}</ScrollArea>
+        <div className="hidden lg:flex w-80 border-r border-border bg-card flex-col shrink-0">
+          <ScrollArea className="flex-1">{sidebarContent}</ScrollArea>
         </div>
 
         {/* Mobile FABs */}
