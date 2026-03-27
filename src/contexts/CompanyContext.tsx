@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback, useRef } from 'react';
 import { CompanySettings, defaultCompanySettings } from '@/types/company';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -15,7 +15,7 @@ const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
 export function CompanyProvider({ children }: { children: ReactNode }) {
   const [company, setCompany] = useState<CompanySettings>(defaultCompanySettings);
   const [loading, setLoading] = useState(true);
-  const [dbId, setDbId] = useState<string | null>(null);
+  const dbIdRef = useRef<string | null>(null);
 
   // Load from database on mount
   useEffect(() => {
@@ -31,7 +31,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (data && !error) {
-        setDbId(data.id);
+        dbIdRef.current = data.id;
         setCompany({
           name: data.name || defaultCompanySettings.name,
           phone: data.phone || '',
@@ -46,14 +46,23 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
           brands: (data.brands as any[]) || [],
         });
       } else {
-        // Fallback: try localStorage for migration
+        // No record exists — create one
+        const { data: newRow } = await supabase
+          .from('company_settings')
+          .insert({ name: defaultCompanySettings.name })
+          .select('id')
+          .single();
+        if (newRow) dbIdRef.current = newRow.id;
+
+        // Also check localStorage for migration
         const saved = localStorage.getItem('wedo_company_settings');
         if (saved) {
           try {
             const parsed = { ...defaultCompanySettings, ...JSON.parse(saved) };
             setCompany(parsed);
-            // Migrate to DB (without base64 logo - that needs re-upload)
-            await migrateToDb(parsed);
+            if (dbIdRef.current) {
+              await saveToDB(parsed);
+            }
           } catch {
             setCompany(defaultCompanySettings);
           }
@@ -66,34 +75,10 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const migrateToDb = async (settings: CompanySettings) => {
-    try {
-      const { data } = await supabase
-        .from('company_settings')
-        .insert({
-          name: settings.name,
-          phone: settings.phone,
-          email: settings.email,
-          cnpj: settings.cnpj,
-          address: settings.address,
-          vision: settings.vision,
-          mission: settings.mission,
-          values: settings.values,
-          clients: settings.clients as any,
-          brands: settings.brands as any,
-          // Don't migrate base64 logo - needs re-upload as file
-        })
-        .select('id')
-        .single();
-      if (data) setDbId(data.id);
-    } catch {
-      // ignore
-    }
-  };
-
-  const saveToDB = useCallback(async (settings: CompanySettings) => {
-    if (!dbId) return;
-    await supabase
+  const saveToDB = async (settings: CompanySettings) => {
+    const id = dbIdRef.current;
+    if (!id) return;
+    const { error } = await supabase
       .from('company_settings')
       .update({
         name: settings.name,
@@ -109,8 +94,9 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
         brands: settings.brands as any,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', dbId);
-  }, [dbId]);
+      .eq('id', id);
+    if (error) console.error('Error saving company settings:', error);
+  };
 
   const updateCompany = useCallback((settings: Partial<CompanySettings>) => {
     setCompany(prev => {
@@ -118,7 +104,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
       saveToDB(updated);
       return updated;
     });
-  }, [saveToDB]);
+  }, []);
 
   const uploadLogo = async (file: File): Promise<string | null> => {
     const ext = file.name.split('.').pop();
@@ -146,7 +132,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
       saveToDB(updated);
       return updated;
     });
-  }, [saveToDB]);
+  }, []);
 
   return (
     <CompanyContext.Provider value={{ company, updateCompany, setLogo, uploadLogo, loading }}>
