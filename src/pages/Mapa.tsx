@@ -218,6 +218,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const [segmentoFilter, setSegmentoFilter] = useState('todos');
   const [cidadeFilter, setCidadeFilter] = useState('todos');
   const [statusFilter, setStatusFilter] = useState('todos');
+  const [showFilters, setShowFilters] = useState(true);
   const [geocodificando, setGeocodificando] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewportBounds, setViewportBounds] = useState<google.maps.LatLngBounds | null>(null);
@@ -940,33 +941,42 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
       {/* Client filters */}
       <div className="p-4 border-b border-border space-y-3">
-        <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          <Filter className="h-3.5 w-3.5" /> Filtros Clientes
-        </div>
-        <Select value={segmentoFilter} onValueChange={setSegmentoFilter}>
-          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Segmento" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos os segmentos</SelectItem>
-            {segmentos.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={cidadeFilter} onValueChange={setCidadeFilter}>
-          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Cidade" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todas as cidades</SelectItem>
-            {cidades.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos os status</SelectItem>
-            <SelectItem value="Ativo">🟢 Ativo</SelectItem>
-            <SelectItem value="Morno">🟡 Morno</SelectItem>
-            <SelectItem value="Em Risco">🔴 Em Risco</SelectItem>
-            <SelectItem value="Inativo">⚫ Inativo</SelectItem>
-          </SelectContent>
-        </Select>
+        <button
+          type="button"
+          onClick={() => setShowFilters(f => !f)}
+          className="w-full flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+        >
+          <span className="flex items-center gap-2"><Filter className="h-3.5 w-3.5" /> Filtros Clientes</span>
+          <span className={`transition-transform ${showFilters ? 'rotate-180' : ''}`}>▾</span>
+        </button>
+        {showFilters && (
+          <div className="space-y-3">
+            <Select value={segmentoFilter} onValueChange={setSegmentoFilter}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Segmento" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os segmentos</SelectItem>
+                {segmentos.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={cidadeFilter} onValueChange={setCidadeFilter}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Cidade" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todas as cidades</SelectItem>
+                {cidades.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os status</SelectItem>
+                <SelectItem value="Ativo">🟢 Ativo</SelectItem>
+                <SelectItem value="Morno">🟡 Morno</SelectItem>
+                <SelectItem value="Em Risco">🔴 Em Risco</SelectItem>
+                <SelectItem value="Inativo">⚫ Inativo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       {/* KPIs */}
