@@ -218,6 +218,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const [segmentoFilter, setSegmentoFilter] = useState('todos');
   const [cidadeFilter, setCidadeFilter] = useState('todos');
   const [statusFilter, setStatusFilter] = useState('todos');
+  const [showFilters, setShowFilters] = useState(true);
   const [geocodificando, setGeocodificando] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewportBounds, setViewportBounds] = useState<google.maps.LatLngBounds | null>(null);
