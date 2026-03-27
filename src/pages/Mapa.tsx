@@ -254,7 +254,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     try {
       const lat = userLocation?.lat || cliente.latitude;
       const lng = userLocation?.lng || cliente.longitude;
-      await iniciarCheckin({
+      const visita = await iniciarCheckin({
         cliente_id: cliente.id,
         vendedor_id: user.id,
         lat,
@@ -263,6 +263,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       sonnerToast.success(`📍 Check-in em ${cliente.nome} realizado!`);
       refetchVisita();
       setSelectedClient(null);
+      navigate(`/visita/${visita.id}`);
     } catch (e: any) {
       sonnerToast.error('Erro ao fazer check-in: ' + (e.message || ''));
     } finally {
