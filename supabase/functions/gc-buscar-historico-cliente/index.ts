@@ -49,13 +49,14 @@ serve(async (req) => {
     }
   };
 
-  const [orcamentos, vendas, recebimentos] = await Promise.all([
+  const [orcamentos, vendas, recebimentos, ordens_servicos] = await Promise.all([
     fetchSafe('orcamentos'),
     fetchSafe('vendas', GC_RATE_LIMIT_DELAY_MS),
     fetchSafe('movimentacoes_financeiras', GC_RATE_LIMIT_DELAY_MS * 2),
+    fetchSafe('ordens_servicos', GC_RATE_LIMIT_DELAY_MS * 3),
   ]);
 
   return new Response(JSON.stringify({
-    orcamentos, vendas, recebimentos,
+    orcamentos, vendas, recebimentos, ordens_servicos,
   }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 });
