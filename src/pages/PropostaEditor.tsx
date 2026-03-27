@@ -206,6 +206,7 @@ export default function PropostaEditor() {
       setProdutos((proposta.produtos as PropostaProduct[]) ?? []);
       setTermos((proposta.termos_condicoes as PropostaTermo[]) ?? []);
       setImagens(proposta.imagens ?? []);
+      setAnexos((proposta as any).anexos ?? []);
       setValidadeDias(String(proposta.validade_dias ?? 10));
       setObservacoesInternas(proposta.observacoes_internas ?? '');
       setFormaPagamento(proposta.forma_pagamento ?? '');
