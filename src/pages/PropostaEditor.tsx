@@ -340,7 +340,7 @@ export default function PropostaEditor() {
     if (!titulo.trim()) { toast({ title: 'Informe o título da proposta', variant: 'destructive' }); return; }
     setSaving(true);
     try {
-      const payload: Partial<PropostaRow> = {
+      const payload: Record<string, any> = {
         numero,
         titulo,
         descricao: descricao || null,
