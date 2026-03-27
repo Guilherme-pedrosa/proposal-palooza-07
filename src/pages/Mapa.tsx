@@ -165,6 +165,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const mapRef = useRef<google.maps.Map | null>(null);
+  const [mapReady, setMapReady] = useState(false);
   const markersRef = useRef<google.maps.Marker[]>([]);
   const prospectMarkersRef = useRef<google.maps.Marker[]>([]);
   const clustererRef = useRef<MarkerClusterer | null>(null);
