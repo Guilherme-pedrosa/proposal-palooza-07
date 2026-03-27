@@ -38,13 +38,14 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceKey)
 
-    // Get ALL pending clients with city or state (not empty strings)
+    // Get a small batch of pending clients (avoid timeout)
+    const BATCH_SIZE = 30
     const { data: clientes, error } = await supabase
       .from('clientes_gc')
       .select('id, nome, endereco, cidade, estado')
       .or('geocodificado.is.null,geocodificado.eq.false')
       .order('nome')
-      .limit(1000)
+      .limit(BATCH_SIZE)
 
     if (error) throw error
 
