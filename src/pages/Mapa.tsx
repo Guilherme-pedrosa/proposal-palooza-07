@@ -222,7 +222,32 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
   const { isLoaded } = useJsApiLoader({ googleMapsApiKey: mapsKey, libraries: LIBRARIES });
 
-  // ─── Data: Clients ─────────────────────────────────
+  // ─── User location marker ─────────────────────────
+  useEffect(() => {
+    if (!mapRef.current || !isLoaded || !userLocation) return;
+    if (userMarkerRef.current) {
+      userMarkerRef.current.setPosition(userLocation);
+      return;
+    }
+    const blueDotSvg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28">
+        <circle cx="14" cy="14" r="13" fill="#4285F4" fill-opacity="0.2" stroke="#4285F4" stroke-width="1.5"/>
+        <circle cx="14" cy="14" r="6" fill="#4285F4" stroke="white" stroke-width="2.5"/>
+      </svg>`;
+    userMarkerRef.current = new google.maps.Marker({
+      position: userLocation,
+      map: mapRef.current,
+      title: 'Minha localização',
+      icon: {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(blueDotSvg),
+        scaledSize: new google.maps.Size(28, 28),
+        anchor: new google.maps.Point(14, 14),
+      },
+      zIndex: 999,
+      clickable: false,
+    });
+  }, [isLoaded, userLocation]);
+
   const { data: clientes = [], isLoading: loadingClientes } = useQuery({
     queryKey: ['clientes_geo'],
     queryFn: async () => {
