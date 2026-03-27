@@ -1285,9 +1285,11 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                       {selectedProspect.telefone_1 && (
                         <a href={`tel:${selectedProspect.telefone_1}`} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#E5E7EB', color: '#374151' }}>📞</a>
                       )}
-                      {selectedProspect.telefone_1 && (
-                        <button onClick={() => openWhatsApp(selectedProspect.telefone_1!)} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#22C55E', color: 'white' }}>💬</button>
-                      )}
+                      {selectedProspect.telefone_1 && (() => {
+                        const clean = selectedProspect.telefone_1!.replace(/\D/g, '');
+                        const num = clean.startsWith('55') ? clean : `55${clean}`;
+                        return <a href={`https://wa.me/${num}`} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-1 rounded inline-block no-underline" style={{ backgroundColor: '#22C55E', color: 'white' }}>💬</a>;
+                      })()}
                     </div>
                   </div>
                 </InfoWindowF>
