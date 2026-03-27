@@ -143,6 +143,47 @@ export default function PropostaEditor() {
     }
   }, [tabelasPreco]);
 
+  // Build a map of gc_id -> produto UUID for price lookups
+  const { data: produtosGcMap } = useQuery({
+    queryKey: ['produtos_gc_id_map'],
+    queryFn: async () => {
+      const { data } = await supabase.from('produtos_gc').select('id, gc_id');
+      const map = new Map<string, string>();
+      for (const p of data || []) {
+        map.set(p.gc_id, p.id);
+      }
+      return map;
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // Update existing product prices when price table changes
+  useEffect(() => {
+    if (!tabelaPrecoId || precosTabela.length === 0 || produtos.length === 0 || !produtosGcMap) return;
+    const precoMap = new Map<string, number>();
+    for (const pp of precosTabela) {
+      if (pp.valor_venda > 0) {
+        precoMap.set(pp.produto_id, pp.valor_venda);
+      }
+    }
+    setProdutos(prev => {
+      let changed = false;
+      const updated = prev.map(p => {
+        if (!p.gcProdutoId) return p;
+        const produtoUuid = produtosGcMap.get(p.gcProdutoId);
+        if (!produtoUuid) return p;
+        const novoPreco = precoMap.get(produtoUuid);
+        if (novoPreco !== undefined && novoPreco !== p.unitPrice) {
+          changed = true;
+          const sub = p.quantity * novoPreco;
+          return { ...p, unitPrice: novoPreco, totalPrice: sub - (sub * (p.discount || 0) / 100) };
+        }
+        return p;
+      });
+      return changed ? updated : prev;
+    });
+  }, [tabelaPrecoId, precosTabela, produtosGcMap]);
+
   // Load existing proposal
   const { data: proposta, isLoading: loadingProposta } = useQuery({
     queryKey: ['proposta', id],
@@ -235,9 +276,9 @@ export default function PropostaEditor() {
   };
 
   const addProductFromCatalog = (p: ProdutoGCRow) => {
-    // Find price from selected price table
     let preco = p.preco_venda || 0;
     if (tabelaPrecoId && precosTabela.length > 0) {
+      // Use produto UUID (p.id) directly since CatalogPickerModal passes ProdutoGCRow with its UUID
       const precoTabela = precosTabela.find(pt => pt.produto_id === p.id);
       if (precoTabela && precoTabela.valor_venda > 0) {
         preco = precoTabela.valor_venda;
