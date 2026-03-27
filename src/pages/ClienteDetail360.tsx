@@ -66,6 +66,7 @@ export default function ClienteDetail360() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('visao-geral');
   const [showAtividadeModal, setShowAtividadeModal] = useState(false);
   const [notaTexto, setNotaTexto] = useState('');
