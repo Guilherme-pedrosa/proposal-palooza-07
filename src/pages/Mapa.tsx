@@ -23,7 +23,7 @@ import {
   MapPin, Search, Layers, Filter, Phone, MessageCircle, ExternalLink,
   Navigation, Users, TrendingUp, Loader2, Menu, X, Crosshair, MapIcon
 } from 'lucide-react';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const LIBRARIES: ('visualization' | 'places')[] = ['visualization', 'places'];
 const MAP_CENTER = { lat: -15.78, lng: -47.93 };
@@ -97,7 +97,7 @@ export default function Mapa() {
   const { toast } = useToast();
   const { user, perfil } = useAuth();
   const queryClient = useQueryClient();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const mapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const clustererRef = useRef<MarkerClusterer | null>(null);
