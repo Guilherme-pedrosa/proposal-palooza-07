@@ -794,77 +794,28 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
           </Button>
         </div>
         <div className="space-y-2">
-          <button
-            type="button"
-            onClick={() => setShowClientes((prev) => !prev)}
-            className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-2 text-left hover:bg-accent/50 transition-colors"
-            aria-pressed={showClientes}
-          >
-            <span className="text-sm flex items-center gap-2"><Users className="h-3.5 w-3.5" /> Clientes</span>
-            <div className="flex items-center gap-2">
-              <Badge variant={showClientes ? 'default' : 'secondary'} className="text-[10px] min-w-10 justify-center">
-                {showClientes ? 'ON' : 'OFF'}
-              </Badge>
+          {[
+            { key: 'clientes', label: 'Clientes', icon: <Users className="h-3.5 w-3.5" />, checked: showClientes, toggle: () => setShowClientes(p => !p) },
+            { key: 'oportunidades', label: 'Oportunidades', icon: <TrendingUp className="h-3.5 w-3.5" />, checked: showOportunidades, toggle: () => setShowOportunidades(p => !p) },
+            { key: 'heatmap', label: 'Heatmap', icon: <span>🔥</span>, checked: showHeatmap, toggle: () => setShowHeatmap(p => !p) },
+            { key: 'prospeccao', label: 'Prospecção', icon: <span>🔍</span>, checked: showProspeccao, toggle: () => setShowProspeccao(p => !p) },
+          ].map(layer => (
+            <div
+              key={layer.key}
+              role="button"
+              tabIndex={0}
+              onClick={layer.toggle}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); layer.toggle(); }}}
+              className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5 cursor-pointer hover:bg-accent/50 transition-colors"
+            >
+              <span className="text-sm flex items-center gap-2 min-w-0">{layer.icon} {layer.label}</span>
               <Switch
-                checked={showClientes}
-                className="pointer-events-none border border-border data-[state=unchecked]:bg-muted"
+                checked={layer.checked}
+                onCheckedChange={layer.toggle}
+                className="shrink-0 ml-2"
               />
             </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowOportunidades((prev) => !prev)}
-            className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-2 text-left hover:bg-accent/50 transition-colors"
-            aria-pressed={showOportunidades}
-          >
-            <span className="text-sm flex items-center gap-2"><TrendingUp className="h-3.5 w-3.5" /> Oportunidades</span>
-            <div className="flex items-center gap-2">
-              <Badge variant={showOportunidades ? 'default' : 'secondary'} className="text-[10px] min-w-10 justify-center">
-                {showOportunidades ? 'ON' : 'OFF'}
-              </Badge>
-              <Switch
-                checked={showOportunidades}
-                className="pointer-events-none border border-border data-[state=unchecked]:bg-muted"
-              />
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowHeatmap((prev) => !prev)}
-            className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-2 text-left hover:bg-accent/50 transition-colors"
-            aria-pressed={showHeatmap}
-          >
-            <span className="text-sm flex items-center gap-2">🔥 Heatmap</span>
-            <div className="flex items-center gap-2">
-              <Badge variant={showHeatmap ? 'default' : 'secondary'} className="text-[10px] min-w-10 justify-center">
-                {showHeatmap ? 'ON' : 'OFF'}
-              </Badge>
-              <Switch
-                checked={showHeatmap}
-                className="pointer-events-none border border-border data-[state=unchecked]:bg-muted"
-              />
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowProspeccao((prev) => !prev)}
-            className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-2 text-left hover:bg-accent/50 transition-colors"
-            aria-pressed={showProspeccao}
-          >
-            <span className="text-sm flex items-center gap-2">🔍 Prospecção</span>
-            <div className="flex items-center gap-2">
-              <Badge variant={showProspeccao ? 'default' : 'secondary'} className="text-[10px] min-w-10 justify-center">
-                {showProspeccao ? 'ON' : 'OFF'}
-              </Badge>
-              <Switch
-                checked={showProspeccao}
-                className="pointer-events-none border border-border data-[state=unchecked]:bg-muted"
-              />
-            </div>
-          </button>
+          ))}
         </div>
       </div>
 
