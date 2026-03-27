@@ -423,22 +423,28 @@ export default function PropostaEditor() {
     e.target.value = '';
   };
 
-  const handleAnexoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAnexoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setAnexos((prev) => [...prev, {
-          id: crypto.randomUUID(),
-          url: reader.result,
-          name: file.name,
-          type: file.type,
-          size: file.size,
-        }]);
-      };
-      reader.readAsDataURL(file);
-    });
+    for (const file of Array.from(files)) {
+      const fileId = crypto.randomUUID();
+      const ext = file.name.split('.').pop() || 'bin';
+      const path = `anexos/${fileId}.${ext}`;
+      const { error } = await supabase.storage.from('proposals').upload(path, file);
+      if (error) {
+        toast({ title: `Erro ao enviar ${file.name}`, description: error.message, variant: 'destructive' });
+        continue;
+      }
+      const { data: urlData } = supabase.storage.from('proposals').getPublicUrl(path);
+      setAnexos((prev) => [...prev, {
+        id: fileId,
+        url: urlData.publicUrl,
+        storagePath: path,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      }]);
+    }
     e.target.value = '';
   };
 
