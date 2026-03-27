@@ -796,12 +796,12 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             Limpar
           </Button>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-1">
           {[
-            { key: 'clientes', label: 'Clientes', icon: <Users className="h-3.5 w-3.5" />, checked: showClientes, toggle: () => setShowClientes(p => !p) },
-            { key: 'oportunidades', label: 'Oportunidades', icon: <TrendingUp className="h-3.5 w-3.5" />, checked: showOportunidades, toggle: () => setShowOportunidades(p => !p) },
-            { key: 'heatmap', label: 'Heatmap', icon: <span>🔥</span>, checked: showHeatmap, toggle: () => setShowHeatmap(p => !p) },
-            { key: 'prospeccao', label: 'Prospecção', icon: <span>🔍</span>, checked: showProspeccao, toggle: () => setShowProspeccao(p => !p) },
+            { key: 'clientes', label: 'Clientes', icon: <Users className="h-3 w-3" />, checked: showClientes, toggle: () => setShowClientes(p => !p) },
+            { key: 'oportunidades', label: 'Oportunidades', icon: <TrendingUp className="h-3 w-3" />, checked: showOportunidades, toggle: () => setShowOportunidades(p => !p) },
+            { key: 'heatmap', label: 'Heatmap', icon: <span className="text-xs">🔥</span>, checked: showHeatmap, toggle: () => setShowHeatmap(p => !p) },
+            { key: 'prospeccao', label: 'Prospecção', icon: <span className="text-xs">🔍</span>, checked: showProspeccao, toggle: () => setShowProspeccao(p => !p) },
           ].map(layer => (
             <div
               key={layer.key}
@@ -809,13 +809,13 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               tabIndex={0}
               onClick={layer.toggle}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); layer.toggle(); }}}
-              className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5 cursor-pointer hover:bg-accent/50 transition-colors"
+              className="w-full flex items-center justify-between rounded-md border border-border bg-card px-2.5 py-1.5 cursor-pointer hover:bg-accent/50 transition-colors"
             >
-              <span className="text-sm flex items-center gap-2 min-w-0">{layer.icon} {layer.label}</span>
+              <span className="text-xs flex items-center gap-1.5 min-w-0">{layer.icon} {layer.label}</span>
               <Switch
                 checked={layer.checked}
                 onCheckedChange={layer.toggle}
-                className="shrink-0 ml-2"
+                className="shrink-0 ml-2 scale-90"
               />
             </div>
           ))}
