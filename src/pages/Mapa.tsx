@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { formatBRL } from '@/lib/api/propostas';
 import { iniciarCheckin, fetchVisitaEmAndamento, type VisitaComCliente } from '@/lib/api/visitas';
+import { HistoricoResumo, ClienteHistoricoPanel } from '@/components/visitas/ClienteHistoricoPanel';
 import { LogIn, LogOut } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { toast as sonnerToast } from 'sonner';
@@ -96,6 +97,7 @@ interface ClienteGeo {
   cidade: string | null; estado: string | null; endereco: string | null;
   segmento: string | null; latitude: number; longitude: number;
   total_compras_gc: number | null; ultima_compra_gc: string | null;
+  gc_id: string;
 }
 
 interface OportunidadeGeo {
@@ -229,6 +231,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const [prospOcultarClientes, setProspOcultarClientes] = useState(false);
   const [convertingCnpj, setConvertingCnpj] = useState<string | null>(null);
   const [checkinLoading, setCheckinLoading] = useState(false);
+  const [historicoClienteId, setHistoricoClienteId] = useState<{ id: string; nome: string; gcId?: string } | null>(null);
 
   // Visita em andamento
   const { data: visitaEmAndamento, refetch: refetchVisita } = useQuery({
@@ -290,7 +293,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('clientes_gc')
-        .select('id, nome, razao_social, cnpj, telefone, celular, email, cidade, estado, endereco, segmento, latitude, longitude, total_compras_gc, ultima_compra_gc')
+        .select('id, gc_id, nome, razao_social, cnpj, telefone, celular, email, cidade, estado, endereco, segmento, latitude, longitude, total_compras_gc, ultima_compra_gc')
         .eq('geocodificado', true)
         .not('latitude', 'is', null)
         .not('longitude', 'is', null);
@@ -1082,6 +1085,15 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                       <p>📊 {getClientStatusLabel(selectedClient.ultima_compra_gc)}</p>
                       {selectedClient.total_compras_gc && selectedClient.total_compras_gc > 0 && <p>💰 Total: {formatBRL(selectedClient.total_compras_gc)}</p>}
                     </div>
+                    {/* Histórico resumido */}
+                    <HistoricoResumo
+                      clienteId={selectedClient.id}
+                      gcId={selectedClient.gc_id}
+                      onVerTudo={() => {
+                        setHistoricoClienteId({ id: selectedClient.id, nome: selectedClient.nome, gcId: selectedClient.gc_id });
+                        setSelectedClient(null);
+                      }}
+                    />
                     <div className="flex flex-wrap gap-1 pt-1">
                       {/* Check-in button */}
                       {visitaEmAndamento?.cliente_id === selectedClient.id && visitaEmAndamento?.status === 'em_andamento' ? (
@@ -1180,6 +1192,15 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               )}
             </GoogleMap>
           )}
+
+          {/* Histórico panel */}
+          <ClienteHistoricoPanel
+            open={!!historicoClienteId}
+            onOpenChange={(open) => !open && setHistoricoClienteId(null)}
+            clienteId={historicoClienteId?.id || ''}
+            clienteNome={historicoClienteId?.nome || ''}
+            gcId={historicoClienteId?.gcId}
+          />
 
           {/* Legend - desktop only */}
           {!isMobile && (
