@@ -5,8 +5,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const ALLOWED_RESULT_TYPES = new Set(['street_address', 'premise', 'route'])
-const MAX_CITY_DISTANCE_KM = 100
+// Accept more result types - only reject very generic ones
+const REJECTED_TYPES = new Set(['country', 'administrative_area_level_1'])
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const toRad = (v: number) => (v * Math.PI) / 180
@@ -38,28 +38,60 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceKey)
 
-    // Fetch only clients with enough location data
+    // Get ALL pending clients with city or state (not empty strings)
     const { data: clientes, error } = await supabase
       .from('clientes_gc')
       .select('id, nome, endereco, cidade, estado')
       .or('geocodificado.is.null,geocodificado.eq.false')
-      .not('cidade', 'is', null)
-      .not('estado', 'is', null)
-      .limit(50)
+      .order('nome')
+      .limit(1000)
 
     if (error) throw error
-    if (!clientes || clientes.length === 0) {
-      return new Response(JSON.stringify({ message: 'Nenhum cliente pendente com cidade/estado', total: 0, geocoded: 0, errors: 0 }), {
+
+    // Filter in code: must have cidade+estado with actual content
+    const pendentes = (clientes || []).filter(c => 
+      c.cidade && c.cidade.trim().length > 0 && 
+      c.estado && c.estado.trim().length > 0
+    )
+
+    if (pendentes.length === 0) {
+      return new Response(JSON.stringify({ 
+        message: 'Nenhum cliente pendente com cidade/estado preenchidos', 
+        total: 0, geocoded: 0, errors: 0, skipped: (clientes || []).length - pendentes.length 
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
+    // Cache city coordinates to avoid duplicate API calls
+    const cityCache: Record<string, { lat: number; lng: number } | null> = {}
+
+    async function getCityCoords(cidade: string, estado: string): Promise<{ lat: number; lng: number } | null> {
+      const key = `${cidade}-${estado}`
+      if (key in cityCache) return cityCache[key]
+
+      const cityAddress = `${cidade}, ${estado}, Brasil`
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityAddress)}&key=${googleKey}`
+      const res = await fetch(url)
+      const data = await res.json()
+
+      if (data.status === 'OK' && data.results.length > 0) {
+        const loc = data.results[0].geometry?.location
+        cityCache[key] = loc ? { lat: loc.lat, lng: loc.lng } : null
+      } else {
+        cityCache[key] = null
+      }
+      return cityCache[key]
+    }
+
     let geocoded = 0
     let errors = 0
+    let skipped = 0
 
-    for (const cliente of clientes) {
+    // Process ALL clients sequentially with rate limiting
+    for (const cliente of pendentes) {
       const address = [cliente.endereco, cliente.cidade, cliente.estado, 'Brasil']
-        .filter(Boolean)
+        .filter(v => v && v.trim().length > 0)
         .join(', ')
 
       try {
@@ -68,41 +100,37 @@ Deno.serve(async (req) => {
         const geocodeData = await geocodeRes.json()
 
         if (geocodeData.status !== 'OK' || geocodeData.results.length === 0) {
+          console.log(`No result for: ${cliente.nome} (${address})`)
           errors++
           continue
         }
 
         const result = geocodeData.results[0]
         const resultTypes: string[] = result.types || []
-        const hasPreciseType = resultTypes.some((t) => ALLOWED_RESULT_TYPES.has(t))
 
-        if (!hasPreciseType) {
-          errors++
-          continue
-        }
-
-        const cityAnchorAddress = [cliente.cidade, cliente.estado, 'Brasil'].filter(Boolean).join(', ')
-        const cityAnchorUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityAnchorAddress)}&key=${googleKey}`
-        const cityAnchorRes = await fetch(cityAnchorUrl)
-        const cityAnchorData = await cityAnchorRes.json()
-
-        if (cityAnchorData.status !== 'OK' || cityAnchorData.results.length === 0) {
-          errors++
+        // Only reject very generic types (country, state level)
+        const isTooGeneric = resultTypes.every((t: string) => REJECTED_TYPES.has(t))
+        if (isTooGeneric) {
+          console.log(`Too generic for: ${cliente.nome} - types: ${resultTypes.join(',')}`)
+          skipped++
           continue
         }
 
         const point = result.geometry?.location
-        const cityPoint = cityAnchorData.results[0]?.geometry?.location
-
-        if (!point || !cityPoint) {
+        if (!point) {
           errors++
           continue
         }
 
-        const distanceKm = haversineKm(point.lat, point.lng, cityPoint.lat, cityPoint.lng)
-        if (distanceKm > MAX_CITY_DISTANCE_KM) {
-          errors++
-          continue
+        // Validate distance from city center (use cached city coords)
+        const cityCoords = await getCityCoords(cliente.cidade, cliente.estado)
+        if (cityCoords) {
+          const distanceKm = haversineKm(point.lat, point.lng, cityCoords.lat, cityCoords.lng)
+          if (distanceKm > 150) {
+            console.log(`Too far for: ${cliente.nome} - ${distanceKm.toFixed(0)}km from ${cliente.cidade}`)
+            skipped++
+            continue
+          }
         }
 
         const { error: updateError } = await supabase
@@ -111,22 +139,29 @@ Deno.serve(async (req) => {
           .eq('id', cliente.id)
 
         if (updateError) {
+          console.error(`Update error for ${cliente.nome}:`, updateError)
           errors++
           continue
         }
 
         geocoded++
       } catch (e) {
-        console.error(`Erro geocodificando ${cliente.nome}:`, e)
+        console.error(`Error geocoding ${cliente.nome}:`, e)
         errors++
       }
 
-      // Rate limit: 100ms between requests
-      await new Promise(r => setTimeout(r, 100))
+      // Rate limit: 50ms between requests (Google allows 50 QPS)
+      await new Promise(r => setTimeout(r, 50))
     }
 
     return new Response(
-      JSON.stringify({ total: clientes.length, geocoded, errors }),
+      JSON.stringify({ 
+        total: pendentes.length, 
+        geocoded, 
+        errors, 
+        skipped,
+        sem_endereco: (clientes || []).length - pendentes.length 
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   } catch (e: any) {
