@@ -13,29 +13,45 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { formatBRL } from '@/lib/api/propostas';
 import { format, differenceInDays } from 'date-fns';
+import { toast as sonnerToast } from 'sonner';
 import {
   MapPin, Search, Layers, Filter, Phone, MessageCircle, ExternalLink,
-  Navigation, Users, TrendingUp, Loader2, Menu, X, Crosshair, MapIcon, RefreshCw
+  Navigation, Users, TrendingUp, Loader2, Menu, X, Crosshair, MapIcon, RefreshCw, UserPlus
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const LIBRARIES: ('visualization' | 'places')[] = ['visualization', 'places'];
-const MAP_CENTER = { lat: -15.78, lng: -47.93 }; // Brasília
+const MAP_CENTER = { lat: -15.78, lng: -47.93 };
 
-// Status colors for client markers
+// ─── CNAE groups for filter UI ─────────────────────────────────
+const CNAE_GROUPS: { label: string; icon: string; codes: string[] }[] = [
+  { label: 'Restaurantes', icon: '🍽️', codes: ['5611201', '5611202', '5611204', '5611205'] },
+  { label: 'Lanchonetes', icon: '🥤', codes: ['5611203'] },
+  { label: 'Hotéis', icon: '🏨', codes: ['5510801', '5510802', '5510803', '5590601', '5590602', '5590603', '5590699'] },
+  { label: 'Hospitais', icon: '🏥', codes: ['8610101', '8610102', '8611801', '8630501'] },
+  { label: 'Catering', icon: '🏭', codes: ['5620101', '5620102', '5620103', '5620104', '5612100'] },
+  { label: 'Panificação', icon: '🥐', codes: ['1091101', '1091102', '4721102'] },
+  { label: 'Alimentação Institucional', icon: '🍱', codes: ['5629801'] },
+];
+
+const REGIME_OPTIONS = ['Simples Nacional', 'MEI', 'Lucro Presumido/Real'];
+const PORTE_OPTIONS = ['Micro Empresa', 'Empresa de Pequeno Porte', 'Demais'];
+
+// ─── Helpers ───────────────────────────────────────────────────
 function getClientStatusColor(ultimaCompra: string | null): string {
-  if (!ultimaCompra) return '#6B7280'; // Inativo
+  if (!ultimaCompra) return '#6B7280';
   const days = differenceInDays(new Date(), new Date(ultimaCompra));
-  if (days <= 30) return '#22C55E'; // Ativo
-  if (days <= 60) return '#EAB308'; // Warm
-  if (days <= 90) return '#EF4444'; // At-Risk
-  return '#6B7280'; // Inativo
+  if (days <= 30) return '#22C55E';
+  if (days <= 60) return '#EAB308';
+  if (days <= 90) return '#EF4444';
+  return '#6B7280';
 }
 
 function getClientStatusLabel(ultimaCompra: string | null): string {
@@ -47,13 +63,8 @@ function getClientStatusLabel(ultimaCompra: string | null): string {
   return 'Inativo';
 }
 
-// Opportunity stage colors
 const ETAPA_COLORS: Record<string, string> = {
-  prospeccao: '#64748B',
-  qualificacao: '#3B82F6',
-  proposta: '#F59E0B',
-  negociacao: '#8B5CF6',
-  fechamento: '#22C55E',
+  prospeccao: '#64748B', qualificacao: '#3B82F6', proposta: '#F59E0B', negociacao: '#8B5CF6', fechamento: '#22C55E',
 };
 
 function getOpRadius(valor: number): number {
@@ -63,33 +74,37 @@ function getOpRadius(valor: number): number {
   return 8;
 }
 
+function formatCNPJ(cnpj: string): string {
+  const c = cnpj.replace(/\D/g, '');
+  if (c.length !== 14) return cnpj;
+  return `${c.slice(0,2)}.${c.slice(2,5)}.${c.slice(5,8)}/${c.slice(8,12)}-${c.slice(12)}`;
+}
+
 interface ClienteGeo {
-  id: string;
-  nome: string;
-  razao_social: string | null;
-  cnpj: string | null;
-  telefone: string | null;
-  celular: string | null;
-  email: string | null;
-  cidade: string | null;
-  estado: string | null;
-  endereco: string | null;
-  segmento: string | null;
-  latitude: number;
-  longitude: number;
-  total_compras_gc: number | null;
-  ultima_compra_gc: string | null;
+  id: string; nome: string; razao_social: string | null; cnpj: string | null;
+  telefone: string | null; celular: string | null; email: string | null;
+  cidade: string | null; estado: string | null; endereco: string | null;
+  segmento: string | null; latitude: number; longitude: number;
+  total_compras_gc: number | null; ultima_compra_gc: string | null;
 }
 
 interface OportunidadeGeo {
-  id: string;
-  titulo: string;
-  etapa: string;
-  valor_estimado: number | null;
+  id: string; titulo: string; etapa: string; valor_estimado: number | null;
   cliente_id: string | null;
   cliente?: { nome: string; latitude: number | null; longitude: number | null } | null;
 }
 
+interface ProspectGeo {
+  cnpj: string; razao_social: string | null; nome_fantasia: string | null;
+  cnae_codigo: string; cnae_descricao: string | null;
+  regime_fiscal: string | null; porte: string | null; capital_social: number | null;
+  endereco_completo: string | null; cidade: string | null; uf: string | null;
+  telefone_1: string | null; telefone_2: string | null; email: string | null;
+  latitude: number | null; longitude: number | null; geocodificado: boolean | null;
+  eh_cliente_wedo: boolean | null;
+}
+
+// ─── Root component ────────────────────────────────────────────
 export default function Mapa() {
   const [mapsKey, setMapsKey] = useState<string>('');
   const [keyLoading, setKeyLoading] = useState(true);
@@ -99,11 +114,8 @@ export default function Mapa() {
       try {
         const { data } = await supabase.functions.invoke('google-maps-key');
         if (data?.key) setMapsKey(data.key);
-      } catch (e) {
-        console.error('Failed to fetch maps key:', e);
-      } finally {
-        setKeyLoading(false);
-      }
+      } catch (e) { console.error('Failed to fetch maps key:', e); }
+      finally { setKeyLoading(false); }
     };
     fetchKey();
   }, []);
@@ -133,6 +145,7 @@ export default function Mapa() {
   return <MapaInner mapsKey={mapsKey} />;
 }
 
+// ─── Inner Map ─────────────────────────────────────────────────
 function MapaInner({ mapsKey }: { mapsKey: string }) {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -141,13 +154,17 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const isMobile = useIsMobile();
   const mapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.Marker[]>([]);
+  const prospectMarkersRef = useRef<google.maps.Marker[]>([]);
   const clustererRef = useRef<MarkerClusterer | null>(null);
 
+  // ─── Layer & filter state ──────────────────────────
   const [selectedClient, setSelectedClient] = useState<ClienteGeo | null>(null);
   const [selectedOp, setSelectedOp] = useState<OportunidadeGeo | null>(null);
+  const [selectedProspect, setSelectedProspect] = useState<ProspectGeo | null>(null);
   const [showClientes, setShowClientes] = useState(true);
   const [showOportunidades, setShowOportunidades] = useState(true);
   const [showHeatmap, setShowHeatmap] = useState(false);
+  const [showProspeccao, setShowProspeccao] = useState(false);
   const [busca, setBusca] = useState('');
   const [segmentoFilter, setSegmentoFilter] = useState('todos');
   const [cidadeFilter, setCidadeFilter] = useState('todos');
@@ -156,12 +173,18 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewportBounds, setViewportBounds] = useState<google.maps.LatLngBounds | null>(null);
 
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: mapsKey,
-    libraries: LIBRARIES,
-  });
+  // Prospect-specific filters
+  const [prospCnaes, setProspCnaes] = useState<string[]>([]);
+  const [prospRegimes, setProspRegimes] = useState<string[]>([]);
+  const [prospPortes, setProspPortes] = useState<string[]>([]);
+  const [prospUf, setProspUf] = useState('');
+  const [prospCidade, setProspCidade] = useState('');
+  const [prospOcultarClientes, setProspOcultarClientes] = useState(false);
+  const [convertingCnpj, setConvertingCnpj] = useState<string | null>(null);
 
-  // Fetch geocoded clients
+  const { isLoaded } = useJsApiLoader({ googleMapsApiKey: mapsKey, libraries: LIBRARIES });
+
+  // ─── Data: Clients ─────────────────────────────────
   const { data: clientes = [], isLoading: loadingClientes } = useQuery({
     queryKey: ['clientes_geo'],
     queryFn: async () => {
@@ -176,7 +199,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     },
   });
 
-  // Fetch opportunities with client location
+  // ─── Data: Opportunities ──────────────────────────
   const { data: oportunidades = [] } = useQuery({
     queryKey: ['oportunidades_geo'],
     queryFn: async () => {
@@ -189,7 +212,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     },
   });
 
-  // Count pending geocoding (only records with minimum location data)
+  // ─── Data: Pending geocoding count ────────────────
   const { data: pendingCount = 0 } = useQuery({
     queryKey: ['geo_pending_count'],
     queryFn: async () => {
@@ -203,7 +226,75 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     },
   });
 
-  // Derived: unique segments and cities
+  // ─── Prospect filter validity ─────────────────────
+  const prospectFilterValid = prospCnaes.length > 0 || prospCidade.length > 0;
+
+  // ─── Data: Prospects (only when layer is on + filters valid) ──
+  const { data: prospects = [], isLoading: loadingProspects } = useQuery({
+    queryKey: ['prospects_geo', prospCnaes, prospRegimes, prospPortes, prospUf, prospCidade, prospOcultarClientes],
+    queryFn: async () => {
+      // Expand CNAE groups into individual codes
+      const allCodes: string[] = [];
+      prospCnaes.forEach(groupLabel => {
+        const group = CNAE_GROUPS.find(g => g.label === groupLabel);
+        if (group) allCodes.push(...group.codes);
+      });
+
+      let query = supabase
+        .from('prospects_rf')
+        .select('cnpj, razao_social, nome_fantasia, cnae_codigo, cnae_descricao, regime_fiscal, porte, capital_social, endereco_completo, cidade, uf, telefone_1, telefone_2, email, latitude, longitude, geocodificado, eh_cliente_wedo')
+        .eq('situacao_cadastral', 'Ativa');
+
+      if (allCodes.length > 0) query = query.in('cnae_codigo', allCodes);
+      if (prospRegimes.length > 0) query = query.in('regime_fiscal', prospRegimes);
+      if (prospPortes.length > 0) query = query.in('porte', prospPortes);
+      if (prospUf) query = query.eq('uf', prospUf);
+      if (prospCidade) query = query.eq('cidade', prospCidade);
+      if (prospOcultarClientes) query = query.eq('eh_cliente_wedo', false);
+
+      const { data, error } = await query.limit(500);
+      if (error) throw error;
+      return (data ?? []) as unknown as ProspectGeo[];
+    },
+    enabled: showProspeccao && prospectFilterValid,
+  });
+
+  // ─── Data: UFs and cities for prospect filters ────
+  const { data: prospectUfs = [] } = useQuery({
+    queryKey: ['prospect_ufs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('prospects_rf')
+        .select('uf')
+        .eq('situacao_cadastral', 'Ativa')
+        .not('uf', 'is', null);
+      if (error) throw error;
+      const set = new Set((data ?? []).map((d: any) => d.uf).filter(Boolean));
+      return Array.from(set).sort() as string[];
+    },
+    enabled: showProspeccao,
+    staleTime: 60000,
+  });
+
+  const { data: prospectCidades = [] } = useQuery({
+    queryKey: ['prospect_cidades', prospUf],
+    queryFn: async () => {
+      if (!prospUf) return [];
+      const { data, error } = await supabase
+        .from('prospects_rf')
+        .select('cidade')
+        .eq('situacao_cadastral', 'Ativa')
+        .eq('uf', prospUf)
+        .not('cidade', 'is', null);
+      if (error) throw error;
+      const set = new Set((data ?? []).map((d: any) => d.cidade).filter(Boolean));
+      return Array.from(set).sort() as string[];
+    },
+    enabled: showProspeccao && !!prospUf,
+    staleTime: 60000,
+  });
+
+  // ─── Derived: segments, cities, filtered ──────────
   const segmentos = useMemo(() => {
     const set = new Set(clientes.map(c => c.segmento).filter(Boolean));
     return Array.from(set).sort() as string[];
@@ -214,57 +305,43 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     return Array.from(set).sort() as string[];
   }, [clientes]);
 
-  // Filtered clients
   const filteredClientes = useMemo(() => {
     let list = clientes;
     if (segmentoFilter !== 'todos') list = list.filter(c => c.segmento === segmentoFilter);
     if (cidadeFilter !== 'todos') list = list.filter(c => c.cidade === cidadeFilter);
-    if (statusFilter !== 'todos') {
-      list = list.filter(c => getClientStatusLabel(c.ultima_compra_gc) === statusFilter);
-    }
+    if (statusFilter !== 'todos') list = list.filter(c => getClientStatusLabel(c.ultima_compra_gc) === statusFilter);
     if (busca.length >= 2) {
       const q = busca.toLowerCase();
       list = list.filter(c => c.nome.toLowerCase().includes(q) || c.cnpj?.includes(q) || c.cidade?.toLowerCase().includes(q));
     }
-    // Viewport filter
-    if (viewportBounds) {
-      list = list.filter(c => viewportBounds.contains({ lat: c.latitude, lng: c.longitude }));
-    }
+    if (viewportBounds) list = list.filter(c => viewportBounds.contains({ lat: c.latitude, lng: c.longitude }));
     return list;
   }, [clientes, segmentoFilter, cidadeFilter, statusFilter, busca, viewportBounds]);
 
-  // Filtered opportunities (only those with geo)
-  const filteredOps = useMemo(() => {
-    return oportunidades.filter(op => {
-      const c = op.cliente as any;
-      return c?.latitude && c?.longitude;
-    });
-  }, [oportunidades]);
+  const filteredOps = useMemo(() => oportunidades.filter(op => { const c = op.cliente as any; return c?.latitude && c?.longitude; }), [oportunidades]);
 
-  // KPIs
+  const geocodedProspects = useMemo(() => prospects.filter(p => p.latitude && p.longitude), [prospects]);
+
   const kpis = useMemo(() => ({
     clientes: filteredClientes.length,
     ops: filteredOps.length,
     pipeline: filteredOps.reduce((s, o) => s + (o.valor_estimado ?? 0), 0),
-  }), [filteredClientes, filteredOps]);
+    prospects: geocodedProspects.length,
+  }), [filteredClientes, filteredOps, geocodedProspects]);
 
   const noGeocodedClientes = clientes.length === 0;
 
-  // Heatmap data
   const heatmapData = useMemo(() => {
     if (!isLoaded || !showHeatmap) return [];
     return filteredOps.map(op => {
       const c = op.cliente as any;
-      return {
-        location: new google.maps.LatLng(c.latitude, c.longitude),
-        weight: Math.max(op.valor_estimado ?? 1000, 1000) / 1000,
-      };
+      return { location: new google.maps.LatLng(c.latitude, c.longitude), weight: Math.max(op.valor_estimado ?? 1000, 1000) / 1000 };
     });
   }, [isLoaded, showHeatmap, filteredOps]);
 
+  // ─── Map lifecycle ────────────────────────────────
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
-    // Fit bounds
     if (clientes.length > 0) {
       const bounds = new google.maps.LatLngBounds();
       clientes.forEach(c => bounds.extend({ lat: c.latitude, lng: c.longitude }));
@@ -277,62 +354,37 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     if (bounds) setViewportBounds(bounds);
   }, []);
 
-  // Draw markers manually via useEffect
+  // ─── Client & Oportunity markers ─────────────────
   useEffect(() => {
     if (!mapRef.current || !isLoaded) return;
-    // Clear old markers
-    markersRef.current.forEach(m => {
-      google.maps.event.clearInstanceListeners(m);
-      m.setMap(null);
-    });
+    markersRef.current.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
     markersRef.current = [];
-    if (clustererRef.current) {
-      clustererRef.current.clearMarkers();
-      clustererRef.current = null;
-    }
+    if (clustererRef.current) { clustererRef.current.clearMarkers(); clustererRef.current = null; }
 
     const markers: google.maps.Marker[] = [];
     const map = mapRef.current!;
 
-    // Client markers
     if (showClientes) {
       filteredClientes.forEach(c => {
         const color = getClientStatusColor(c.ultima_compra_gc);
         const initial = (c.nome || '?').charAt(0).toUpperCase();
-        
         const pinSvg = `
           <svg xmlns="http://www.w3.org/2000/svg" width="40" height="52" viewBox="0 0 40 52">
-            <defs>
-              <filter id="shadow-${c.id.slice(0,6)}" x="-20%" y="-10%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
-              </filter>
-            </defs>
-            <path d="M20 51C20 51 38 32.5 38 19C38 9.06 29.94 1 20 1C10.06 1 2 9.06 2 19C2 32.5 20 51 20 51Z" 
-                  fill="${color}" stroke="white" stroke-width="2.5" filter="url(#shadow-${c.id.slice(0,6)})"/>
+            <defs><filter id="shadow-${c.id.slice(0,6)}" x="-20%" y="-10%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/></filter></defs>
+            <path d="M20 51C20 51 38 32.5 38 19C38 9.06 29.94 1 20 1C10.06 1 2 9.06 2 19C2 32.5 20 51 20 51Z" fill="${color}" stroke="white" stroke-width="2.5" filter="url(#shadow-${c.id.slice(0,6)})"/>
             <circle cx="20" cy="19" r="11" fill="white" opacity="0.95"/>
             <text x="20" y="24" text-anchor="middle" font-size="14" font-weight="bold" font-family="Arial, sans-serif" fill="${color}">${initial}</text>
           </svg>`;
-        
         const marker = new google.maps.Marker({
-          position: { lat: c.latitude, lng: c.longitude },
-          title: c.nome,
-          icon: {
-            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(pinSvg),
-            scaledSize: new google.maps.Size(40, 52),
-            anchor: new google.maps.Point(20, 52),
-          },
-          zIndex: 10,
-          clickable: true,
+          position: { lat: c.latitude, lng: c.longitude }, title: c.nome,
+          icon: { url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(pinSvg), scaledSize: new google.maps.Size(40, 52), anchor: new google.maps.Point(20, 52) },
+          zIndex: 10, clickable: true,
         });
-        marker.addListener('click', () => {
-          setSelectedClient(c);
-          setSelectedOp(null);
-        });
+        marker.addListener('click', () => { setSelectedClient(c); setSelectedOp(null); setSelectedProspect(null); });
         markers.push(marker);
       });
     }
 
-    // Opportunity markers
     if (showOportunidades) {
       filteredOps.forEach(op => {
         const cl = op.cliente as any;
@@ -340,122 +392,117 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         const color = ETAPA_COLORS[op.etapa] || '#64748B';
         const size = Math.min(48, Math.max(32, getOpRadius(op.valor_estimado ?? 0)));
         const opacity = showHeatmap ? 0.5 : 1;
-        
         const opSvg = `
           <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 40 40">
-            <defs>
-              <filter id="opshadow-${op.id.slice(0,6)}" x="-20%" y="-10%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/>
-              </filter>
-            </defs>
+            <defs><filter id="opshadow-${op.id.slice(0,6)}" x="-20%" y="-10%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/></filter></defs>
             <circle cx="20" cy="20" r="17" fill="${color}" opacity="${opacity}" stroke="white" stroke-width="2.5" filter="url(#opshadow-${op.id.slice(0,6)})"/>
             <text x="20" y="14" text-anchor="middle" font-size="7" font-weight="600" font-family="Arial, sans-serif" fill="white">R$</text>
             <text x="20" y="26" text-anchor="middle" font-size="10" font-weight="bold" font-family="Arial, sans-serif" fill="white">${((op.valor_estimado ?? 0) / 1000).toFixed(0)}k</text>
           </svg>`;
-
         const marker = new google.maps.Marker({
-          position: { lat: cl.latitude, lng: cl.longitude },
-          title: op.titulo,
-          icon: {
-            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(opSvg),
-            scaledSize: new google.maps.Size(size, size),
-            anchor: new google.maps.Point(size / 2, size / 2),
-          },
-          zIndex: 5,
-          clickable: true,
+          position: { lat: cl.latitude, lng: cl.longitude }, title: op.titulo,
+          icon: { url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(opSvg), scaledSize: new google.maps.Size(size, size), anchor: new google.maps.Point(size / 2, size / 2) },
+          zIndex: 5, clickable: true,
         });
-        marker.addListener('click', () => {
-          setSelectedOp(op);
-          setSelectedClient(null);
-        });
+        marker.addListener('click', () => { setSelectedOp(op); setSelectedClient(null); setSelectedProspect(null); });
         markers.push(marker);
       });
     }
 
     markersRef.current = markers;
-
-    // Add all markers to map first (without clusterer initially to ensure click works)
     markers.forEach(m => m.setMap(map));
-
-    // Clustering
     if (markers.length > 10) {
-      clustererRef.current = new MarkerClusterer({
-        map,
-        markers,
-        onClusterClick: (_, cluster, map) => {
-          map.fitBounds(cluster.bounds!);
-        },
-      });
+      clustererRef.current = new MarkerClusterer({ map, markers, onClusterClick: (_, cluster, map) => { map.fitBounds(cluster.bounds!); } });
     }
 
     return () => {
-      markers.forEach(m => {
-        google.maps.event.clearInstanceListeners(m);
-        m.setMap(null);
-      });
-      if (clustererRef.current) {
-        clustererRef.current.clearMarkers();
-        clustererRef.current = null;
-      }
+      markers.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
+      if (clustererRef.current) { clustererRef.current.clearMarkers(); clustererRef.current = null; }
     };
   }, [isLoaded, filteredClientes, filteredOps, showClientes, showOportunidades, showHeatmap]);
 
+  // ─── Prospect markers (separate layer) ────────────
+  useEffect(() => {
+    if (!mapRef.current || !isLoaded) return;
+    // Clear old prospect markers
+    prospectMarkersRef.current.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
+    prospectMarkersRef.current = [];
+
+    if (!showProspeccao || geocodedProspects.length === 0) return;
+
+    const map = mapRef.current!;
+    const markers: google.maps.Marker[] = [];
+
+    geocodedProspects.forEach(p => {
+      const isClient = p.eh_cliente_wedo;
+      const borderColor = isClient ? '#D4A017' : '#94A3B8';
+      const fillColor = '#CBD5E1';
+      const initial = ((p.nome_fantasia || p.razao_social || '?').charAt(0)).toUpperCase();
+
+      const prospSvg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 30 40">
+          <path d="M15 39C15 39 28 25 28 15C28 7.27 22.73 2 15 2C7.27 2 2 7.27 2 15C2 25 15 39 15 39Z"
+                fill="${fillColor}" stroke="${borderColor}" stroke-width="${isClient ? 3 : 2}"/>
+          <circle cx="15" cy="15" r="8" fill="white" opacity="0.9"/>
+          <text x="15" y="19" text-anchor="middle" font-size="10" font-weight="bold" font-family="Arial, sans-serif" fill="#64748B">${initial}</text>
+        </svg>`;
+
+      const marker = new google.maps.Marker({
+        position: { lat: p.latitude!, lng: p.longitude! },
+        title: p.nome_fantasia || p.razao_social || p.cnpj,
+        icon: {
+          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(prospSvg),
+          scaledSize: new google.maps.Size(30, 40),
+          anchor: new google.maps.Point(15, 40),
+        },
+        zIndex: 3,
+        clickable: true,
+      });
+      marker.addListener('click', () => { setSelectedProspect(p); setSelectedClient(null); setSelectedOp(null); });
+      markers.push(marker);
+    });
+
+    prospectMarkersRef.current = markers;
+    markers.forEach(m => m.setMap(map));
+
+    return () => {
+      markers.forEach(m => { google.maps.event.clearInstanceListeners(m); m.setMap(null); });
+    };
+  }, [isLoaded, showProspeccao, geocodedProspects]);
+
+  // ─── Actions ──────────────────────────────────────
   const centerOnClient = (c: ClienteGeo) => {
     mapRef.current?.panTo({ lat: c.latitude, lng: c.longitude });
     mapRef.current?.setZoom(15);
-    setSelectedClient(c);
-    setSelectedOp(null);
+    setSelectedClient(c); setSelectedOp(null); setSelectedProspect(null);
     if (isMobile) setSidebarOpen(false);
   };
 
   const handleGeocodificar = async () => {
     setGeocodificando(true);
-    let totalGeocoded = 0;
-    let totalErrors = 0;
-    let rodada = 1;
-
+    let totalGeocoded = 0, totalErrors = 0, rodada = 1;
     try {
-      // Loop until no more pending clients
       while (true) {
         toast({ title: `🔄 Geocodificando... (rodada ${rodada})`, description: `${totalGeocoded} geocodificados até agora` });
-        
         const { data, error } = await supabase.functions.invoke('geocodificar-clientes');
         if (error) throw error;
-        
         totalGeocoded += data.geocoded || 0;
         totalErrors += data.errors || 0;
-
-        // If no more clients to process, we're done
         const processados = (data.geocoded || 0) + (data.errors || 0) + (data.skipped || 0);
-        if (!data.total || data.total === 0 || processados === 0) {
-          break;
-        }
-
+        if (!data.total || data.total === 0 || processados === 0) break;
         rodada++;
         queryClient.invalidateQueries({ queryKey: ['clientes_geo'] });
         queryClient.invalidateQueries({ queryKey: ['geo_pending_count'] });
-        
-        // Small pause between rounds
         await new Promise(r => setTimeout(r, 1000));
       }
-
-      toast({ 
-        title: `✅ Geocodificação concluída!`, 
-        description: `${totalGeocoded} clientes geocodificados, ${totalErrors} erros` 
-      });
+      toast({ title: `✅ Geocodificação concluída!`, description: `${totalGeocoded} clientes geocodificados, ${totalErrors} erros` });
       queryClient.invalidateQueries({ queryKey: ['clientes_geo'] });
       queryClient.invalidateQueries({ queryKey: ['geo_pending_count'] });
     } catch (e: any) {
-      toast({ 
-        title: totalGeocoded > 0 ? `⚠️ Parcialmente concluído (${totalGeocoded} ok)` : 'Erro na geocodificação', 
-        description: e.message, 
-        variant: totalGeocoded > 0 ? 'default' : 'destructive' 
-      });
+      toast({ title: totalGeocoded > 0 ? `⚠️ Parcialmente concluído (${totalGeocoded} ok)` : 'Erro na geocodificação', description: e.message, variant: totalGeocoded > 0 ? 'default' : 'destructive' });
       queryClient.invalidateQueries({ queryKey: ['clientes_geo'] });
       queryClient.invalidateQueries({ queryKey: ['geo_pending_count'] });
-    } finally {
-      setGeocodificando(false);
-    }
+    } finally { setGeocodificando(false); }
   };
 
   const [syncingCompras, setSyncingCompras] = useState(false);
@@ -466,11 +513,8 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       if (error) throw error;
       toast({ title: '✅ Sync de compras concluída', description: `${data.atualizados} atualizados, ${data.sem_compra} sem compra, ${data.erros} erros` });
       queryClient.invalidateQueries({ queryKey: ['clientes_geo'] });
-    } catch (e: any) {
-      toast({ title: 'Erro na sync de compras', description: e.message, variant: 'destructive' });
-    } finally {
-      setSyncingCompras(false);
-    }
+    } catch (e: any) { toast({ title: 'Erro na sync de compras', description: e.message, variant: 'destructive' }); }
+    finally { setSyncingCompras(false); }
   };
 
   const openWhatsApp = (phone: string) => {
@@ -483,7 +527,56 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
   };
 
-  // Sidebar content (reused in desktop and mobile)
+  const handleConverterProspect = async (prospect: ProspectGeo) => {
+    setConvertingCnpj(prospect.cnpj);
+    try {
+      // Create in clientes_gc
+      const payload = {
+        gc_id: `RF-${prospect.cnpj}`,
+        nome: prospect.nome_fantasia || prospect.razao_social || '',
+        razao_social: prospect.razao_social,
+        cnpj: formatCNPJ(prospect.cnpj),
+        telefone: prospect.telefone_1 || '',
+        email: prospect.email || '',
+        cidade: prospect.cidade || '',
+        estado: prospect.uf || '',
+        endereco: prospect.endereco_completo || '',
+        segmento: prospect.cnae_descricao || '',
+        porte: prospect.porte || '',
+        ativo: true,
+        total_compras_gc: 0,
+        latitude: prospect.latitude,
+        longitude: prospect.longitude,
+        geocodificado: !!(prospect.latitude && prospect.longitude),
+      };
+
+      const { error } = await supabase.from('clientes_gc').insert(payload as any);
+      if (error) throw error;
+
+      sonnerToast.success('✅ Prospect convertido em cliente!');
+      setSelectedProspect(null);
+      queryClient.invalidateQueries({ queryKey: ['clientes_geo'] });
+      queryClient.invalidateQueries({ queryKey: ['prospects_geo'] });
+
+      // Navigate to client form for further editing
+      navigate('/clientes-gc/novo');
+    } catch (e: any) {
+      sonnerToast.error(`Erro ao converter: ${e.message}`);
+    } finally { setConvertingCnpj(null); }
+  };
+
+  // ─── Toggle CNAE group ────────────────────────────
+  const toggleCnaeGroup = (label: string) => {
+    setProspCnaes(prev => prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]);
+  };
+  const toggleRegime = (r: string) => {
+    setProspRegimes(prev => prev.includes(r) ? prev.filter(l => l !== r) : [...prev, r]);
+  };
+  const togglePorte = (p: string) => {
+    setProspPortes(prev => prev.includes(p) ? prev.filter(l => l !== p) : [...prev, p]);
+  };
+
+  // ─── Sidebar ──────────────────────────────────────
   const sidebarContent = (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -492,15 +585,9 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
           <MapIcon className="h-5 w-5 text-primary" />
           <h2 className="font-bold text-sm">Mapa Comercial</h2>
         </div>
-        {/* Search */}
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar cliente, CNPJ, cidade..."
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            className="pl-9 h-9 text-sm"
-          />
+          <Input placeholder="Buscar cliente, CNPJ, cidade..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-9 h-9 text-sm" />
         </div>
       </div>
 
@@ -522,13 +609,136 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             <Label className="text-sm flex items-center gap-2">🔥 Heatmap</Label>
             <Switch checked={showHeatmap} onCheckedChange={setShowHeatmap} />
           </div>
+          <div className="flex items-center justify-between">
+            <Label className="text-sm flex items-center gap-2">🔍 Prospecção</Label>
+            <Switch checked={showProspeccao} onCheckedChange={setShowProspeccao} />
+          </div>
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Prospect filters (only when layer active) */}
+      {showProspeccao && (
+        <div className="p-4 border-b border-border space-y-3">
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            🔍 Filtros Prospecção
+          </div>
+
+          {/* CNAE chips */}
+          <div>
+            <p className="text-xs text-muted-foreground mb-1.5">CNAE (segmento)</p>
+            <div className="flex flex-wrap gap-1">
+              {CNAE_GROUPS.map(g => (
+                <button
+                  key={g.label}
+                  onClick={() => toggleCnaeGroup(g.label)}
+                  className={`text-[11px] px-2 py-1 rounded-full border transition-colors ${
+                    prospCnaes.includes(g.label)
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted'
+                  }`}
+                >
+                  {g.icon} {g.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Regime chips */}
+          <div>
+            <p className="text-xs text-muted-foreground mb-1.5">Regime Fiscal</p>
+            <div className="flex flex-wrap gap-1">
+              {REGIME_OPTIONS.map(r => (
+                <button
+                  key={r}
+                  onClick={() => toggleRegime(r)}
+                  className={`text-[11px] px-2 py-1 rounded-full border transition-colors ${
+                    prospRegimes.includes(r)
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted'
+                  }`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Porte chips */}
+          <div>
+            <p className="text-xs text-muted-foreground mb-1.5">Porte</p>
+            <div className="flex flex-wrap gap-1">
+              {PORTE_OPTIONS.map(p => (
+                <button
+                  key={p}
+                  onClick={() => togglePorte(p)}
+                  className={`text-[11px] px-2 py-1 rounded-full border transition-colors ${
+                    prospPortes.includes(p)
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* UF */}
+          <Select value={prospUf || '__todos__'} onValueChange={v => { setProspUf(v === '__todos__' ? '' : v); setProspCidade(''); }}>
+            <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="UF" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__todos__">Todos os estados</SelectItem>
+              {prospectUfs.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
+            </SelectContent>
+          </Select>
+
+          {/* Cidade */}
+          {prospUf && (
+            <Select value={prospCidade || '__todos__'} onValueChange={v => setProspCidade(v === '__todos__' ? '' : v)}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Cidade" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__todos__">Todas as cidades</SelectItem>
+                {prospectCidades.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+
+          {/* Ocultar já clientes */}
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="ocultar-clientes"
+              checked={prospOcultarClientes}
+              onCheckedChange={(v) => setProspOcultarClientes(!!v)}
+            />
+            <Label htmlFor="ocultar-clientes" className="text-xs cursor-pointer">
+              Ocultar já clientes WeDo
+            </Label>
+          </div>
+
+          {/* Status message */}
+          {!prospectFilterValid && (
+            <p className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 p-2 rounded">
+              ⚠️ Selecione pelo menos um CNAE ou cidade para buscar prospects
+            </p>
+          )}
+          {prospectFilterValid && loadingProspects && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Loader2 className="h-3 w-3 animate-spin" /> Buscando prospects…
+            </p>
+          )}
+          {prospectFilterValid && !loadingProspects && (
+            <p className="text-xs text-muted-foreground">
+              {prospects.length} prospects encontrados {geocodedProspects.length < prospects.length && `(${geocodedProspects.length} com coordenadas)`}
+              {prospects.length === 500 && ' — limite de 500 atingido, refine os filtros'}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Client filters */}
       <div className="p-4 border-b border-border space-y-3">
         <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          <Filter className="h-3.5 w-3.5" /> Filtros
+          <Filter className="h-3.5 w-3.5" /> Filtros Clientes
         </div>
         <Select value={segmentoFilter} onValueChange={setSegmentoFilter}>
           <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Segmento" /></SelectTrigger>
@@ -558,7 +768,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
       {/* KPIs */}
       <div className="p-4 border-b border-border">
-        <div className="grid grid-cols-3 gap-2 text-center">
+        <div className={`grid ${showProspeccao ? 'grid-cols-4' : 'grid-cols-3'} gap-2 text-center`}>
           <div>
             <p className="text-lg font-bold">{kpis.clientes}</p>
             <p className="text-[10px] text-muted-foreground">Clientes</p>
@@ -571,33 +781,27 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             <p className="text-lg font-bold text-primary">{formatBRL(kpis.pipeline)}</p>
             <p className="text-[10px] text-muted-foreground">Pipeline</p>
           </div>
+          {showProspeccao && (
+            <div>
+              <p className="text-lg font-bold text-slate-500">{kpis.prospects}</p>
+              <p className="text-[10px] text-muted-foreground">Prospects</p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Geocoding button */}
       {pendingCount > 0 && (
         <div className="p-4 border-b border-border">
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full text-xs"
-            onClick={handleGeocodificar}
-            disabled={geocodificando}
-          >
+          <Button variant="outline" size="sm" className="w-full text-xs" onClick={handleGeocodificar} disabled={geocodificando}>
             {geocodificando ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Geocodificando...</> : <><Crosshair className="h-3 w-3 mr-1" /> Geocodificar {pendingCount} pendentes</>}
           </Button>
         </div>
       )}
 
-      {/* Sync compras button */}
+      {/* Sync compras */}
       <div className="px-4 pb-3">
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full text-xs"
-          onClick={handleSyncCompras}
-          disabled={syncingCompras}
-        >
+        <Button variant="outline" size="sm" className="w-full text-xs" onClick={handleSyncCompras} disabled={syncingCompras}>
           {syncingCompras ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Sincronizando compras...</> : <><RefreshCw className="h-3 w-3 mr-1" /> Atualizar última compra GC</>}
         </Button>
       </div>
@@ -608,63 +812,46 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
           {filteredClientes.slice(0, 50).map(c => {
             const statusColor = getClientStatusColor(c.ultima_compra_gc);
             return (
-              <button
-                key={c.id}
-                onClick={() => centerOnClient(c)}
-                className="w-full text-left p-3 rounded-lg hover:bg-accent/50 transition-colors border border-transparent hover:border-border"
-              >
+              <button key={c.id} onClick={() => centerOnClient(c)} className="w-full text-left p-3 rounded-lg hover:bg-accent/50 transition-colors border border-transparent hover:border-border">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">{c.nome}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {c.segmento && `${c.segmento} · `}{c.cidade}/{c.estado}
-                    </p>
+                    <p className="text-xs text-muted-foreground truncate">{c.segmento && `${c.segmento} · `}{c.cidade}/{c.estado}</p>
                   </div>
                   <div className="w-2.5 h-2.5 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: statusColor }} />
                 </div>
-                {c.total_compras_gc && c.total_compras_gc > 0 && (
-                  <p className="text-xs text-muted-foreground mt-1">💰 {formatBRL(c.total_compras_gc)}</p>
-                )}
+                {c.total_compras_gc && c.total_compras_gc > 0 && <p className="text-xs text-muted-foreground mt-1">💰 {formatBRL(c.total_compras_gc)}</p>}
               </button>
             );
           })}
-          {filteredClientes.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-8">Nenhum cliente nesta área</p>
-          )}
+          {filteredClientes.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">Nenhum cliente nesta área</p>}
         </div>
       </ScrollArea>
     </div>
   );
 
-
   return (
     <MainLayout>
       <div className="flex h-[calc(100vh-64px)] md:h-[calc(100vh-0px)] -m-4 md:-m-6 relative">
         {/* Desktop sidebar */}
-        <div className="hidden lg:flex w-80 border-r border-border bg-card flex-col shrink-0">
-          {sidebarContent}
+        <div className="hidden lg:flex w-80 border-r border-border bg-card flex-col shrink-0 overflow-hidden">
+          <ScrollArea className="h-full">{sidebarContent}</ScrollArea>
         </div>
 
-        {/* Mobile sidebar trigger */}
+        {/* Mobile sidebar */}
         <div className="lg:hidden absolute top-3 left-3 z-20">
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
-              <Button size="icon" variant="secondary" className="shadow-lg">
-                <Menu className="h-5 w-5" />
-              </Button>
+              <Button size="icon" variant="secondary" className="shadow-lg"><Menu className="h-5 w-5" /></Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-80 p-0">
-              {sidebarContent}
-            </SheetContent>
+            <SheetContent side="left" className="w-80 p-0">{sidebarContent}</SheetContent>
           </Sheet>
         </div>
 
         {/* Map */}
         <div className="flex-1 relative">
           {!isLoaded ? (
-            <div className="flex items-center justify-center h-full">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
+            <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
           ) : (
             <GoogleMap
               mapContainerStyle={{ width: '100%', height: '100%' }}
@@ -672,65 +859,29 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               zoom={noGeocodedClientes ? 4 : 5}
               onLoad={onMapLoad}
               onIdle={onMapIdle}
-              options={{
-                disableDefaultUI: false,
-                zoomControl: true,
-                streetViewControl: true,
-                mapTypeControl: true,
-                fullscreenControl: true,
-                gestureHandling: 'greedy',
-              }}
+              options={{ disableDefaultUI: false, zoomControl: true, streetViewControl: true, mapTypeControl: true, fullscreenControl: true, gestureHandling: 'greedy' }}
             >
               {/* Empty state */}
-              {noGeocodedClientes && (
+              {noGeocodedClientes && !showProspeccao && (
                 <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
                   <div className="pointer-events-auto bg-card border border-border rounded-xl p-6 max-w-md text-center shadow-lg space-y-3">
                     <h3 className="font-semibold text-lg">Nenhum cliente no mapa ainda</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Sincronize seus clientes do GestãoClick primeiro, depois clique em Geocodificar.
-                    </p>
-                    <Button
-                      onClick={handleGeocodificar}
-                      disabled={geocodificando || pendingCount === 0}
-                      className="w-full"
-                    >
-                      {geocodificando ? (
-                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Geocodificando...</>
-                      ) : (
-                        <>🔄 Geocodificar Clientes</>
-                      )}
+                    <p className="text-sm text-muted-foreground">Sincronize seus clientes do GestãoClick primeiro, depois clique em Geocodificar.</p>
+                    <Button onClick={handleGeocodificar} disabled={geocodificando || pendingCount === 0} className="w-full">
+                      {geocodificando ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Geocodificando...</> : <>🔄 Geocodificar Clientes</>}
                     </Button>
-                    <p className="text-xs text-muted-foreground">
-                      Nenhum cliente geocodificado. Sincronize os clientes do GestãoClick e clique em Geocodificar.
-                    </p>
                   </div>
                 </div>
               )}
 
               {/* Heatmap */}
               {!noGeocodedClientes && showHeatmap && heatmapData.length > 0 && (
-                <HeatmapLayerF
-                  data={heatmapData}
-                  options={{
-                    radius: 40,
-                    opacity: 0.6,
-                    gradient: [
-                      'rgba(0, 0, 255, 0)',
-                      'rgba(0, 128, 255, 0.6)',
-                      'rgba(0, 255, 0, 0.7)',
-                      'rgba(255, 255, 0, 0.8)',
-                      'rgba(255, 0, 0, 0.9)',
-                    ],
-                  }}
-                />
+                <HeatmapLayerF data={heatmapData} options={{ radius: 40, opacity: 0.6, gradient: ['rgba(0,0,255,0)', 'rgba(0,128,255,0.6)', 'rgba(0,255,0,0.7)', 'rgba(255,255,0,0.8)', 'rgba(255,0,0,0.9)'] }} />
               )}
 
               {/* Client InfoWindow */}
-              {!noGeocodedClientes && selectedClient && (
-                <InfoWindowF
-                  position={{ lat: selectedClient.latitude, lng: selectedClient.longitude }}
-                  onCloseClick={() => setSelectedClient(null)}
-                >
+              {selectedClient && (
+                <InfoWindowF position={{ lat: selectedClient.latitude, lng: selectedClient.longitude }} onCloseClick={() => setSelectedClient(null)}>
                   <div className="max-w-xs space-y-2 p-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-bold text-sm" style={{ color: '#111827' }}>{selectedClient.razao_social || selectedClient.nome}</h3>
@@ -748,80 +899,118 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                       {selectedClient.total_compras_gc && selectedClient.total_compras_gc > 0 && <p>💰 Total: {formatBRL(selectedClient.total_compras_gc)}</p>}
                     </div>
                     <div className="flex gap-1 pt-1">
-                      <button
-                        onClick={() => navigate(`/cliente/${selectedClient.id}`)}
-                        className="text-xs px-2 py-1 rounded"
-                        style={{ backgroundColor: '#0066FF', color: 'white' }}
-                      >Ver Perfil</button>
-                      <button
-                        onClick={() => openRoute(selectedClient.latitude, selectedClient.longitude)}
-                        className="text-xs px-2 py-1 rounded"
-                        style={{ backgroundColor: '#E5E7EB', color: '#374151' }}
-                      >Rota</button>
+                      <button onClick={() => navigate(`/cliente/${selectedClient.id}`)} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#0066FF', color: 'white' }}>Ver Perfil</button>
+                      <button onClick={() => openRoute(selectedClient.latitude, selectedClient.longitude)} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#E5E7EB', color: '#374151' }}>Rota</button>
                       {(selectedClient.celular || selectedClient.telefone) && (
-                        <button
-                          onClick={() => openWhatsApp(selectedClient.celular || selectedClient.telefone!)}
-                          className="text-xs px-2 py-1 rounded"
-                          style={{ backgroundColor: '#22C55E', color: 'white' }}
-                        >WhatsApp</button>
+                        <button onClick={() => openWhatsApp(selectedClient.celular || selectedClient.telefone!)} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#22C55E', color: 'white' }}>WhatsApp</button>
                       )}
-                      {selectedClient.telefone && (
-                        <a href={`tel:${selectedClient.telefone}`} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#E5E7EB', color: '#374151' }}>📞</a>
-                      )}
+                      {selectedClient.telefone && <a href={`tel:${selectedClient.telefone}`} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#E5E7EB', color: '#374151' }}>📞</a>}
                     </div>
                   </div>
                 </InfoWindowF>
               )}
 
               {/* Opportunity InfoWindow */}
-              {!noGeocodedClientes && selectedOp && (() => {
+              {selectedOp && (() => {
                 const cl = selectedOp.cliente as any;
                 return cl?.latitude && cl?.longitude ? (
-                  <InfoWindowF
-                    position={{ lat: cl.latitude, lng: cl.longitude }}
-                    onCloseClick={() => setSelectedOp(null)}
-                  >
+                  <InfoWindowF position={{ lat: cl.latitude, lng: cl.longitude }} onCloseClick={() => setSelectedOp(null)}>
                     <div className="max-w-xs space-y-2 p-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                       <h3 className="font-bold text-sm" style={{ color: '#111827' }}>💰 {selectedOp.titulo}</h3>
                       <p className="text-xs" style={{ color: '#6B7280' }}>🏢 {cl.nome}</p>
                       <p className="text-xs" style={{ color: '#374151' }}>Etapa: {selectedOp.etapa}</p>
                       {selectedOp.valor_estimado && <p className="text-xs font-semibold" style={{ color: '#111827' }}>Valor: {formatBRL(selectedOp.valor_estimado)}</p>}
-                      <button
-                        onClick={() => navigate(`/oportunidades/${selectedOp.id}`)}
-                        className="text-xs px-2 py-1 rounded"
-                        style={{ backgroundColor: '#0066FF', color: 'white' }}
-                      >Ver Oportunidade</button>
+                      <button onClick={() => navigate(`/oportunidades/${selectedOp.id}`)} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#0066FF', color: 'white' }}>Ver Oportunidade</button>
                     </div>
                   </InfoWindowF>
                 ) : null;
               })()}
+
+              {/* Prospect InfoWindow */}
+              {selectedProspect && selectedProspect.latitude && selectedProspect.longitude && (
+                <InfoWindowF
+                  position={{ lat: selectedProspect.latitude, lng: selectedProspect.longitude }}
+                  onCloseClick={() => setSelectedProspect(null)}
+                >
+                  <div className="max-w-xs space-y-2 p-1" style={{ fontFamily: 'Inter, sans-serif', minWidth: 240 }}>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: '#E2E8F0', color: '#475569', fontWeight: 600 }}>🔍 PROSPECT</span>
+                      {selectedProspect.eh_cliente_wedo && <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: '#FEF3C7', color: '#92400E', fontWeight: 600 }}>✅ Já cliente</span>}
+                    </div>
+                    <h3 className="font-bold text-sm" style={{ color: '#111827' }}>
+                      {selectedProspect.nome_fantasia || selectedProspect.razao_social}
+                    </h3>
+                    {selectedProspect.razao_social && selectedProspect.nome_fantasia && (
+                      <p className="text-xs" style={{ color: '#6B7280' }}>{selectedProspect.razao_social}</p>
+                    )}
+                    <p className="text-xs" style={{ color: '#6B7280' }}>CNPJ: {formatCNPJ(selectedProspect.cnpj)}</p>
+                    <hr style={{ borderColor: '#E5E7EB' }} />
+                    {selectedProspect.cnae_descricao && <p className="text-xs" style={{ color: '#374151' }}>🏷️ CNAE: {selectedProspect.cnae_descricao}</p>}
+                    {selectedProspect.regime_fiscal && <p className="text-xs" style={{ color: '#374151' }}>💼 Regime: {selectedProspect.regime_fiscal}</p>}
+                    {selectedProspect.porte && <p className="text-xs" style={{ color: '#374151' }}>📐 Porte: {selectedProspect.porte}</p>}
+                    {selectedProspect.capital_social != null && selectedProspect.capital_social > 0 && (
+                      <p className="text-xs" style={{ color: '#374151' }}>💰 Capital: {formatBRL(selectedProspect.capital_social)}</p>
+                    )}
+                    <hr style={{ borderColor: '#E5E7EB' }} />
+                    {selectedProspect.endereco_completo && (
+                      <p className="text-xs" style={{ color: '#374151' }}>📍 {selectedProspect.endereco_completo} — {selectedProspect.cidade}/{selectedProspect.uf}</p>
+                    )}
+                    {selectedProspect.telefone_1 && <p className="text-xs" style={{ color: '#374151' }}>📞 {selectedProspect.telefone_1}</p>}
+                    {selectedProspect.email && <p className="text-xs" style={{ color: '#374151' }}>📧 {selectedProspect.email}</p>}
+                    <hr style={{ borderColor: '#E5E7EB' }} />
+                    <div className="flex gap-1 pt-1 flex-wrap">
+                      {!selectedProspect.eh_cliente_wedo && (
+                        <button
+                          onClick={() => handleConverterProspect(selectedProspect)}
+                          disabled={convertingCnpj === selectedProspect.cnpj}
+                          className="text-xs px-2 py-1 rounded flex items-center gap-1"
+                          style={{ backgroundColor: '#0066FF', color: 'white' }}
+                        >
+                          {convertingCnpj === selectedProspect.cnpj ? <><Loader2 className="h-3 w-3 animate-spin" /> Convertendo...</> : <><UserPlus className="h-3 w-3" /> Converter em Cliente</>}
+                        </button>
+                      )}
+                      {selectedProspect.telefone_1 && (
+                        <a href={`tel:${selectedProspect.telefone_1}`} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#E5E7EB', color: '#374151' }}>📞</a>
+                      )}
+                      {selectedProspect.telefone_1 && (
+                        <button onClick={() => openWhatsApp(selectedProspect.telefone_1!)} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: '#22C55E', color: 'white' }}>💬</button>
+                      )}
+                    </div>
+                  </div>
+                </InfoWindowF>
+              )}
             </GoogleMap>
           )}
 
           {/* Legend */}
-          {!noGeocodedClientes && (
-            <div className="absolute bottom-4 left-4 z-10 bg-card/95 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg text-xs space-y-2 max-w-[200px]">
-              <p className="font-semibold text-[11px] uppercase tracking-wider text-muted-foreground">Legenda</p>
-              {showClientes && (
-                <div className="space-y-1">
-                  <p className="font-medium text-[10px] text-muted-foreground">Clientes</p>
-                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#22C55E' }} /> Ativo</div>
-                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#EAB308' }} /> Morno</div>
-                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#EF4444' }} /> Em Risco</div>
-                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#6B7280' }} /> Inativo</div>
-                </div>
-              )}
-              {showOportunidades && (
-                <div className="space-y-1">
-                  <p className="font-medium text-[10px] text-muted-foreground">Oportunidades</p>
-                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#64748B' }} /> Prospecção</div>
-                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#3B82F6' }} /> Qualificação</div>
-                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#F59E0B' }} /> Proposta</div>
-                  <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#8B5CF6' }} /> Negociação</div>
-                </div>
-              )}
-            </div>
-          )}
+          <div className="absolute bottom-4 left-4 z-10 bg-card/95 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg text-xs space-y-2 max-w-[200px]">
+            <p className="font-semibold text-[11px] uppercase tracking-wider text-muted-foreground">Legenda</p>
+            {showClientes && (
+              <div className="space-y-1">
+                <p className="font-medium text-[10px] text-muted-foreground">Clientes</p>
+                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#22C55E' }} /> Ativo</div>
+                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#EAB308' }} /> Morno</div>
+                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#EF4444' }} /> Em Risco</div>
+                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#6B7280' }} /> Inativo</div>
+              </div>
+            )}
+            {showOportunidades && (
+              <div className="space-y-1">
+                <p className="font-medium text-[10px] text-muted-foreground">Oportunidades</p>
+                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#64748B' }} /> Prospecção</div>
+                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#3B82F6' }} /> Qualificação</div>
+                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#F59E0B' }} /> Proposta</div>
+                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#8B5CF6' }} /> Negociação</div>
+              </div>
+            )}
+            {showProspeccao && (
+              <div className="space-y-1">
+                <p className="font-medium text-[10px] text-muted-foreground">Prospects</p>
+                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#CBD5E1' }} /> Prospect</div>
+                <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full border-2" style={{ borderColor: '#D4A017', backgroundColor: '#CBD5E1' }} /> Já cliente</div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </MainLayout>
