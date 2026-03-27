@@ -21,7 +21,7 @@ import { formatBRL } from '@/lib/api/propostas';
 import { format, differenceInDays } from 'date-fns';
 import {
   MapPin, Search, Layers, Filter, Phone, MessageCircle, ExternalLink,
-  Navigation, Users, TrendingUp, Loader2, Menu, X, Crosshair, MapIcon
+  Navigation, Users, TrendingUp, Loader2, Menu, X, Crosshair, MapIcon, RefreshCw
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
