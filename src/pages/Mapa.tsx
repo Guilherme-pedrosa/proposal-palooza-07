@@ -1117,7 +1117,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             </div>
             {showProspeccao && (
               <div>
-                <p className="text-sm font-bold text-slate-500">{kpis.prospects}</p>
+                <p className="text-sm font-bold text-muted-foreground">{kpis.prospects}</p>
                 <p className="text-[9px] text-muted-foreground">Prosp.</p>
               </div>
             )}
