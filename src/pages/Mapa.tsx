@@ -338,8 +338,10 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     },
   });
 
-  // ─── Prospect filter validity (require UF to avoid huge unscoped queries) ─
-  const prospectFilterValid = (prospCnaes.length > 0 || prospCidade.length > 0) && !!prospUf;
+  // ─── Prospect filter validity ─────────────────────
+  const hasProspectBaseFilter = prospCnaes.length > 0 || prospCidade.length > 0;
+  const missingProspectUf = hasProspectBaseFilter && !prospUf;
+  const prospectFilterValid = hasProspectBaseFilter && !!prospUf;
 
   // ─── Data: Prospects (only when layer is on + filters valid) ──
   const { data: prospects = [], isLoading: loadingProspects } = useQuery({
@@ -916,18 +918,20 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
           </div>
 
           {/* Status message */}
-          {!prospectFilterValid && (
+          {!hasProspectBaseFilter && (
             <p className="text-xs text-foreground bg-muted p-2 rounded">
               ⚠️ Selecione pelo menos um CNAE ou cidade para buscar prospects
+            </p>
+          )}
+          {missingProspectUf && (
+            <p className="text-xs text-foreground bg-muted p-2 rounded">
+              ⚠️ Selecione um estado (UF) para buscar prospects
             </p>
           )}
           {prospectFilterValid && loadingProspects && (
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Loader2 className="h-3 w-3 animate-spin" /> Buscando prospects…
             </p>
-          )}
-          {!prospUf && prospCnaes.length > 0 && (
-            <p className="text-xs text-foreground">Selecione um estado (UF) para buscar prospects</p>
           )}
           {prospectFilterValid && !loadingProspects && (
             <p className="text-xs text-muted-foreground">
@@ -1061,7 +1065,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
               onClick={() => setSidebarOpen(false)}
             />
-            <div className="lg:hidden fixed inset-y-0 left-0 z-50 w-[85vw] max-w-80 bg-background border-r shadow-lg flex flex-col">
+            <div className="lg:hidden fixed inset-0 z-50 w-screen bg-background border-r shadow-lg flex flex-col">
               <div className="flex items-center justify-end p-2 border-b border-border">
                 <button
                   onClick={() => setSidebarOpen(false)}
