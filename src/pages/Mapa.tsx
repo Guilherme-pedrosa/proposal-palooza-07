@@ -755,7 +755,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
   // ─── Sidebar ──────────────────────────────────────
   const sidebarContent = (
-    <div className="flex min-h-full flex-col">{/* no h-full — parent ScrollArea handles overflow */}
+    <div className="flex min-h-full flex-col pb-[calc(env(safe-area-inset-bottom)+7rem)] lg:pb-0">{/* no h-full — parent ScrollArea handles overflow */}
       {/* Header */}
       <div className="p-3 md:p-4 border-b border-border">
         <div className="flex items-center gap-2 mb-2.5 md:mb-3">
@@ -917,7 +917,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
           {/* Status message */}
           {!prospectFilterValid && (
-            <p className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 p-2 rounded">
+            <p className="text-xs text-foreground bg-muted p-2 rounded">
               ⚠️ Selecione pelo menos um CNAE ou cidade para buscar prospects
             </p>
           )}
@@ -927,7 +927,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             </p>
           )}
           {!prospUf && prospCnaes.length > 0 && (
-            <p className="text-xs text-amber-600">Selecione um estado (UF) para buscar prospects</p>
+            <p className="text-xs text-foreground">Selecione um estado (UF) para buscar prospects</p>
           )}
           {prospectFilterValid && !loadingProspects && (
             <p className="text-xs text-muted-foreground">
@@ -995,7 +995,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
           </div>
           {showProspeccao && (
             <div>
-              <p className="text-lg font-bold text-slate-500">{kpis.prospects}</p>
+              <p className="text-lg font-bold text-muted-foreground">{kpis.prospects}</p>
               <p className="text-[10px] text-muted-foreground">Prospects</p>
             </div>
           )}
@@ -1051,7 +1051,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       <div className="grid h-full min-h-0 overflow-hidden lg:grid-cols-[20rem_minmax(0,1fr)]">
         {/* Desktop sidebar — visível a partir de lg (1024px) */}
         <div className="hidden lg:flex border-r border-border bg-card flex-col h-full min-h-0 overflow-hidden relative z-30">
-          <ScrollArea className="h-full">{sidebarContent}</ScrollArea>
+          <ScrollArea className="h-full min-h-0">{sidebarContent}</ScrollArea>
         </div>
 
         {/* Mobile/Tablet sidebar — fixo à esquerda, sem Sheet/Dialog */}
@@ -1070,7 +1070,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <ScrollArea className="flex-1">{sidebarContent}</ScrollArea>
+              <ScrollArea className="flex-1 min-h-0">{sidebarContent}</ScrollArea>
             </div>
           </>
         )}
@@ -1117,7 +1117,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             </div>
             {showProspeccao && (
               <div>
-                <p className="text-sm font-bold text-slate-500">{kpis.prospects}</p>
+                <p className="text-sm font-bold text-muted-foreground">{kpis.prospects}</p>
                 <p className="text-[9px] text-muted-foreground">Prosp.</p>
               </div>
             )}
