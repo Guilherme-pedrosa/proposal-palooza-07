@@ -874,7 +874,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
           {/* Porte chips */}
           <div>
-            <p className="text-xs text-muted-foreground mb-1.5">Porte</p>
+            <p className="text-xs text-muted-foreground mb-1.5">Porte <span className="text-[10px] opacity-60">(inclui sem info)</span></p>
             <div className="flex flex-wrap gap-1">
               {PORTE_OPTIONS.map(p => (
                 <button
