@@ -837,6 +837,7 @@ export type Database = {
           cnae_descricao: string | null
           cnpj: string
           complemento: string | null
+          contato_principal: string | null
           data_inicio_atividade: string | null
           eh_cliente_wedo: boolean | null
           email: string | null
@@ -853,6 +854,7 @@ export type Database = {
           razao_social: string | null
           regime_fiscal: string | null
           situacao_cadastral: string | null
+          socios: Json | null
           telefone_1: string | null
           telefone_2: string | null
           uf: string | null
@@ -867,6 +869,7 @@ export type Database = {
           cnae_descricao?: string | null
           cnpj: string
           complemento?: string | null
+          contato_principal?: string | null
           data_inicio_atividade?: string | null
           eh_cliente_wedo?: boolean | null
           email?: string | null
@@ -883,6 +886,7 @@ export type Database = {
           razao_social?: string | null
           regime_fiscal?: string | null
           situacao_cadastral?: string | null
+          socios?: Json | null
           telefone_1?: string | null
           telefone_2?: string | null
           uf?: string | null
@@ -897,6 +901,7 @@ export type Database = {
           cnae_descricao?: string | null
           cnpj?: string
           complemento?: string | null
+          contato_principal?: string | null
           data_inicio_atividade?: string | null
           eh_cliente_wedo?: boolean | null
           email?: string | null
@@ -913,6 +918,7 @@ export type Database = {
           razao_social?: string | null
           regime_fiscal?: string | null
           situacao_cadastral?: string | null
+          socios?: Json | null
           telefone_1?: string | null
           telefone_2?: string | null
           uf?: string | null
