@@ -917,7 +917,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
           {/* Status message */}
           {!prospectFilterValid && (
-            <p className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 p-2 rounded">
+            <p className="text-xs text-foreground bg-muted p-2 rounded">
               ⚠️ Selecione pelo menos um CNAE ou cidade para buscar prospects
             </p>
           )}
@@ -927,7 +927,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             </p>
           )}
           {!prospUf && prospCnaes.length > 0 && (
-            <p className="text-xs text-amber-600">Selecione um estado (UF) para buscar prospects</p>
+            <p className="text-xs text-foreground">Selecione um estado (UF) para buscar prospects</p>
           )}
           {prospectFilterValid && !loadingProspects && (
             <p className="text-xs text-muted-foreground">
@@ -995,7 +995,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
           </div>
           {showProspeccao && (
             <div>
-              <p className="text-lg font-bold text-slate-500">{kpis.prospects}</p>
+              <p className="text-lg font-bold text-muted-foreground">{kpis.prospects}</p>
               <p className="text-[10px] text-muted-foreground">Prospects</p>
             </div>
           )}
