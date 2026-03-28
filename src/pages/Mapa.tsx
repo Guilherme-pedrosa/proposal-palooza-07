@@ -926,10 +926,13 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               <Loader2 className="h-3 w-3 animate-spin" /> Buscando prospects…
             </p>
           )}
+          {!prospUf && prospCnaes.length > 0 && (
+            <p className="text-xs text-amber-600">Selecione um estado (UF) para buscar prospects</p>
+          )}
           {prospectFilterValid && !loadingProspects && (
             <p className="text-xs text-muted-foreground">
-              {prospects.length} prospects encontrados {geocodedProspects.length < prospects.length && `(${geocodedProspects.length} com coordenadas)`}
-              {prospects.length === 500 && ' — limite de 500 atingido, refine os filtros'}
+              {prospects.length} prospects encontrados
+              {prospects.length === 5000 && ' — limite de 5.000 atingido, refine os filtros'}
             </p>
           )}
         </div>
