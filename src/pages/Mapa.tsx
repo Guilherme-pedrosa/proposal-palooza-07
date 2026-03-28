@@ -854,7 +854,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
           {/* Regime chips */}
           <div>
-            <p className="text-xs text-muted-foreground mb-1.5">Regime Fiscal</p>
+            <p className="text-xs text-muted-foreground mb-1.5">Regime Fiscal <span className="text-[10px] opacity-60">(inclui sem info)</span></p>
             <div className="flex flex-wrap gap-1">
               {REGIME_OPTIONS.map(r => (
                 <button
