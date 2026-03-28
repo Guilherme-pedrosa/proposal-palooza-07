@@ -56,10 +56,18 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install requests
+      - name: Sanitizar secrets
+        shell: bash
+        run: |
+          RAW_URL='${{ secrets.SUPABASE_URL }}'
+          RAW_KEY='${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}'
+
+          CLEAN_URL=$(printf '%s' "$RAW_URL" | tr -d '\r\n' | sed 's/%0A//Ig; s/%0D//Ig')
+          CLEAN_KEY=$(printf '%s' "$RAW_KEY" | tr -d '\r\n' | sed 's/%0A//Ig; s/%0D//Ig')
+
+          echo "SUPABASE_URL=$CLEAN_URL" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$CLEAN_KEY" >> "$GITHUB_ENV"
       - name: Processar Estabelecimentos${{ matrix.indice }}
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python scripts/importar_estabelecimentos.py ${{ matrix.indice }} "${{ needs.descobrir-url.outputs.url_base }}"
 
   # ─── Enriquecer com Empresas + Simples + Municípios ───
@@ -73,10 +81,18 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install requests
+      - name: Sanitizar secrets
+        shell: bash
+        run: |
+          RAW_URL='${{ secrets.SUPABASE_URL }}'
+          RAW_KEY='${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}'
+
+          CLEAN_URL=$(printf '%s' "$RAW_URL" | tr -d '\r\n' | sed 's/%0A//Ig; s/%0D//Ig')
+          CLEAN_KEY=$(printf '%s' "$RAW_KEY" | tr -d '\r\n' | sed 's/%0A//Ig; s/%0D//Ig')
+
+          echo "SUPABASE_URL=$CLEAN_URL" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$CLEAN_KEY" >> "$GITHUB_ENV"
       - name: Enriquecer prospects
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: python scripts/enriquecer_prospects.py "${{ needs.descobrir-url.outputs.url_base }}"
 
   # ─── Notificação final ───
