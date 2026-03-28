@@ -1065,7 +1065,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
               onClick={() => setSidebarOpen(false)}
             />
-            <div className="lg:hidden fixed inset-y-0 left-0 z-50 w-[85vw] max-w-80 bg-background border-r shadow-lg flex flex-col">
+            <div className="lg:hidden fixed inset-0 z-50 w-screen bg-background border-r shadow-lg flex flex-col">
               <div className="flex items-center justify-end p-2 border-b border-border">
                 <button
                   onClick={() => setSidebarOpen(false)}
