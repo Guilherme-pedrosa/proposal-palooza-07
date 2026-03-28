@@ -1,10 +1,10 @@
 """
-ENRIQUECEDOR DE PROSPECTS — Empresas + Simples + Municípios
+ENRIQUECEDOR DE PROSPECTS — Empresas + Simples + Municípios + Sócios
 Roda DEPOIS dos 10 jobs de Estabelecimentos.
-Busca razão social, porte, capital, regime fiscal e cidade.
+Busca razão social, porte, capital, regime fiscal, cidade e sócios/contato.
 Uso: python enriquecer_prospects.py [url_base]
 """
-import os, sys, csv, io, zipfile, requests, time, tempfile
+import os, sys, csv, io, zipfile, requests, time, tempfile, json
 from datetime import datetime
 
 SUPABASE_URL = os.environ['SUPABASE_URL']
@@ -12,41 +12,23 @@ SUPABASE_KEY = os.environ['SUPABASE_SERVICE_ROLE_KEY']
 BATCH_SIZE = 500
 
 PORTE_MAP = {'00': 'Não informado', '01': 'Micro Empresa', '03': 'Empresa de Pequeno Porte', '05': 'Demais'}
+QUALIFICACAO_MAP = {
+    '05': 'Administrador', '08': 'Conselheiro de Administração', '10': 'Diretor',
+    '16': 'Presidente', '22': 'Sócio', '28': 'Sócio-Administrador',
+    '29': 'Sócio-Gerente', '49': 'Sócio-Quotista', '50': 'Empresário',
+    '54': 'Fundador', '55': 'Sócio Comanditado', '56': 'Sócio Comanditário',
+    '63': 'Titular Pessoa Física Residente no Brasil',
+}
 RF_MIRROR_URL = 'https://dados-abertos-rf-cnpj.casadosdados.com.br/arquivos'
+
 
 def log(msg):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}", flush=True)
 
-def supabase_get_cnpjs():
-    """Busca todos os cnpj_basico (8 primeiros dígitos) únicos dos prospects."""
-    log("Buscando CNPJs dos prospects existentes...")
-    cnpjs = set()
-    offset = 0
-    limit = 1000
-    while True:
-        url = f"{SUPABASE_URL}/rest/v1/prospects_rf?select=cnpj&offset={offset}&limit={limit}"
-        headers = {'apikey': SUPABASE_KEY, 'Authorization': f'Bearer {SUPABASE_KEY}'}
-        r = requests.get(url, headers=headers, timeout=30)
-        if r.status_code != 200:
-            log(f"  Erro {r.status_code}")
-            break
-        data = r.json()
-        if not data:
-            break
-        for row in data:
-            cnpj = row.get('cnpj', '')
-            if len(cnpj) >= 8:
-                cnpjs.add(cnpj[:8])
-        offset += limit
-        if len(data) < limit:
-            break
-    log(f"  {len(cnpjs):,} CNPJs básicos únicos encontrados")
-    return cnpjs
 
 def supabase_patch_batch(updates):
-    """Atualiza prospects em batch via PATCH individual (por cnpj)."""
-    ok = 0
-    err = 0
+    """Atualiza prospects em batch via PATCH individual (por cnpj_basico)."""
+    ok = err = 0
     for cnpj, data in updates:
         url = f"{SUPABASE_URL}/rest/v1/prospects_rf?cnpj=like.{cnpj}*"
         headers = {
@@ -66,6 +48,7 @@ def supabase_patch_batch(updates):
         time.sleep(0.02)
     return ok, err
 
+
 def supabase_rpc(fn_name):
     url = f"{SUPABASE_URL}/rest/v1/rpc/{fn_name}"
     headers = {
@@ -76,6 +59,33 @@ def supabase_rpc(fn_name):
     r = requests.post(url, json={}, headers=headers, timeout=60)
     return r.status_code in (200, 204)
 
+
+def supabase_get_cnpjs():
+    """Busca todos os cnpj_basico (8 primeiros dígitos) únicos dos prospects."""
+    log("Buscando CNPJs dos prospects existentes...")
+    cnpjs = set()
+    offset = 0
+    limit = 1000
+    while True:
+        url = f"{SUPABASE_URL}/rest/v1/prospects_rf?select=cnpj&offset={offset}&limit={limit}"
+        headers = {'apikey': SUPABASE_KEY, 'Authorization': f'Bearer {SUPABASE_KEY}'}
+        r = requests.get(url, headers=headers, timeout=30)
+        if r.status_code != 200:
+            break
+        data = r.json()
+        if not data:
+            break
+        for row in data:
+            cnpj = row.get('cnpj', '')
+            if len(cnpj) >= 8:
+                cnpjs.add(cnpj[:8])
+        offset += limit
+        if len(data) < limit:
+            break
+    log(f"  {len(cnpjs):,} CNPJs básicos únicos encontrados")
+    return cnpjs
+
+
 def baixar_streaming(url):
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.zip')
     with requests.get(url, stream=True, timeout=1800, headers={'User-Agent': 'WeDo-CRM/1.0'}) as r:
@@ -84,6 +94,7 @@ def baixar_streaming(url):
             tmp.write(chunk)
     tmp.close()
     return tmp.name
+
 
 def descobrir_url_base():
     agora = datetime.now()
@@ -103,34 +114,13 @@ def descobrir_url_base():
                 continue
     sys.exit(1)
 
-def main():
-    url_base = sys.argv[1] if len(sys.argv) > 1 else descobrir_url_base()
-    log(f"URL base: {url_base}")
 
-    cnpjs_alvo = supabase_get_cnpjs()
-    if not cnpjs_alvo:
-        log("Nenhum prospect encontrado. Abortando.")
-        sys.exit(1)
+# ─── PROCESSADORES ────────────────────────────────────────
 
-    # --- MUNICÍPIOS ---
-    log("\n=== MUNICÍPIOS ===")
-    municipios = {}
-    try:
-        tmp = baixar_streaming(f"{url_base}/Municipios.zip")
-        with zipfile.ZipFile(tmp) as zf:
-            with zf.open(zf.namelist()[0]) as f:
-                reader = csv.reader(io.TextIOWrapper(f, encoding='latin-1'), delimiter=';')
-                for row in reader:
-                    if len(row) >= 2:
-                        municipios[row[0].strip()] = row[1].strip()
-        os.unlink(tmp)
-        log(f"  {len(municipios):,} municípios")
-    except Exception as e:
-        log(f"  Erro municípios: {e}")
-
-    # --- EMPRESAS (razão social, porte, capital) ---
+def processar_empresas(url_base, cnpjs_alvo):
+    """Baixa Empresas0-9.zip e extrai razão social, porte, capital."""
     log("\n=== EMPRESAS ===")
-    updates_empresa = []
+    updates = []
     for i in range(10):
         log(f"  Empresas{i}.zip...")
         try:
@@ -149,20 +139,23 @@ def main():
                             capital = float(row[4].strip().replace(',', '.')) if row[4].strip() else 0
                         except:
                             pass
-                        updates_empresa.append((cb, {
+                        updates.append((cb, {
                             'razao_social': row[1].strip(),
                             'natureza_juridica': row[2].strip(),
                             'capital_social': capital,
                             'porte': PORTE_MAP.get(row[5].strip(), row[5].strip()),
                         }))
             os.unlink(tmp)
-            log(f"    {len(updates_empresa):,} acumulados")
+            log(f"    {len(updates):,} acumulados")
         except Exception as e:
             log(f"    Erro: {e}")
+    return updates
 
-    # --- SIMPLES NACIONAL ---
+
+def processar_simples(url_base, cnpjs_alvo):
+    """Baixa Simples.zip e extrai regime fiscal."""
     log("\n=== SIMPLES NACIONAL ===")
-    updates_simples = []
+    updates = []
     try:
         tmp = baixar_streaming(f"{url_base}/Simples.zip")
         with zipfile.ZipFile(tmp) as zf:
@@ -182,33 +175,129 @@ def main():
                         regime = 'Simples Nacional'
                     else:
                         regime = 'Lucro Presumido/Real'
-                    updates_simples.append((cb, {'regime_fiscal': regime}))
+                    updates.append((cb, {'regime_fiscal': regime}))
         os.unlink(tmp)
-        log(f"  {len(updates_simples):,} registros Simples")
+        log(f"  {len(updates):,} registros Simples")
     except Exception as e:
         log(f"  Erro Simples: {e}")
+    return updates
 
-    # --- APLICAR UPDATES VIA UPSERT (mais eficiente que PATCH) ---
-    log("\n=== APLICANDO UPDATES ===")
+
+def processar_socios(url_base, cnpjs_alvo):
+    """Baixa Socios0-9.zip e extrai nome, qualificação e CPF parcial dos sócios."""
+    log("\n=== SÓCIOS ===")
+    # Agrupa sócios por cnpj_basico
+    socios_por_cnpj = {}
+    for i in range(10):
+        log(f"  Socios{i}.zip...")
+        try:
+            tmp = baixar_streaming(f"{url_base}/Socios{i}.zip")
+            with zipfile.ZipFile(tmp) as zf:
+                with zf.open(zf.namelist()[0]) as f:
+                    reader = csv.reader(io.TextIOWrapper(f, encoding='latin-1'), delimiter=';')
+                    for row in reader:
+                        if len(row) < 6:
+                            continue
+                        cb = row[0].strip().zfill(8)
+                        if cb not in cnpjs_alvo:
+                            continue
+                        nome_socio = row[2].strip()
+                        qualif_cod = row[4].strip() if len(row) > 4 else ''
+                        qualif = QUALIFICACAO_MAP.get(qualif_cod, qualif_cod)
+                        # CPF representante (parcial, últimos chars visíveis na RF)
+                        cpf_repr = row[3].strip() if len(row) > 3 else ''
+
+                        socio = {
+                            'nome': nome_socio,
+                            'qualificacao': qualif,
+                        }
+                        if cpf_repr and cpf_repr != '000000000000':
+                            socio['cpf_cnpj'] = cpf_repr
+
+                        if cb not in socios_por_cnpj:
+                            socios_por_cnpj[cb] = []
+                        # Limitar a 10 sócios por empresa
+                        if len(socios_por_cnpj[cb]) < 10:
+                            socios_por_cnpj[cb].append(socio)
+            os.unlink(tmp)
+            log(f"    {len(socios_por_cnpj):,} empresas com sócios")
+        except Exception as e:
+            log(f"    Erro: {e}")
+
+    # Converter para updates com contato_principal
+    updates = []
+    for cb, socios in socios_por_cnpj.items():
+        # Contato principal = primeiro administrador/sócio-administrador
+        contato = None
+        for s in socios:
+            if s['qualificacao'] in ('Administrador', 'Sócio-Administrador', 'Sócio-Gerente', 'Titular Pessoa Física Residente no Brasil'):
+                contato = s['nome']
+                break
+        if not contato and socios:
+            contato = socios[0]['nome']
+
+        data = {'socios': json.dumps(socios, ensure_ascii=False)}
+        if contato:
+            data['contato_principal'] = contato
+        updates.append((cb, data))
+
+    log(f"  {len(updates):,} CNPJs com sócios para atualizar")
+    return updates
+
+
+def processar_municipios(url_base):
+    """Baixa Municipios.zip para mapeamento código→nome."""
+    log("\n=== MUNICÍPIOS ===")
+    municipios = {}
+    try:
+        tmp = baixar_streaming(f"{url_base}/Municipios.zip")
+        with zipfile.ZipFile(tmp) as zf:
+            with zf.open(zf.namelist()[0]) as f:
+                reader = csv.reader(io.TextIOWrapper(f, encoding='latin-1'), delimiter=';')
+                for row in reader:
+                    if len(row) >= 2:
+                        municipios[row[0].strip()] = row[1].strip()
+        os.unlink(tmp)
+        log(f"  {len(municipios):,} municípios")
+    except Exception as e:
+        log(f"  Erro municípios: {e}")
+    return municipios
+
+
+# ─── MAIN ─────────────────────────────────────────────────
+
+def main():
+    url_base = sys.argv[1] if len(sys.argv) > 1 else descobrir_url_base()
+    log(f"URL base: {url_base}")
+
+    cnpjs_alvo = supabase_get_cnpjs()
+    if not cnpjs_alvo:
+        log("Nenhum prospect encontrado. Abortando.")
+        sys.exit(1)
+
+    # Processar todas as fontes
+    municipios = processar_municipios(url_base)
+    updates_empresa = processar_empresas(url_base, cnpjs_alvo)
+    updates_simples = processar_simples(url_base, cnpjs_alvo)
+    updates_socios = processar_socios(url_base, cnpjs_alvo)
 
     # Agrupar por cnpj_basico
+    log("\n=== APLICANDO UPDATES ===")
     merged = {}
     for cb, data in updates_empresa:
         merged[cb] = data
     for cb, data in updates_simples:
-        if cb in merged:
-            merged[cb].update(data)
-        else:
-            merged[cb] = data
+        merged.setdefault(cb, {}).update(data)
+    for cb, data in updates_socios:
+        merged.setdefault(cb, {}).update(data)
 
     log(f"  {len(merged):,} CNPJs básicos para atualizar")
 
-    # Fazer PATCH em batches
-    total_ok = 0
-    total_err = 0
+    # PATCH em batches
+    total_ok = total_err = 0
     items = list(merged.items())
     for i in range(0, len(items), 100):
-        batch = items[i:i+100]
+        batch = items[i:i + 100]
         ok, err = supabase_patch_batch(batch)
         total_ok += ok
         total_err += err
@@ -217,7 +306,7 @@ def main():
 
     log(f"  Updates: {total_ok:,} ok, {total_err:,} erros")
 
-    # --- PÓS-PROCESSAMENTO ---
+    # Pós-processamento
     log("\n=== PÓS-PROCESSAMENTO ===")
     log("  Marcando prospects que já são clientes...")
     supabase_rpc('marcar_prospects_clientes')
@@ -225,6 +314,7 @@ def main():
     supabase_rpc('atualizar_segmentos_clientes')
 
     log("\n✅ ENRIQUECIMENTO CONCLUÍDO")
+
 
 if __name__ == '__main__':
     main()
