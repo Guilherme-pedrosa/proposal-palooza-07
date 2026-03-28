@@ -338,8 +338,10 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     },
   });
 
-  // ─── Prospect filter validity (require UF to avoid huge unscoped queries) ─
-  const prospectFilterValid = (prospCnaes.length > 0 || prospCidade.length > 0) && !!prospUf;
+  // ─── Prospect filter validity ─────────────────────
+  const hasProspectBaseFilter = prospCnaes.length > 0 || prospCidade.length > 0;
+  const missingProspectUf = hasProspectBaseFilter && !prospUf;
+  const prospectFilterValid = hasProspectBaseFilter && !!prospUf;
 
   // ─── Data: Prospects (only when layer is on + filters valid) ──
   const { data: prospects = [], isLoading: loadingProspects } = useQuery({
