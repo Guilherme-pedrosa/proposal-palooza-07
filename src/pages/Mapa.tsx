@@ -1051,7 +1051,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       <div className="grid h-full min-h-0 overflow-hidden lg:grid-cols-[20rem_minmax(0,1fr)]">
         {/* Desktop sidebar — visível a partir de lg (1024px) */}
         <div className="hidden lg:flex border-r border-border bg-card flex-col h-full min-h-0 overflow-hidden relative z-30">
-          <ScrollArea className="h-full">{sidebarContent}</ScrollArea>
+          <ScrollArea className="h-full min-h-0">{sidebarContent}</ScrollArea>
         </div>
 
         {/* Mobile/Tablet sidebar — fixo à esquerda, sem Sheet/Dialog */}
@@ -1070,7 +1070,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <ScrollArea className="flex-1">{sidebarContent}</ScrollArea>
+              <ScrollArea className="flex-1 min-h-0">{sidebarContent}</ScrollArea>
             </div>
           </>
         )}
