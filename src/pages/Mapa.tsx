@@ -918,18 +918,20 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
           </div>
 
           {/* Status message */}
-          {!prospectFilterValid && (
+          {!hasProspectBaseFilter && (
             <p className="text-xs text-foreground bg-muted p-2 rounded">
               ⚠️ Selecione pelo menos um CNAE ou cidade para buscar prospects
+            </p>
+          )}
+          {missingProspectUf && (
+            <p className="text-xs text-foreground bg-muted p-2 rounded">
+              ⚠️ Selecione um estado (UF) para buscar prospects
             </p>
           )}
           {prospectFilterValid && loadingProspects && (
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Loader2 className="h-3 w-3 animate-spin" /> Buscando prospects…
             </p>
-          )}
-          {!prospUf && prospCnaes.length > 0 && (
-            <p className="text-xs text-foreground">Selecione um estado (UF) para buscar prospects</p>
           )}
           {prospectFilterValid && !loadingProspects && (
             <p className="text-xs text-muted-foreground">
