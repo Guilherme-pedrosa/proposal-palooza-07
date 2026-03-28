@@ -338,8 +338,8 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     },
   });
 
-  // ─── Prospect filter validity ─────────────────────
-  const prospectFilterValid = prospCnaes.length > 0 || prospCidade.length > 0;
+  // ─── Prospect filter validity (require UF to avoid huge unscoped queries) ─
+  const prospectFilterValid = (prospCnaes.length > 0 || prospCidade.length > 0) && !!prospUf;
 
   // ─── Data: Prospects (only when layer is on + filters valid) ──
   const { data: prospects = [], isLoading: loadingProspects } = useQuery({
@@ -355,7 +355,10 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       let query = supabase
         .from('prospects_rf')
         .select('cnpj, razao_social, nome_fantasia, cnae_codigo, cnae_descricao, regime_fiscal, porte, capital_social, endereco_completo, cidade, uf, telefone_1, telefone_2, email, latitude, longitude, geocodificado, eh_cliente_wedo')
-        .eq('situacao_cadastral', 'Ativa');
+        .eq('situacao_cadastral', 'Ativa')
+        .eq('geocodificado', true)
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null);
 
       if (allCodes.length > 0) query = query.in('cnae_codigo', allCodes);
       if (prospRegimes.length > 0) query = query.in('regime_fiscal', prospRegimes);
@@ -364,7 +367,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       if (prospCidade) query = query.eq('cidade', prospCidade);
       if (prospOcultarClientes) query = query.eq('eh_cliente_wedo', false);
 
-      const { data, error } = await query.limit(500);
+      const { data, error } = await query.limit(5000);
       if (error) throw error;
       return (data ?? []) as unknown as ProspectGeo[];
     },
@@ -923,10 +926,13 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               <Loader2 className="h-3 w-3 animate-spin" /> Buscando prospects…
             </p>
           )}
+          {!prospUf && prospCnaes.length > 0 && (
+            <p className="text-xs text-amber-600">Selecione um estado (UF) para buscar prospects</p>
+          )}
           {prospectFilterValid && !loadingProspects && (
             <p className="text-xs text-muted-foreground">
-              {prospects.length} prospects encontrados {geocodedProspects.length < prospects.length && `(${geocodedProspects.length} com coordenadas)`}
-              {prospects.length === 500 && ' — limite de 500 atingido, refine os filtros'}
+              {prospects.length} prospects encontrados
+              {prospects.length === 5000 && ' — limite de 5.000 atingido, refine os filtros'}
             </p>
           )}
         </div>
