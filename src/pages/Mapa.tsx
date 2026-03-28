@@ -363,8 +363,15 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         .not('longitude', 'is', null);
 
       if (allCodes.length > 0) query = query.in('cnae_codigo', allCodes);
-      if (prospRegimes.length > 0) query = query.in('regime_fiscal', prospRegimes);
-      if (prospPortes.length > 0) query = query.in('porte', prospPortes);
+      // regime_fiscal and porte are often NULL in the data — use .or() to include NULLs
+      if (prospRegimes.length > 0) {
+        const regimeFilter = prospRegimes.map(r => `regime_fiscal.eq.${r}`).join(',');
+        query = query.or(`${regimeFilter},regime_fiscal.is.null`);
+      }
+      if (prospPortes.length > 0) {
+        const porteFilter = prospPortes.map(p => `porte.eq.${p}`).join(',');
+        query = query.or(`${porteFilter},porte.is.null`);
+      }
       if (prospUf) query = query.eq('uf', prospUf);
       if (prospCidade) query = query.eq('cidade', prospCidade);
       if (prospOcultarClientes) query = query.eq('eh_cliente_wedo', false);
