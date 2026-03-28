@@ -7,8 +7,8 @@ Uso: python enriquecer_prospects.py [url_base]
 import os, sys, csv, io, zipfile, requests, time, tempfile, json
 from datetime import datetime
 
-SUPABASE_URL = os.environ['SUPABASE_URL']
-SUPABASE_KEY = os.environ['SUPABASE_SERVICE_ROLE_KEY']
+SUPABASE_URL = os.environ['SUPABASE_URL'].strip()
+SUPABASE_KEY = os.environ['SUPABASE_SERVICE_ROLE_KEY'].strip()
 BATCH_SIZE = 500
 
 PORTE_MAP = {'00': 'Não informado', '01': 'Micro Empresa', '03': 'Empresa de Pequeno Porte', '05': 'Demais'}
