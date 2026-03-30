@@ -6,7 +6,7 @@ Uso: python enriquecer_prospects.py [url_base]
 """
 import sys, csv, io, zipfile, requests, time, tempfile, json
 from datetime import datetime
-from rf_supabase import carregar_config_supabase, validar_config_supabase, resumir_erro_http
+from rf_supabase import carregar_config_supabase, validar_config_supabase, resumir_erro_http, status_rest_sucesso
 
 
 SUPABASE_URL, SUPABASE_KEY = carregar_config_supabase()
@@ -79,7 +79,7 @@ def supabase_get_cnpjs():
             'Prefer': 'count=exact',
         }
         r = requests.get(url, headers=headers, timeout=30)
-        if r.status_code != 200:
+        if not status_rest_sucesso(r.status_code):
             raise RuntimeError(resumir_erro_http(r, 'GET prospects_rf para enrichment'))
         data = r.json()
         if not data:
