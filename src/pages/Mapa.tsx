@@ -1360,6 +1360,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             </div>
           )}
         </div>
+      </div>
     </MainLayout>
   );
 }
