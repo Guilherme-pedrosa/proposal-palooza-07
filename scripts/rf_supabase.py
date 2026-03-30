@@ -18,9 +18,15 @@ def limpar_env_secret(value: str) -> str:
 
 
 def carregar_config_supabase():
+    key = os.environ.get('SUPABASE_SERVICE_ROLE_KEY') or os.environ.get('UPABASE_SERVICE_ROLE_KEY')
+    if not key:
+        raise RuntimeError(
+            'SUPABASE_SERVICE_ROLE_KEY ausente no ambiente (fallback aceito: UPABASE_SERVICE_ROLE_KEY)'
+        )
+
     return (
         limpar_env_secret(os.environ['SUPABASE_URL']),
-        limpar_env_secret(os.environ['SUPABASE_SERVICE_ROLE_KEY']),
+        limpar_env_secret(key),
     )
 
 
