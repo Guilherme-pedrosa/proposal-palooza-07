@@ -1059,7 +1059,6 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
   return (
     <MainLayout fullscreen>
-      <div className="grid h-full min-h-0 overflow-hidden lg:grid-cols-[20rem_minmax(0,1fr)]">
       <div className="relative h-full min-h-0 overflow-hidden">
         {/* Sidebar — abre ao clicar no FAB */}
         {sidebarOpen && (
