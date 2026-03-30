@@ -3,11 +3,11 @@ IMPORTADOR RECEITA FEDERAL — ESTABELECIMENTOS (1 arquivo por vez)
 Baixa Estabelecimentos{N}.zip via streaming, filtra CNAEs, faz upsert.
 Uso: python importar_estabelecimentos.py <indice> [url_base]
 """
-import os, sys, csv, io, zipfile, requests, time, tempfile
+import sys, csv, io, zipfile, requests, time, tempfile
 from datetime import datetime
+from rf_supabase import carregar_config_supabase, validar_config_supabase, resumir_erro_http
 
-SUPABASE_URL = os.environ['SUPABASE_URL'].strip()
-SUPABASE_KEY = os.environ['SUPABASE_SERVICE_ROLE_KEY'].strip()
+SUPABASE_URL, SUPABASE_KEY = carregar_config_supabase()
 BATCH_SIZE = 500
 
 CNAES_ALVO = {
@@ -62,7 +62,7 @@ def supabase_post(data):
                 log(f"  Rate limit, esperando 5s...")
                 time.sleep(5)
                 continue
-            log(f"  Erro {resp.status_code}: {resp.text[:200]}")
+            log(f"  {resumir_erro_http(resp, 'POST prospects_rf')}")
             if tentativa < 2:
                 time.sleep(2)
                 continue
@@ -110,6 +110,7 @@ def descobrir_url_base():
     sys.exit(1)
 
 def main():
+    validar_config_supabase(SUPABASE_URL, SUPABASE_KEY)
     indice = int(sys.argv[1])
     url_base = sys.argv[2] if len(sys.argv) > 2 else descobrir_url_base()
 

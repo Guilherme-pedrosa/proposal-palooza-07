@@ -4,25 +4,12 @@ Roda DEPOIS dos 10 jobs de Estabelecimentos.
 Busca razão social, porte, capital, regime fiscal, cidade e sócios/contato.
 Uso: python enriquecer_prospects.py [url_base]
 """
-import os, sys, csv, io, zipfile, requests, time, tempfile, json
+import sys, csv, io, zipfile, requests, time, tempfile, json
 from datetime import datetime
+from rf_supabase import carregar_config_supabase, validar_config_supabase, resumir_erro_http
 
 
-def limpar_env_secret(value: str) -> str:
-    return (
-        value.strip()
-        .replace('%0A', '')
-        .replace('%0a', '')
-        .replace('%0D', '')
-        .replace('%0d', '')
-        .replace('\n', '')
-        .replace('\r', '')
-        .rstrip('/')
-    )
-
-
-SUPABASE_URL = limpar_env_secret(os.environ['SUPABASE_URL'])
-SUPABASE_KEY = limpar_env_secret(os.environ['SUPABASE_SERVICE_ROLE_KEY'])
+SUPABASE_URL, SUPABASE_KEY = carregar_config_supabase()
 BATCH_SIZE = 500
 
 PORTE_MAP = {'00': 'Não informado', '01': 'Micro Empresa', '03': 'Empresa de Pequeno Porte', '05': 'Demais'}
@@ -41,8 +28,7 @@ def log(msg):
 
 
 def validar_config():
-    if not SUPABASE_URL.startswith('https://') or '.' not in SUPABASE_URL:
-        raise RuntimeError('SUPABASE_URL inválida após sanitização')
+    validar_config_supabase(SUPABASE_URL, SUPABASE_KEY)
 
 
 def supabase_patch_batch(updates):
@@ -87,10 +73,14 @@ def supabase_get_cnpjs():
     limit = 1000
     while True:
         url = f"{SUPABASE_URL}/rest/v1/prospects_rf?select=cnpj&offset={offset}&limit={limit}"
-        headers = {'apikey': SUPABASE_KEY, 'Authorization': f'Bearer {SUPABASE_KEY}'}
+        headers = {
+            'apikey': SUPABASE_KEY,
+            'Authorization': f'Bearer {SUPABASE_KEY}',
+            'Prefer': 'count=exact',
+        }
         r = requests.get(url, headers=headers, timeout=30)
         if r.status_code != 200:
-            break
+            raise RuntimeError(resumir_erro_http(r, 'GET prospects_rf para enrichment'))
         data = r.json()
         if not data:
             break
@@ -101,6 +91,14 @@ def supabase_get_cnpjs():
         offset += limit
         if len(data) < limit:
             break
+    if not cnpjs:
+        total_header = r.headers.get('Content-Range', '') if 'r' in locals() else ''
+        if total_header:
+            log(f"  Content-Range recebido: {total_header}")
+        log(
+            "  Nenhum CNPJ visível para enrichment. Se a importação acabou de rodar, "
+            "o workflow provavelmente está apontando para outro projeto ou usando uma chave incorreta."
+        )
     log(f"  {len(cnpjs):,} CNPJs básicos únicos encontrados")
     return cnpjs
 
