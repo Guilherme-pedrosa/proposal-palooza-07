@@ -7,8 +7,22 @@ Uso: python enriquecer_prospects.py [url_base]
 import os, sys, csv, io, zipfile, requests, time, tempfile, json
 from datetime import datetime
 
-SUPABASE_URL = os.environ['SUPABASE_URL'].strip()
-SUPABASE_KEY = os.environ['SUPABASE_SERVICE_ROLE_KEY'].strip()
+
+def limpar_env_secret(value: str) -> str:
+    return (
+        value.strip()
+        .replace('%0A', '')
+        .replace('%0a', '')
+        .replace('%0D', '')
+        .replace('%0d', '')
+        .replace('\n', '')
+        .replace('\r', '')
+        .rstrip('/')
+    )
+
+
+SUPABASE_URL = limpar_env_secret(os.environ['SUPABASE_URL'])
+SUPABASE_KEY = limpar_env_secret(os.environ['SUPABASE_SERVICE_ROLE_KEY'])
 BATCH_SIZE = 500
 
 PORTE_MAP = {'00': 'Não informado', '01': 'Micro Empresa', '03': 'Empresa de Pequeno Porte', '05': 'Demais'}
@@ -24,6 +38,11 @@ RF_MIRROR_URL = 'https://dados-abertos-rf-cnpj.casadosdados.com.br/arquivos'
 
 def log(msg):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}", flush=True)
+
+
+def validar_config():
+    if not SUPABASE_URL.startswith('https://') or '.' not in SUPABASE_URL:
+        raise RuntimeError('SUPABASE_URL inválida após sanitização')
 
 
 def supabase_patch_batch(updates):
@@ -267,6 +286,7 @@ def processar_municipios(url_base):
 # ─── MAIN ─────────────────────────────────────────────────
 
 def main():
+    validar_config()
     url_base = sys.argv[1] if len(sys.argv) > 1 else descobrir_url_base()
     log(f"URL base: {url_base}")
 
