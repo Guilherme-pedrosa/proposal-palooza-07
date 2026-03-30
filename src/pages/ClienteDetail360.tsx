@@ -251,17 +251,9 @@ export default function ClienteDetail360() {
               <span>{seg.icon} {seg.label}</span>
               {cliente.cidade && <span>· {cliente.cidade}-{cliente.estado}</span>}
             </div>
-            <div className="flex gap-2 mt-2">
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge className={`${saudeCfg.color} border-0 cursor-help`}>{saudeCfg.label}</Badge>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-[220px] text-xs">
-                    <p>{saudeCfg.motivo}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+            <div className="flex flex-col items-start gap-2 mt-2">
+              <Badge className={`${saudeCfg.color} border-0`}>{saudeCfg.label}</Badge>
+              <p className="text-xs text-muted-foreground">{saudeCfg.motivo}</p>
             </div>
           </div>
         </div>

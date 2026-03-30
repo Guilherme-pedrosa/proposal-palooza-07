@@ -256,19 +256,13 @@ export default function ClientesGC() {
                   </div>
 
                   {/* Right side */}
-                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                    <TooltipProvider delayDuration={300}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Badge className={`${cfg.color} text-[10px] border-0 cursor-help`}>
-                            {cfg.label}
-                          </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent side="left" className="max-w-[200px] text-xs">
-                          <p>{cfg.motivo}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0 text-right">
+                    <Badge className={`${cfg.color} text-[10px] border-0`}>
+                      {cfg.label}
+                    </Badge>
+                    <span className="text-[11px] text-muted-foreground max-w-[160px] leading-tight">
+                      {cfg.motivo}
+                    </span>
                     <span className="text-[11px] text-muted-foreground">
                       {diasAtras(cliente.ultima_compra_gc)}
                     </span>
