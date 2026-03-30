@@ -1060,20 +1060,17 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   return (
     <MainLayout fullscreen>
       <div className="grid h-full min-h-0 overflow-hidden lg:grid-cols-[20rem_minmax(0,1fr)]">
-        {/* Desktop sidebar — visível a partir de lg (1024px) */}
-        <div className="hidden lg:flex border-r border-border bg-card flex-col h-full min-h-0 overflow-hidden relative z-30">
-          <ScrollArea className="h-full min-h-0">{sidebarContent}</ScrollArea>
-        </div>
-
-        {/* Mobile/Tablet sidebar — fixo à esquerda, sem Sheet/Dialog */}
+      <div className="relative h-full min-h-0 overflow-hidden">
+        {/* Sidebar — abre ao clicar no FAB */}
         {sidebarOpen && (
           <>
             <div
-              className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+              className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
               onClick={() => setSidebarOpen(false)}
             />
-            <div className="lg:hidden fixed inset-0 z-50 w-screen bg-background border-r shadow-lg flex flex-col">
-              <div className="flex items-center justify-end p-2 border-b border-border">
+            <div className="fixed top-0 left-0 bottom-0 z-50 w-[22rem] max-w-[90vw] bg-background border-r shadow-lg flex flex-col">
+              <div className="flex items-center justify-between p-2 border-b border-border">
+                <span className="text-sm font-semibold px-2">Mapa Comercial</span>
                 <button
                   onClick={() => setSidebarOpen(false)}
                   className="p-1.5 rounded-md hover:bg-accent"
@@ -1086,9 +1083,9 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
           </>
         )}
 
-        {/* FAB para abrir sidebar (mobile/tablet) */}
+        {/* FAB para abrir sidebar */}
         {!sidebarOpen && (
-          <div className="lg:hidden absolute top-20 left-3 z-40">
+          <div className="absolute top-3 left-3 z-40">
             <Button
               size="icon"
               variant="secondary"
