@@ -3,7 +3,7 @@ IMPORTADOR RECEITA FEDERAL — ESTABELECIMENTOS (1 arquivo por vez)
 Baixa Estabelecimentos{N}.zip via streaming, filtra CNAEs, faz upsert.
 Uso: python importar_estabelecimentos.py <indice> [url_base]
 """
-import sys, csv, io, zipfile, requests, time, tempfile
+import sys, csv, io, zipfile, requests, time, tempfile, os
 from datetime import datetime
 from rf_supabase import carregar_config_supabase, validar_config_supabase, resumir_erro_http
 
@@ -122,6 +122,7 @@ def main():
 
     # Streaming download para disco (não carrega na RAM)
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix='.zip')
+    tmp_path = tmp.name
     try:
         with requests.get(url, stream=True, timeout=1800,
                          headers={'User-Agent': 'WeDo-CRM/1.0'}) as r:
@@ -145,7 +146,7 @@ def main():
         total_inseridos = 0
         total_erros = 0
 
-        with zipfile.ZipFile(tmp.name) as zf:
+        with zipfile.ZipFile(tmp_path) as zf:
             csv_name = zf.namelist()[0]
             log(f"  Processando {csv_name}...")
             with zf.open(csv_name) as f:
@@ -206,7 +207,8 @@ def main():
                 total_erros += len(batch)
 
     finally:
-        os.unlink(tmp.name)
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
 
     log(f"\n=== RESULTADO Estabelecimentos{indice} ===")
     log(f"Linhas processadas: {total_linhas:,}")
