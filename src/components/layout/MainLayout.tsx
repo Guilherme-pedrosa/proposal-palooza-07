@@ -9,9 +9,12 @@ import { useIsMobile } from '@/hooks/use-mobile';
 interface MainLayoutProps {
   children?: ReactNode;
   fullscreen?: boolean;
+  hideSidebar?: boolean;
+  hideHeader?: boolean;
+  hideBottomNav?: boolean;
 }
 
-export function MainLayout({ children, fullscreen }: MainLayoutProps) {
+export function MainLayout({ children, fullscreen, hideSidebar = false, hideHeader = false, hideBottomNav = false }: MainLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useIsMobile();
@@ -31,31 +34,35 @@ export function MainLayout({ children, fullscreen }: MainLayoutProps) {
   return (
     <div className={cn("w-full bg-muted", fullscreen ? "h-screen" : "min-h-screen")}>
       {/* Mobile overlay */}
-      {isMobile && mobileOpen && (
+      {isMobile && mobileOpen && !hideSidebar && (
         <div
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-fade-in"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
-      <Sidebar
-        collapsed={isMobile ? false : collapsed}
-        onToggle={() => isMobile ? setMobileOpen(!mobileOpen) : setCollapsed(!collapsed)}
-        mobileOpen={mobileOpen}
-        onMobileClose={() => setMobileOpen(false)}
-      />
+      {!hideSidebar && (
+        <Sidebar
+          collapsed={isMobile ? false : collapsed}
+          onToggle={() => isMobile ? setMobileOpen(!mobileOpen) : setCollapsed(!collapsed)}
+          mobileOpen={mobileOpen}
+          onMobileClose={() => setMobileOpen(false)}
+        />
+      )}
 
       <div
         className={cn(
           "flex flex-col transition-all duration-200",
           fullscreen ? "h-screen" : "min-h-screen",
-          isMobile ? "ml-0" : (collapsed ? "ml-16" : "ml-60")
+          hideSidebar || isMobile ? "ml-0" : (collapsed ? "ml-16" : "ml-60")
         )}
       >
-        <AppHeader
-          onMenuClick={() => setMobileOpen(true)}
-          showMenuButton={isMobile}
-        />
+        {!hideHeader && (
+          <AppHeader
+            onMenuClick={() => setMobileOpen(true)}
+            showMenuButton={isMobile}
+          />
+        )}
 
         {/* Content area */}
         <main className={cn(
@@ -75,7 +82,7 @@ export function MainLayout({ children, fullscreen }: MainLayoutProps) {
       </div>
 
       {/* Bottom Navigation - mobile only */}
-      {isMobile && <BottomNav />}
+      {isMobile && !hideBottomNav && <BottomNav />}
     </div>
   );
 }

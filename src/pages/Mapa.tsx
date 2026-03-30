@@ -1058,7 +1058,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
   );
 
   return (
-    <MainLayout fullscreen>
+    <MainLayout fullscreen hideSidebar hideHeader hideBottomNav>
       <div className="relative h-full min-h-0 overflow-hidden">
         {/* Sidebar — abre ao clicar no FAB */}
         {sidebarOpen && (
