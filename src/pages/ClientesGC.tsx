@@ -21,6 +21,12 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Search, Plus, Filter, Users } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useQuery } from '@tanstack/react-query';
 import {
   clientesGCApi,
@@ -251,9 +257,18 @@ export default function ClientesGC() {
 
                   {/* Right side */}
                   <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                    <Badge className={`${cfg.color} text-[10px] border-0`}>
-                      {cfg.label}
-                    </Badge>
+                    <TooltipProvider delayDuration={300}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge className={`${cfg.color} text-[10px] border-0 cursor-help`}>
+                            {cfg.label}
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent side="left" className="max-w-[200px] text-xs">
+                          <p>{cfg.motivo}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <span className="text-[11px] text-muted-foreground">
                       {diasAtras(cliente.ultima_compra_gc)}
                     </span>
