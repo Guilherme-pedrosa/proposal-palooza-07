@@ -1067,7 +1067,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
               onClick={() => setSidebarOpen(false)}
             />
-            <div className="fixed top-0 left-0 bottom-0 z-50 w-[22rem] max-w-[90vw] bg-background border-r shadow-lg flex flex-col">
+            <div className="fixed inset-0 z-50 w-screen h-screen bg-background flex flex-col">
               <div className="flex items-center justify-between p-2 border-b border-border">
                 <span className="text-sm font-semibold px-2">Mapa Comercial</span>
                 <button
