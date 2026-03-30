@@ -86,10 +86,10 @@ export function calcularSaude(ultimaCompra: string | null): 'ativo' | 'morno' | 
 }
 
 export const saudeConfig = {
-  ativo: { label: 'Ativo', color: 'bg-green-100 text-green-700', dot: '🟢' },
-  morno: { label: 'Morno', color: 'bg-yellow-100 text-yellow-700', dot: '🟡' },
-  risco: { label: 'Em Risco', color: 'bg-red-100 text-red-700', dot: '🔴' },
-  inativo: { label: 'Inativo', color: 'bg-gray-100 text-gray-600', dot: '⚫' },
+  ativo: { label: 'Ativo', color: 'bg-green-100 text-green-700', dot: '🟢', motivo: 'Comprou nos últimos 30 dias' },
+  morno: { label: 'Morno', color: 'bg-yellow-100 text-yellow-700', dot: '🟡', motivo: 'Sem compras há 31-60 dias' },
+  risco: { label: 'Em Risco', color: 'bg-red-100 text-red-700', dot: '🔴', motivo: 'Sem compras há 61-90 dias' },
+  inativo: { label: 'Inativo', color: 'bg-gray-100 text-gray-600', dot: '⚫', motivo: 'Sem compras há mais de 90 dias ou nunca comprou' },
 };
 
 export const segmentoConfig: Record<string, { label: string; icon: string }> = {
