@@ -71,3 +71,7 @@ def resumir_erro_http(response, contexto: str) -> str:
     if len(corpo) > 300:
         corpo = corpo[:300] + '...'
     return f'{contexto} falhou ({response.status_code}): {corpo or "sem corpo de resposta"}'
+
+
+def status_rest_sucesso(status_code: int) -> bool:
+    return status_code in (200, 201, 204, 206)
