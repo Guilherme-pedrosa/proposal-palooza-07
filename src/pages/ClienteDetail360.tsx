@@ -23,6 +23,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   ArrowLeft, Phone, MessageSquare, MapPin, Edit, DollarSign,
   CalendarDays, FileText, Target, Plus, Loader2
 } from 'lucide-react';
@@ -246,7 +252,16 @@ export default function ClienteDetail360() {
               {cliente.cidade && <span>· {cliente.cidade}-{cliente.estado}</span>}
             </div>
             <div className="flex gap-2 mt-2">
-              <Badge className={`${saudeCfg.color} border-0`}>{saudeCfg.label}</Badge>
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge className={`${saudeCfg.color} border-0 cursor-help`}>{saudeCfg.label}</Badge>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[220px] text-xs">
+                    <p>{saudeCfg.motivo}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </div>
