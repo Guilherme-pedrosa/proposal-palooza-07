@@ -125,6 +125,9 @@ Deno.serve(async (req) => {
       const hoje = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
       for (const v of vendas) {
+        const situacao = String(v.situacao || '').toLowerCase();
+        if (situacao === 'cancelado' || situacao === 'cancelada') continue;
+
         totalVendas += parseFloat(v.valor_total || '0') || 0;
         const d = v.data || null;
         if (d && (!ultimaDataVenda || d > ultimaDataVenda)) {
