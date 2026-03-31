@@ -1320,12 +1320,13 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                   onClick={() => setLegendOpen(true)}
                   className="bg-card/90 backdrop-blur-sm border border-border rounded-lg px-2.5 py-1.5 shadow-md text-[11px] text-muted-foreground hover:bg-card transition-colors flex items-center gap-1.5"
                 >
-                  <span className="flex gap-0.5">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22C55E' }} />
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EAB308' }} />
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EF4444' }} />
-                  </span>
-                  Legenda
+                   <span className="flex gap-0.5">
+                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22C55E' }} />
+                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#F97316' }} />
+                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EAB308' }} />
+                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EF4444' }} />
+                   </span>
+                   Legenda
                 </button>
               ) : (
                 <div className="bg-card/95 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg text-xs space-y-2 max-w-[200px]">
