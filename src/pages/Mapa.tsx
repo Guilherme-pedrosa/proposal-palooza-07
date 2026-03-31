@@ -511,18 +511,19 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         const color = getClientStatusColor(c.ultima_compra_gc, !!c.financeiro_atrasado);
         const isActive = color === '#22C55E';
         const isAtrasado = color === '#F97316';
-        const pinW = isActive ? 48 : 36;
-        const pinH = isActive ? 62 : 47;
+        const highlighted = isActive || isAtrasado;
+        const pinW = highlighted ? 48 : 36;
+        const pinH = highlighted ? 62 : 47;
         const initial = (c.nome || '?').charAt(0).toUpperCase();
         const glowFilter = isActive
           ? `<feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#22C55E" flood-opacity="0.6"/><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>`
           : isAtrasado
           ? `<feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#F97316" flood-opacity="0.6"/><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>`
           : `<feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>`;
-        const strokeW = isActive ? '3' : '2.5';
-        const fontSize = isActive ? '16' : '13';
-        const textY = isActive ? '24' : '23';
-        const circleR = isActive ? '12' : '10';
+        const strokeW = highlighted ? '3' : '2.5';
+        const fontSize = highlighted ? '16' : '13';
+        const textY = highlighted ? '24' : '23';
+        const circleR = highlighted ? '12' : '10';
         const pinSvg = `
           <svg xmlns="http://www.w3.org/2000/svg" width="${pinW}" height="${pinH}" viewBox="0 0 40 52">
             <defs><filter id="shadow-${c.id.slice(0,6)}" x="-30%" y="-20%" width="160%" height="160%">${glowFilter}</filter></defs>
