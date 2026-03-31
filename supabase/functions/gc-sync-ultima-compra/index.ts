@@ -147,6 +147,9 @@ Deno.serve(async (req) => {
 
       // Check OS financeiro too
       for (const o of ordens) {
+        const situacaoOS = String(o.situacao || '').toLowerCase();
+        if (situacaoOS === 'cancelado' || situacaoOS === 'cancelada') continue;
+
         if (o.situacao_financeiro === '0' || o.situacao_financeiro === 0) {
           const pagamentos = o.pagamentos || [];
           for (const p of pagamentos) {
