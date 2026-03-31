@@ -304,7 +304,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('clientes_gc')
-        .select('id, gc_id, nome, razao_social, cnpj, telefone, celular, email, cidade, estado, endereco, segmento, latitude, longitude, total_compras_gc, ultima_compra_gc')
+        .select('id, gc_id, nome, razao_social, cnpj, telefone, celular, email, cidade, estado, endereco, segmento, latitude, longitude, total_compras_gc, ultima_compra_gc, financeiro_atrasado')
         .eq('geocodificado', true)
         .not('latitude', 'is', null)
         .not('longitude', 'is', null);
