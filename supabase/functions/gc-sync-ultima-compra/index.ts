@@ -125,6 +125,9 @@ Deno.serve(async (req) => {
       const hoje = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
       for (const v of vendas) {
+        const situacao = String(v.situacao || '').toLowerCase();
+        if (situacao === 'cancelado' || situacao === 'cancelada') continue;
+
         totalVendas += parseFloat(v.valor_total || '0') || 0;
         const d = v.data || null;
         if (d && (!ultimaDataVenda || d > ultimaDataVenda)) {
@@ -144,6 +147,9 @@ Deno.serve(async (req) => {
 
       // Check OS financeiro too
       for (const o of ordens) {
+        const situacaoOS = String(o.situacao || '').toLowerCase();
+        if (situacaoOS === 'cancelado' || situacaoOS === 'cancelada') continue;
+
         if (o.situacao_financeiro === '0' || o.situacao_financeiro === 0) {
           const pagamentos = o.pagamentos || [];
           for (const p of pagamentos) {
@@ -159,6 +165,9 @@ Deno.serve(async (req) => {
       let totalOS = 0;
       let ultimaDataOS: string | null = null;
       for (const o of ordens) {
+        const situacaoOS2 = String(o.situacao || '').toLowerCase();
+        if (situacaoOS2 === 'cancelado' || situacaoOS2 === 'cancelada') continue;
+
         totalOS += parseFloat(o.valor_total || '0') || 0;
         const d = o.data || null;
         if (d && (!ultimaDataOS || d > ultimaDataOS)) {
