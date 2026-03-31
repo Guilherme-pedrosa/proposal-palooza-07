@@ -1,0 +1,1 @@
+ALTER TABLE public.clientes_gc ADD COLUMN financeiro_atrasado boolean DEFAULT false;

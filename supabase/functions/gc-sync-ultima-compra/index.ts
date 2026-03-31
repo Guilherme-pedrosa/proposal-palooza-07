@@ -121,11 +121,37 @@ Deno.serve(async (req) => {
       // Calculate totals from vendas
       let totalVendas = 0;
       let ultimaDataVenda: string | null = null;
+      let financeiroAtrasado = false;
+      const hoje = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
       for (const v of vendas) {
         totalVendas += parseFloat(v.valor_total || '0') || 0;
         const d = v.data || null;
         if (d && (!ultimaDataVenda || d > ultimaDataVenda)) {
           ultimaDataVenda = d;
+        }
+        // Check overdue: situacao_financeiro "0" means financial not settled
+        if (v.situacao_financeiro === '0' || v.situacao_financeiro === 0) {
+          const pagamentos = v.pagamentos || [];
+          for (const p of pagamentos) {
+            const pg = p.pagamento || p;
+            if (pg.data_vencimento && pg.data_vencimento < hoje) {
+              financeiroAtrasado = true;
+            }
+          }
+        }
+      }
+
+      // Check OS financeiro too
+      for (const o of ordens) {
+        if (o.situacao_financeiro === '0' || o.situacao_financeiro === 0) {
+          const pagamentos = o.pagamentos || [];
+          for (const p of pagamentos) {
+            const pg = p.pagamento || p;
+            if (pg.data_vencimento && pg.data_vencimento < hoje) {
+              financeiroAtrasado = true;
+            }
+          }
         }
       }
 
@@ -150,9 +176,10 @@ Deno.serve(async (req) => {
         ultimaCompra = ultimaDataVenda || ultimaDataOS;
       }
 
-      if (ultimaCompra || totalCompras > 0) {
+      if (ultimaCompra || totalCompras > 0 || financeiroAtrasado) {
         const updateData: Record<string, any> = {
           total_compras_gc: totalCompras,
+          financeiro_atrasado: financeiroAtrasado,
         };
         if (ultimaCompra) {
           updateData.ultima_compra_gc = ultimaCompra;
@@ -168,9 +195,12 @@ Deno.serve(async (req) => {
           erros++;
         } else {
           atualizados++;
-          console.log(`✅ ${cliente.nome}: R$ ${totalCompras.toFixed(2)} (${vendas.length}V, ${ordens.length}OS) última: ${ultimaCompra}`);
+          const flag = financeiroAtrasado ? ' ⚠️ ATRASADO' : '';
+          console.log(`✅ ${cliente.nome}: R$ ${totalCompras.toFixed(2)} (${vendas.length}V, ${ordens.length}OS) última: ${ultimaCompra}${flag}`);
         }
       } else {
+        // Reset flag if no overdue
+        await supabase.from('clientes_gc').update({ financeiro_atrasado: false }).eq('id', cliente.id);
         semCompra++;
       }
     } catch (e) {

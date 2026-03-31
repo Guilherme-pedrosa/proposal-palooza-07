@@ -55,7 +55,8 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function getClientStatusColor(ultimaCompra: string | null): string {
+function getClientStatusColor(ultimaCompra: string | null, financeiroAtrasado?: boolean): string {
+  if (financeiroAtrasado) return '#F97316'; // orange
   if (!ultimaCompra) return '#6B7280';
   const days = differenceInDays(new Date(), new Date(ultimaCompra));
   if (days <= 30) return '#22C55E';
@@ -64,7 +65,8 @@ function getClientStatusColor(ultimaCompra: string | null): string {
   return '#6B7280';
 }
 
-function getClientStatusLabel(ultimaCompra: string | null): string {
+function getClientStatusLabel(ultimaCompra: string | null, financeiroAtrasado?: boolean): string {
+  if (financeiroAtrasado) return 'Financeiro Atrasado';
   if (!ultimaCompra) return 'Inativo';
   const days = differenceInDays(new Date(), new Date(ultimaCompra));
   if (days <= 30) return 'Ativo';
@@ -96,7 +98,7 @@ interface ClienteGeo {
   cidade: string | null; estado: string | null; endereco: string | null;
   segmento: string | null; latitude: number; longitude: number;
   total_compras_gc: number | null; ultima_compra_gc: string | null;
-  gc_id: string;
+  gc_id: string; financeiro_atrasado: boolean | null;
 }
 
 interface OportunidadeGeo {
@@ -302,7 +304,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('clientes_gc')
-        .select('id, gc_id, nome, razao_social, cnpj, telefone, celular, email, cidade, estado, endereco, segmento, latitude, longitude, total_compras_gc, ultima_compra_gc')
+        .select('id, gc_id, nome, razao_social, cnpj, telefone, celular, email, cidade, estado, endereco, segmento, latitude, longitude, total_compras_gc, ultima_compra_gc, financeiro_atrasado')
         .eq('geocodificado', true)
         .not('latitude', 'is', null)
         .not('longitude', 'is', null);
@@ -436,7 +438,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     let list = clientes;
     if (segmentoFilter !== 'todos') list = list.filter(c => c.segmento === segmentoFilter);
     if (cidadeFilter !== 'todos') list = list.filter(c => c.cidade === cidadeFilter);
-    if (statusFilter !== 'todos') list = list.filter(c => getClientStatusLabel(c.ultima_compra_gc) === statusFilter);
+    if (statusFilter !== 'todos') list = list.filter(c => getClientStatusLabel(c.ultima_compra_gc, !!c.financeiro_atrasado) === statusFilter);
     if (busca.length >= 2) {
       const q = busca.toLowerCase();
       list = list.filter(c =>
@@ -506,18 +508,22 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
     if (showClientes) {
       mapFilteredClientes.forEach(c => {
-        const color = getClientStatusColor(c.ultima_compra_gc);
+        const color = getClientStatusColor(c.ultima_compra_gc, !!c.financeiro_atrasado);
         const isActive = color === '#22C55E';
-        const pinW = isActive ? 48 : 36;
-        const pinH = isActive ? 62 : 47;
+        const isAtrasado = color === '#F97316';
+        const highlighted = isActive || isAtrasado;
+        const pinW = highlighted ? 48 : 36;
+        const pinH = highlighted ? 62 : 47;
         const initial = (c.nome || '?').charAt(0).toUpperCase();
         const glowFilter = isActive
           ? `<feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#22C55E" flood-opacity="0.6"/><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>`
+          : isAtrasado
+          ? `<feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#F97316" flood-opacity="0.6"/><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>`
           : `<feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>`;
-        const strokeW = isActive ? '3' : '2.5';
-        const fontSize = isActive ? '16' : '13';
-        const textY = isActive ? '24' : '23';
-        const circleR = isActive ? '12' : '10';
+        const strokeW = highlighted ? '3' : '2.5';
+        const fontSize = highlighted ? '16' : '13';
+        const textY = highlighted ? '24' : '23';
+        const circleR = highlighted ? '12' : '10';
         const pinSvg = `
           <svg xmlns="http://www.w3.org/2000/svg" width="${pinW}" height="${pinH}" viewBox="0 0 40 52">
             <defs><filter id="shadow-${c.id.slice(0,6)}" x="-30%" y="-20%" width="160%" height="160%">${glowFilter}</filter></defs>
@@ -534,7 +540,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             scaledSize: new google.maps.Size(pinW, pinH),
             anchor: new google.maps.Point(pinW / 2, pinH),
           },
-          zIndex: isActive ? 20 : 10,
+          zIndex: isAtrasado ? 25 : isActive ? 20 : 10,
           clickable: true,
           optimized: false,
         });
@@ -980,6 +986,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               <SelectContent>
                 <SelectItem value="todos">Todos os status</SelectItem>
                 <SelectItem value="Ativo">🟢 Ativo</SelectItem>
+                <SelectItem value="Financeiro Atrasado">🟠 Financeiro Atrasado</SelectItem>
                 <SelectItem value="Morno">🟡 Morno</SelectItem>
                 <SelectItem value="Em Risco">🔴 Em Risco</SelectItem>
                 <SelectItem value="Inativo">⚫ Inativo</SelectItem>
@@ -1033,7 +1040,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       <div>
         <div className="p-2 space-y-1">
           {filteredClientes.slice(0, 50).map(c => {
-            const statusColor = getClientStatusColor(c.ultima_compra_gc);
+            const statusColor = getClientStatusColor(c.ultima_compra_gc, !!c.financeiro_atrasado);
             const distKm = userLocation ? haversineKm(userLocation.lat, userLocation.lng, c.latitude, c.longitude) : null;
             return (
               <button key={c.id} onClick={() => centerOnClient(c)} className="w-full text-left p-3 rounded-lg hover:bg-accent/50 transition-colors border border-transparent hover:border-border">
@@ -1176,7 +1183,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                   <div className="max-w-xs space-y-2 p-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-bold text-sm" style={{ color: '#111827' }}>{selectedClient.razao_social || selectedClient.nome}</h3>
-                      <div className="w-3 h-3 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: getClientStatusColor(selectedClient.ultima_compra_gc) }} />
+                      <div className="w-3 h-3 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: getClientStatusColor(selectedClient.ultima_compra_gc, !!selectedClient.financeiro_atrasado) }} />
                     </div>
                     {selectedClient.cnpj && <p className="text-xs" style={{ color: '#6B7280' }}>CNPJ: {selectedClient.cnpj}</p>}
                     <hr style={{ borderColor: '#E5E7EB' }} />
@@ -1186,7 +1193,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                     <hr style={{ borderColor: '#E5E7EB' }} />
                     <div className="text-xs" style={{ color: '#374151' }}>
                       {selectedClient.segmento && <p>🏷️ {selectedClient.segmento}</p>}
-                      <p>📊 {getClientStatusLabel(selectedClient.ultima_compra_gc)}</p>
+                      <p>📊 {getClientStatusLabel(selectedClient.ultima_compra_gc, !!selectedClient.financeiro_atrasado)}</p>
                       {selectedClient.total_compras_gc && selectedClient.total_compras_gc > 0 && <p>💰 Total: {formatBRL(selectedClient.total_compras_gc)}</p>}
                     </div>
                     {/* Histórico resumido */}
@@ -1315,12 +1322,13 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                   onClick={() => setLegendOpen(true)}
                   className="bg-card/90 backdrop-blur-sm border border-border rounded-lg px-2.5 py-1.5 shadow-md text-[11px] text-muted-foreground hover:bg-card transition-colors flex items-center gap-1.5"
                 >
-                  <span className="flex gap-0.5">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22C55E' }} />
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EAB308' }} />
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EF4444' }} />
-                  </span>
-                  Legenda
+                   <span className="flex gap-0.5">
+                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22C55E' }} />
+                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#F97316' }} />
+                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EAB308' }} />
+                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#EF4444' }} />
+                   </span>
+                   Legenda
                 </button>
               ) : (
                 <div className="bg-card/95 backdrop-blur-sm border border-border rounded-lg p-3 shadow-lg text-xs space-y-2 max-w-[200px]">
@@ -1333,10 +1341,11 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                   {showClientes && (
                     <div className="space-y-1">
                       <p className="font-medium text-[10px] text-muted-foreground">Clientes</p>
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#22C55E' }} /> Ativo</div>
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#EAB308' }} /> Morno</div>
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#EF4444' }} /> Em Risco</div>
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#6B7280' }} /> Inativo</div>
+                       <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#22C55E' }} /> Ativo</div>
+                       <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#F97316' }} /> Financeiro Atrasado</div>
+                       <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#EAB308' }} /> Morno</div>
+                       <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#EF4444' }} /> Em Risco</div>
+                       <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#6B7280' }} /> Inativo</div>
                     </div>
                   )}
                   {showOportunidades && (

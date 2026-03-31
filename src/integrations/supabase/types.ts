@@ -114,6 +114,7 @@ export type Database = {
           email: string | null
           endereco: string | null
           estado: string | null
+          financeiro_atrasado: boolean | null
           gc_id: string
           gc_synced_at: string | null
           geocodificado: boolean | null
@@ -141,6 +142,7 @@ export type Database = {
           email?: string | null
           endereco?: string | null
           estado?: string | null
+          financeiro_atrasado?: boolean | null
           gc_id: string
           gc_synced_at?: string | null
           geocodificado?: boolean | null
@@ -168,6 +170,7 @@ export type Database = {
           email?: string | null
           endereco?: string | null
           estado?: string | null
+          financeiro_atrasado?: boolean | null
           gc_id?: string
           gc_synced_at?: string | null
           geocodificado?: boolean | null
