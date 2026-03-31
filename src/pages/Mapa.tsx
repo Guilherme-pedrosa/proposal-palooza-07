@@ -1183,7 +1183,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                   <div className="max-w-xs space-y-2 p-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-bold text-sm" style={{ color: '#111827' }}>{selectedClient.razao_social || selectedClient.nome}</h3>
-                      <div className="w-3 h-3 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: getClientStatusColor(selectedClient.ultima_compra_gc) }} />
+                      <div className="w-3 h-3 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: getClientStatusColor(selectedClient.ultima_compra_gc, !!selectedClient.financeiro_atrasado) }} />
                     </div>
                     {selectedClient.cnpj && <p className="text-xs" style={{ color: '#6B7280' }}>CNPJ: {selectedClient.cnpj}</p>}
                     <hr style={{ borderColor: '#E5E7EB' }} />
