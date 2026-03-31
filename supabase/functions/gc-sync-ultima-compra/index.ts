@@ -165,6 +165,9 @@ Deno.serve(async (req) => {
       let totalOS = 0;
       let ultimaDataOS: string | null = null;
       for (const o of ordens) {
+        const situacaoOS2 = String(o.situacao || '').toLowerCase();
+        if (situacaoOS2 === 'cancelado' || situacaoOS2 === 'cancelada') continue;
+
         totalOS += parseFloat(o.valor_total || '0') || 0;
         const d = o.data || null;
         if (d && (!ultimaDataOS || d > ultimaDataOS)) {
