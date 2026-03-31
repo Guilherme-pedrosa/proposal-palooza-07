@@ -1338,10 +1338,11 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                   {showClientes && (
                     <div className="space-y-1">
                       <p className="font-medium text-[10px] text-muted-foreground">Clientes</p>
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#22C55E' }} /> Ativo</div>
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#EAB308' }} /> Morno</div>
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#EF4444' }} /> Em Risco</div>
-                      <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#6B7280' }} /> Inativo</div>
+                       <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#22C55E' }} /> Ativo</div>
+                       <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#F97316' }} /> Financeiro Atrasado</div>
+                       <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#EAB308' }} /> Morno</div>
+                       <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#EF4444' }} /> Em Risco</div>
+                       <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#6B7280' }} /> Inativo</div>
                     </div>
                   )}
                   {showOportunidades && (
