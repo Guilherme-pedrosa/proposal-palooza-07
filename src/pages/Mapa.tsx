@@ -540,7 +540,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
             scaledSize: new google.maps.Size(pinW, pinH),
             anchor: new google.maps.Point(pinW / 2, pinH),
           },
-          zIndex: isActive ? 20 : 10,
+          zIndex: isAtrasado ? 25 : isActive ? 20 : 10,
           clickable: true,
           optimized: false,
         });
