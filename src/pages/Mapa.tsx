@@ -438,7 +438,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     let list = clientes;
     if (segmentoFilter !== 'todos') list = list.filter(c => c.segmento === segmentoFilter);
     if (cidadeFilter !== 'todos') list = list.filter(c => c.cidade === cidadeFilter);
-    if (statusFilter !== 'todos') list = list.filter(c => getClientStatusLabel(c.ultima_compra_gc) === statusFilter);
+    if (statusFilter !== 'todos') list = list.filter(c => getClientStatusLabel(c.ultima_compra_gc, !!c.financeiro_atrasado) === statusFilter);
     if (busca.length >= 2) {
       const q = busca.toLowerCase();
       list = list.filter(c =>
