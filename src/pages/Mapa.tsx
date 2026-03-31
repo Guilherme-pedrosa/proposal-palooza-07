@@ -516,6 +516,10 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         const initial = (c.nome || '?').charAt(0).toUpperCase();
         const glowFilter = isActive
           ? `<feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#22C55E" flood-opacity="0.6"/><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>`
+          : isAtrasado
+          ? `<feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#F97316" flood-opacity="0.6"/><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>`
+          : `<feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>`;
+          ? `<feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#22C55E" flood-opacity="0.6"/><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>`
           : `<feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>`;
         const strokeW = isActive ? '3' : '2.5';
         const fontSize = isActive ? '16' : '13';
