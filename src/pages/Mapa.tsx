@@ -508,8 +508,9 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
     if (showClientes) {
       mapFilteredClientes.forEach(c => {
-        const color = getClientStatusColor(c.ultima_compra_gc);
+        const color = getClientStatusColor(c.ultima_compra_gc, !!c.financeiro_atrasado);
         const isActive = color === '#22C55E';
+        const isAtrasado = color === '#F97316';
         const pinW = isActive ? 48 : 36;
         const pinH = isActive ? 62 : 47;
         const initial = (c.nome || '?').charAt(0).toUpperCase();
