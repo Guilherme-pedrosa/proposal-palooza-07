@@ -55,7 +55,8 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function getClientStatusColor(ultimaCompra: string | null): string {
+function getClientStatusColor(ultimaCompra: string | null, financeiroAtrasado?: boolean): string {
+  if (financeiroAtrasado) return '#F97316'; // orange
   if (!ultimaCompra) return '#6B7280';
   const days = differenceInDays(new Date(), new Date(ultimaCompra));
   if (days <= 30) return '#22C55E';
@@ -64,7 +65,8 @@ function getClientStatusColor(ultimaCompra: string | null): string {
   return '#6B7280';
 }
 
-function getClientStatusLabel(ultimaCompra: string | null): string {
+function getClientStatusLabel(ultimaCompra: string | null, financeiroAtrasado?: boolean): string {
+  if (financeiroAtrasado) return 'Financeiro Atrasado';
   if (!ultimaCompra) return 'Inativo';
   const days = differenceInDays(new Date(), new Date(ultimaCompra));
   if (days <= 30) return 'Ativo';
