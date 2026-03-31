@@ -1038,7 +1038,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       <div>
         <div className="p-2 space-y-1">
           {filteredClientes.slice(0, 50).map(c => {
-            const statusColor = getClientStatusColor(c.ultima_compra_gc);
+            const statusColor = getClientStatusColor(c.ultima_compra_gc, !!c.financeiro_atrasado);
             const distKm = userLocation ? haversineKm(userLocation.lat, userLocation.lng, c.latitude, c.longitude) : null;
             return (
               <button key={c.id} onClick={() => centerOnClient(c)} className="w-full text-left p-3 rounded-lg hover:bg-accent/50 transition-colors border border-transparent hover:border-border">
