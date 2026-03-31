@@ -1193,7 +1193,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                     <hr style={{ borderColor: '#E5E7EB' }} />
                     <div className="text-xs" style={{ color: '#374151' }}>
                       {selectedClient.segmento && <p>🏷️ {selectedClient.segmento}</p>}
-                      <p>📊 {getClientStatusLabel(selectedClient.ultima_compra_gc)}</p>
+                      <p>📊 {getClientStatusLabel(selectedClient.ultima_compra_gc, !!selectedClient.financeiro_atrasado)}</p>
                       {selectedClient.total_compras_gc && selectedClient.total_compras_gc > 0 && <p>💰 Total: {formatBRL(selectedClient.total_compras_gc)}</p>}
                     </div>
                     {/* Histórico resumido */}
