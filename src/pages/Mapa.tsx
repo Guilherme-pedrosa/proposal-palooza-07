@@ -985,6 +985,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
               <SelectContent>
                 <SelectItem value="todos">Todos os status</SelectItem>
                 <SelectItem value="Ativo">🟢 Ativo</SelectItem>
+                <SelectItem value="Financeiro Atrasado">🟠 Financeiro Atrasado</SelectItem>
                 <SelectItem value="Morno">🟡 Morno</SelectItem>
                 <SelectItem value="Em Risco">🔴 Em Risco</SelectItem>
                 <SelectItem value="Inativo">⚫ Inativo</SelectItem>
