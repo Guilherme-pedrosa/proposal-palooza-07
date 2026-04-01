@@ -5,6 +5,7 @@ import { AppHeader } from './AppHeader';
 import { BottomNav } from './BottomNav';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuditLog } from '@/hooks/useAuditLog';
 
 interface MainLayoutProps {
   children?: ReactNode;
