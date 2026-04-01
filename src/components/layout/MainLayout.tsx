@@ -20,6 +20,7 @@ export function MainLayout({ children, fullscreen, hideSidebar = false, hideHead
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
+  useAuditLog(); // auto-track page navigation
 
   useEffect(() => {
     if (isMobile) {
