@@ -18,6 +18,7 @@ import {
   X,
   LogOut,
   Users,
+  ScrollText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCompany } from '@/contexts/CompanyContext';
