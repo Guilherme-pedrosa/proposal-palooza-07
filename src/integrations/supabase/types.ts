@@ -103,6 +103,42 @@ export type Database = {
           },
         ]
       }
+      audit_log: {
+        Row: {
+          acao: string
+          created_at: string
+          detalhes: Json | null
+          id: string
+          ip: string | null
+          pagina: string | null
+          tipo: string
+          user_agent: string | null
+          usuario_id: string
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          detalhes?: Json | null
+          id?: string
+          ip?: string | null
+          pagina?: string | null
+          tipo: string
+          user_agent?: string | null
+          usuario_id: string
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          detalhes?: Json | null
+          id?: string
+          ip?: string | null
+          pagina?: string | null
+          tipo?: string
+          user_agent?: string | null
+          usuario_id?: string
+        }
+        Relationships: []
+      }
       clientes_gc: {
         Row: {
           ativo: boolean | null
