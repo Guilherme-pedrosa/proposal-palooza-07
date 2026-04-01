@@ -18,6 +18,7 @@ import {
   X,
   LogOut,
   Users,
+  ScrollText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCompany } from '@/contexts/CompanyContext';
@@ -81,6 +82,7 @@ const menuGroups: MenuGroup[] = [
       { title: 'Termos e Condições', icon: ClipboardList, href: '/termos' },
       { title: 'Empresa', icon: Settings, href: '/configuracoes' },
       { title: 'Usuários', icon: Users, href: '/usuarios' },
+      { title: 'Logs', icon: ScrollText, href: '/logs' },
     ],
   },
 ];

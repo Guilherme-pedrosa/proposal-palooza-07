@@ -5,6 +5,7 @@ import { AppHeader } from './AppHeader';
 import { BottomNav } from './BottomNav';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuditLog } from '@/hooks/useAuditLog';
 
 interface MainLayoutProps {
   children?: ReactNode;
@@ -19,6 +20,7 @@ export function MainLayout({ children, fullscreen, hideSidebar = false, hideHead
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
+  useAuditLog(); // auto-track page navigation
 
   useEffect(() => {
     if (isMobile) {
