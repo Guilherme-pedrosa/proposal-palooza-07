@@ -22,6 +22,7 @@ const pageMeta: Record<string, { title: string; breadcrumb: string[] }> = {
   '/sync': { title: 'Sync GestãoClick', breadcrumb: ['Gestão'] },
   '/termos': { title: 'Termos e Condições', breadcrumb: ['Configurações'] },
   '/configuracoes': { title: 'Configurações', breadcrumb: ['Empresa'] },
+  '/logs': { title: 'Logs do Sistema', breadcrumb: ['Configurações'] },
 };
 
 export function AppHeader({ onMenuClick, showMenuButton }: AppHeaderProps) {
