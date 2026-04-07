@@ -50,29 +50,40 @@ export function formatBRL(value: number | null | undefined): string {
 }
 
 export async function fetchProdutosGC(): Promise<ProdutoGCRow[]> {
-  const { data, error } = await supabase
-    .from('produtos_gc')
-    .select('*')
-    .eq('ativo', true)
-    .order('destaque', { ascending: false })
-    .order('nome');
+  const allProdutos: ProdutoGCRow[] = [];
+  const PAGE_SIZE = 1000;
+  let from = 0;
 
-  if (error) {
-    console.error('Erro ao buscar produtos, tentando cache:', error);
-    return loadFromCache();
+  while (true) {
+    const { data, error } = await supabase
+      .from('produtos_gc')
+      .select('*')
+      .eq('ativo', true)
+      .order('destaque', { ascending: false })
+      .order('nome')
+      .range(from, from + PAGE_SIZE - 1);
+
+    if (error) {
+      console.error('Erro ao buscar produtos, tentando cache:', error);
+      return allProdutos.length > 0 ? allProdutos : loadFromCache();
+    }
+
+    const produtos = data as unknown as ProdutoGCRow[];
+    allProdutos.push(...produtos);
+
+    if (produtos.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
   }
-
-  const produtos = data as unknown as ProdutoGCRow[];
 
   // Cache for offline use
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({
-      data: produtos,
+      data: allProdutos,
       cachedAt: new Date().toISOString(),
     }));
   } catch { /* quota exceeded */ }
 
-  return produtos;
+  return allProdutos;
 }
 
 function loadFromCache(): ProdutoGCRow[] {
