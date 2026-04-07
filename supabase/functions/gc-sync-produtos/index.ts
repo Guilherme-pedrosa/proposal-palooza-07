@@ -14,16 +14,7 @@ const GC_MAX_PER_PAGE = 100;
 // Default principal price table
 const TABELA_PRINCIPAL_GC_ID = '576894'; // TABELA COMERCIAL ACESSÓRIOS
 
-// Only sync products from these GC group IDs
-const GC_GRUPO_IDS = [
-  '5607724', // REVENDA - EQUIPAMENTOS
-  '5607733', // REVENDA - ACESSÓRIOS
-  '5607771', // REVENDA - MANUTENÇÃO
-  '5607834', // REVENDA - Rational
-  '5617001', // SPOLU - REVENDA
-  '5664343', // REVENDA - ROBOT COUPE
-  '5711316', // REVENDA - SKYMSEN
-];
+// Sync ALL products (no group filter)
 
 async function fetchComRetry(url: string, headers: Record<string, string>, maxRetries: number): Promise<Response> {
   for (let tentativa = 0; tentativa < maxRetries; tentativa++) {
