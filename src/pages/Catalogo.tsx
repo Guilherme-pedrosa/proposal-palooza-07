@@ -136,10 +136,18 @@ export default function Catalogo() {
     };
   }, []);
 
+  // Extract unique groups from products
+  const grupos = useMemo(() => {
+    const set = new Set<string>();
+    produtos.forEach((p) => { if (p.categoria) set.add(p.categoria); });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [produtos]);
+
   const filtrados = useMemo(() => {
     return produtos
       .filter((p) => {
         if (categoriaAtiva !== 'todos' && p.categoria !== categoriaAtiva) return false;
+        if (filtroGrupo !== 'todos' && p.categoria !== filtroGrupo) return false;
         if (busca) {
           const q = busca.toLowerCase();
           if (
@@ -161,7 +169,7 @@ export default function Catalogo() {
         if (!a.destaque && b.destaque) return 1;
         return a.nome.localeCompare(b.nome, 'pt-BR');
       });
-  }, [produtos, categoriaAtiva, busca, filtroTipo, filtroDisponivel, apenasDestaques]);
+  }, [produtos, categoriaAtiva, busca, filtroTipo, filtroDisponivel, filtroGrupo, apenasDestaques]);
 
   const cacheTime = getCacheTimestamp();
 
