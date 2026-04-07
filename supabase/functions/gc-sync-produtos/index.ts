@@ -126,6 +126,9 @@ Deno.serve(async (req) => {
           }
         }
 
+        // Extract photos from GC
+        const fotos: string[] = Array.isArray(p.fotos) ? p.fotos.filter((f: any) => typeof f === 'string' && f.length > 0) : [];
+
         return {
           gc_id: String(p.id),
           codigo: p.codigo_interno || p.codigo,
@@ -137,6 +140,8 @@ Deno.serve(async (req) => {
           unidade: p.unidade || 'UN',
           estoque_atual: parseFloat(p.estoque) || 0,
           ativo: p.ativo !== '0' && p.ativo !== false,
+          foto_url: fotos[0] || null,
+          fotos_urls: fotos,
           gc_synced_at: new Date().toISOString(),
         };
       });
