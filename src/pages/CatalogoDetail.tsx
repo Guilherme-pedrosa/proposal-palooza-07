@@ -332,9 +332,9 @@ export default function CatalogoDetail() {
           </div>
 
           {/* Prices */}
-          <div className="space-y-1">
+          <div className="space-y-2">
             {produto.preco_venda != null && (
-              <p className="text-2xl font-bold text-emerald-600">
+              <p className="text-2xl font-bold text-primary">
                 💰 {formatBRL(produto.preco_venda)}
               </p>
             )}
@@ -342,6 +342,24 @@ export default function CatalogoDetail() {
               <p className="text-base text-blue-600 font-medium">
                 🔵 Locação: {formatBRL(produto.preco_locacao_mensal)}/mês
               </p>
+            )}
+
+            {/* Price tables */}
+            {precosTabelas.length > 0 && (
+              <div className="mt-2 space-y-1">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Tabelas de Preço</h4>
+                <div className="grid gap-1.5">
+                  {precosTabelas.map((p: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between bg-muted/50 rounded-lg px-3 py-2 text-sm">
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        {p.tabelas_preco?.principal && <Star className="h-3 w-3 text-amber-500 fill-amber-500" />}
+                        {p.tabelas_preco?.nome || 'Tabela'}
+                      </span>
+                      <span className="font-semibold text-foreground">{formatBRL(p.valor_venda)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
 
