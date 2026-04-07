@@ -259,7 +259,6 @@ Deno.serve(async (req) => {
       tabelas_preco: tabelasDescobertas.size,
       erros,
       paginas: paginasTotal,
-      grupos: GC_GRUPO_IDS.length,
     }
   });
 
