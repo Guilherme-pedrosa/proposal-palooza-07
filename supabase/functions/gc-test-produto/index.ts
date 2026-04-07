@@ -29,20 +29,11 @@ Deno.serve(async (req) => {
   const firstProduct = products[0] || {};
   const keys = Object.keys(firstProduct);
 
-  // Return all keys and the full response
-  const product = body?.data || body;
-  const keys = product ? Object.keys(product) : [];
-
   return new Response(JSON.stringify({
     keys,
-    has_foto: 'foto' in (product || {}),
-    has_imagem: 'imagem' in (product || {}),
-    has_url_foto: 'url_foto' in (product || {}),
-    has_foto_url: 'foto_url' in (product || {}),
-    has_fotos: 'fotos' in (product || {}),
-    has_imagens: 'imagens' in (product || {}),
-    has_anexos: 'anexos' in (product || {}),
-    full_response: product,
+    has_fotos: 'fotos' in firstProduct,
+    fotos_value: firstProduct.fotos,
+    first_product_name: firstProduct.nome,
   }, null, 2), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
