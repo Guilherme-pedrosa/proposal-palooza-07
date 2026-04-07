@@ -19,12 +19,15 @@ Deno.serve(async (req) => {
     'Content-Type': 'application/json',
   };
 
-  // Fetch a specific product to see all fields including photos
-  const productId = '87576026'; // CL50 E ULTRA from user screenshot
-  const url = `${GC_BASE_URL}/produtos/${productId}?loja_id=446246`;
+  // Fetch from LIST endpoint (not detail) to see if fotos come back
+  const url = `${GC_BASE_URL}/produtos?loja_id=446246&limite=2&pagina=1&nome=CL50`;
 
   const response = await fetch(url, { headers: gcHeaders });
   const body = await response.json();
+
+  const products = body?.data || [];
+  const firstProduct = products[0] || {};
+  const keys = Object.keys(firstProduct);
 
   // Return all keys and the full response
   const product = body?.data || body;
