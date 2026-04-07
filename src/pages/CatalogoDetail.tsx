@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import {
   fetchProdutoById,
   badgeEstoque,
@@ -226,6 +227,20 @@ export default function CatalogoDetail() {
     enabled: !!id,
   });
 
+  // Fetch all prices for this product across all tables
+  const { data: precosTabelas = [] } = useQuery({
+    queryKey: ['precos_produto_detail', id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('precos_produto')
+        .select('valor_venda, valor_custo, lucro_percentual, tabela_preco_id, tabelas_preco(nome, principal)')
+        .eq('produto_id', id!)
+        .gt('valor_venda', 0);
+      return (data ?? []) as any[];
+    },
+    enabled: !!id,
+  });
+
   const handleShare = async () => {
     if (!produto) return;
     const text = `${produto.nome}${produto.preco_venda ? ` — ${formatBRL(produto.preco_venda)}` : ''}`;
@@ -317,9 +332,9 @@ export default function CatalogoDetail() {
           </div>
 
           {/* Prices */}
-          <div className="space-y-1">
+          <div className="space-y-2">
             {produto.preco_venda != null && (
-              <p className="text-2xl font-bold text-emerald-600">
+              <p className="text-2xl font-bold text-primary">
                 💰 {formatBRL(produto.preco_venda)}
               </p>
             )}
@@ -327,6 +342,24 @@ export default function CatalogoDetail() {
               <p className="text-base text-blue-600 font-medium">
                 🔵 Locação: {formatBRL(produto.preco_locacao_mensal)}/mês
               </p>
+            )}
+
+            {/* Price tables */}
+            {precosTabelas.length > 0 && (
+              <div className="mt-2 space-y-1">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Tabelas de Preço</h4>
+                <div className="grid gap-1.5">
+                  {precosTabelas.map((p: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between bg-muted/50 rounded-lg px-3 py-2 text-sm">
+                      <span className="text-muted-foreground flex items-center gap-1.5">
+                        {p.tabelas_preco?.principal && <Star className="h-3 w-3 text-amber-500 fill-amber-500" />}
+                        {p.tabelas_preco?.nome || 'Tabela'}
+                      </span>
+                      <span className="font-semibold text-foreground">{formatBRL(p.valor_venda)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
 
