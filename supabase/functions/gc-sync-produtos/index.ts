@@ -70,104 +70,99 @@ Deno.serve(async (req) => {
     lucro_percentual: number;
   }> = [];
 
-  for (const grupoId of GC_GRUPO_IDS) {
-    let pagina = 1;
-    let continuar = true;
+  let pagina = 1;
+  let continuar = true;
 
-    while (continuar) {
-      await new Promise(resolve => setTimeout(resolve, GC_RATE_LIMIT_DELAY_MS));
+  while (continuar) {
+    await new Promise(resolve => setTimeout(resolve, GC_RATE_LIMIT_DELAY_MS));
 
-      const url = `${GC_BASE_URL}/produtos?` + new URLSearchParams({
-        loja_id: String(GC_LOJA_ID),
-        limite: String(GC_MAX_PER_PAGE),
-        pagina: String(pagina),
-        grupo_id: grupoId,
-      });
+    const url = `${GC_BASE_URL}/produtos?` + new URLSearchParams({
+      loja_id: String(GC_LOJA_ID),
+      limite: String(GC_MAX_PER_PAGE),
+      pagina: String(pagina),
+    });
 
-      try {
-        const response = await fetchComRetry(url, gcHeaders, GC_MAX_RETRIES);
+    try {
+      const response = await fetchComRetry(url, gcHeaders, GC_MAX_RETRIES);
 
-        if (!response.ok) {
-          await supabase.from('gc_sync_log').insert({
-            entidade: 'produtos', acao: 'sync_pagina',
-            status: 'erro',
-            detalhes: { grupo_id: grupoId, pagina, status: response.status, body: await response.text() }
-          });
-          erros++;
-          break;
-        }
+      if (!response.ok) {
+        await supabase.from('gc_sync_log').insert({
+          entidade: 'produtos', acao: 'sync_pagina',
+          status: 'erro',
+          detalhes: { pagina, status: response.status, body: await response.text() }
+        });
+        erros++;
+        break;
+      }
 
-        const body = await response.json();
-        const produtos = body?.data || body;
+      const body = await response.json();
+      const produtos = body?.data || body;
 
-        if (!Array.isArray(produtos) || produtos.length === 0) {
-          continuar = false;
-          break;
-        }
+      if (!Array.isArray(produtos) || produtos.length === 0) {
+        continuar = false;
+        break;
+      }
 
-        // Build product records — use price from principal table if available
-        const registros = produtos.map((p: any) => {
-          // Find principal table price
-          let precoVenda = parseFloat(p.valor_venda) || null;
-          if (Array.isArray(p.valores)) {
-            const principalTabela = p.valores.find((v: any) => String(v.tipo_id) === TABELA_PRINCIPAL_GC_ID);
-            if (principalTabela) {
-              precoVenda = parseFloat(principalTabela.valor_venda) || precoVenda;
-            }
-
-            // Collect price tables and price entries
-            for (const v of p.valores) {
-              if (v.tipo_id && v.nome_tipo) {
-                tabelasDescobertas.set(String(v.tipo_id), v.nome_tipo);
-                allPriceEntries.push({
-                  gc_produto_id: String(p.id),
-                  gc_tipo_id: String(v.tipo_id),
-                  valor_custo: parseFloat(v.valor_custo) || 0,
-                  valor_venda: parseFloat(v.valor_venda) || 0,
-                  lucro_percentual: parseFloat(v.lucro_utilizado) || 0,
-                });
-              }
-            }
+      // Build product records — use price from principal table if available
+      const registros = produtos.map((p: any) => {
+        let precoVenda = parseFloat(p.valor_venda) || null;
+        if (Array.isArray(p.valores)) {
+          const principalTabela = p.valores.find((v: any) => String(v.tipo_id) === TABELA_PRINCIPAL_GC_ID);
+          if (principalTabela) {
+            precoVenda = parseFloat(principalTabela.valor_venda) || precoVenda;
           }
 
-          return {
-            gc_id: String(p.id),
-            codigo: p.codigo_interno || p.codigo,
-            nome: p.nome,
-            descricao: p.descricao,
-            categoria: p.nome_grupo || null,
-            tipo: p.tipo_produto === 'S' ? 'servico' : 'produto',
-            preco_venda: precoVenda,
-            unidade: p.unidade || 'UN',
-            estoque_atual: parseFloat(p.estoque) || 0,
-            ativo: p.ativo !== '0' && p.ativo !== false,
-            gc_synced_at: new Date().toISOString(),
-          };
-        });
-
-        const { error } = await supabase
-          .from('produtos_gc')
-          .upsert(registros, { onConflict: 'gc_id', ignoreDuplicates: false });
-
-        if (error) {
-          console.error('Product upsert error:', error);
-          erros++;
-        } else {
-          totalSincronizados += registros.length;
+          for (const v of p.valores) {
+            if (v.tipo_id && v.nome_tipo) {
+              tabelasDescobertas.set(String(v.tipo_id), v.nome_tipo);
+              allPriceEntries.push({
+                gc_produto_id: String(p.id),
+                gc_tipo_id: String(v.tipo_id),
+                valor_custo: parseFloat(v.valor_custo) || 0,
+                valor_venda: parseFloat(v.valor_venda) || 0,
+                lucro_percentual: parseFloat(v.lucro_utilizado) || 0,
+              });
+            }
+          }
         }
 
-        paginasTotal++;
+        return {
+          gc_id: String(p.id),
+          codigo: p.codigo_interno || p.codigo,
+          nome: p.nome,
+          descricao: p.descricao,
+          categoria: p.nome_grupo || null,
+          tipo: p.tipo_produto === 'S' ? 'servico' : 'produto',
+          preco_venda: precoVenda,
+          unidade: p.unidade || 'UN',
+          estoque_atual: parseFloat(p.estoque) || 0,
+          ativo: p.ativo !== '0' && p.ativo !== false,
+          gc_synced_at: new Date().toISOString(),
+        };
+      });
 
-        if (produtos.length < GC_MAX_PER_PAGE) {
-          continuar = false;
-        } else {
-          pagina++;
-        }
-      } catch (e) {
-        console.error('Sync error:', e);
+      const { error } = await supabase
+        .from('produtos_gc')
+        .upsert(registros, { onConflict: 'gc_id', ignoreDuplicates: false });
+
+      if (error) {
+        console.error('Product upsert error:', error);
         erros++;
-        continuar = false;
+      } else {
+        totalSincronizados += registros.length;
       }
+
+      paginasTotal++;
+
+      if (produtos.length < GC_MAX_PER_PAGE) {
+        continuar = false;
+      } else {
+        pagina++;
+      }
+    } catch (e) {
+      console.error('Sync error:', e);
+      erros++;
+      continuar = false;
     }
   }
 
