@@ -248,6 +248,21 @@ export default function Catalogo() {
                 </div>
 
                 <div className="space-y-2">
+                  <Label>Grupo</Label>
+                  <Select value={filtroGrupo} onValueChange={setFiltroGrupo}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos os grupos</SelectItem>
+                      {grupos.map((g) => (
+                        <SelectItem key={g} value={g}>{g}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
                   <Label>Disponibilidade</Label>
                   <Select value={filtroDisponivel} onValueChange={(v) => setFiltroDisponivel(v as FiltroDisponibilidade)}>
                     <SelectTrigger>
