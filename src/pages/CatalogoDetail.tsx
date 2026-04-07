@@ -227,6 +227,20 @@ export default function CatalogoDetail() {
     enabled: !!id,
   });
 
+  // Fetch all prices for this product across all tables
+  const { data: precosTabelas = [] } = useQuery({
+    queryKey: ['precos_produto_detail', id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('precos_produto')
+        .select('valor_venda, valor_custo, lucro_percentual, tabela_preco_id, tabelas_preco(nome, principal)')
+        .eq('produto_id', id!)
+        .gt('valor_venda', 0);
+      return (data ?? []) as any[];
+    },
+    enabled: !!id,
+  });
+
   const handleShare = async () => {
     if (!produto) return;
     const text = `${produto.nome}${produto.preco_venda ? ` — ${formatBRL(produto.preco_venda)}` : ''}`;
