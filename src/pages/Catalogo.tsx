@@ -114,6 +114,7 @@ export default function Catalogo() {
   const [categoriaAtiva, setCategoriaAtiva] = useState<CategoriaChip>('todos');
   const [filtroTipo, setFiltroTipo] = useState<string>('todos');
   const [filtroDisponivel, setFiltroDisponivel] = useState<FiltroDisponibilidade>('todos');
+  const [filtroGrupo, setFiltroGrupo] = useState<string>('todos');
   const [apenasDestaques, setApenasDestaques] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
 
