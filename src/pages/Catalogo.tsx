@@ -114,6 +114,7 @@ export default function Catalogo() {
   const [categoriaAtiva, setCategoriaAtiva] = useState<CategoriaChip>('todos');
   const [filtroTipo, setFiltroTipo] = useState<string>('todos');
   const [filtroDisponivel, setFiltroDisponivel] = useState<FiltroDisponibilidade>('todos');
+  const [filtroGrupo, setFiltroGrupo] = useState<string>('todos');
   const [apenasDestaques, setApenasDestaques] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
 
@@ -135,10 +136,18 @@ export default function Catalogo() {
     };
   }, []);
 
+  // Extract unique groups from products
+  const grupos = useMemo(() => {
+    const set = new Set<string>();
+    produtos.forEach((p) => { if (p.categoria) set.add(p.categoria); });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [produtos]);
+
   const filtrados = useMemo(() => {
     return produtos
       .filter((p) => {
         if (categoriaAtiva !== 'todos' && p.categoria !== categoriaAtiva) return false;
+        if (filtroGrupo !== 'todos' && p.categoria !== filtroGrupo) return false;
         if (busca) {
           const q = busca.toLowerCase();
           if (
@@ -160,7 +169,7 @@ export default function Catalogo() {
         if (!a.destaque && b.destaque) return 1;
         return a.nome.localeCompare(b.nome, 'pt-BR');
       });
-  }, [produtos, categoriaAtiva, busca, filtroTipo, filtroDisponivel, apenasDestaques]);
+  }, [produtos, categoriaAtiva, busca, filtroTipo, filtroDisponivel, filtroGrupo, apenasDestaques]);
 
   const cacheTime = getCacheTimestamp();
 
@@ -234,6 +243,21 @@ export default function Catalogo() {
                       <SelectItem value="todos">Todos</SelectItem>
                       <SelectItem value="produto">Produto</SelectItem>
                       <SelectItem value="servico">Serviço</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Grupo</Label>
+                  <Select value={filtroGrupo} onValueChange={setFiltroGrupo}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos os grupos</SelectItem>
+                      {grupos.map((g) => (
+                        <SelectItem key={g} value={g}>{g}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
