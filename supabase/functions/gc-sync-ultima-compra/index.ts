@@ -118,6 +118,13 @@ Deno.serve(async (req) => {
       const ordens = await fetchAllGC('ordens_servicos', cliente.gc_id);
       await new Promise(r => setTimeout(r, DELAY_MS));
 
+      // Situações que efetivamente geram financeiro (excluem orçamento, pedido, etc.)
+      const situacoesComFinanceiro = new Set([
+        'aprovado', 'aprovada', 'faturado', 'faturada',
+        'concluido', 'concluída', 'concluida',
+        'entregue', 'finalizado', 'finalizada',
+      ]);
+
       // Calculate totals from vendas
       let totalVendas = 0;
       let ultimaDataVenda: string | null = null;
@@ -133,8 +140,9 @@ Deno.serve(async (req) => {
         if (d && (!ultimaDataVenda || d > ultimaDataVenda)) {
           ultimaDataVenda = d;
         }
-        // Check overdue: situacao_financeiro "0" means financial not settled
-        if (v.situacao_financeiro === '0' || v.situacao_financeiro === 0) {
+        // Só checa financeiro se a situação gera financeiro E financeiro não está quitado
+        if (situacoesComFinanceiro.has(situacao) &&
+            (v.situacao_financeiro === '0' || v.situacao_financeiro === 0)) {
           const pagamentos = v.pagamentos || [];
           for (const p of pagamentos) {
             const pg = p.pagamento || p;
@@ -145,12 +153,13 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Check OS financeiro too
+      // Check OS financeiro too — mesma lógica
       for (const o of ordens) {
         const situacaoOS = String(o.situacao || '').toLowerCase();
         if (situacaoOS === 'cancelado' || situacaoOS === 'cancelada') continue;
 
-        if (o.situacao_financeiro === '0' || o.situacao_financeiro === 0) {
+        if (situacoesComFinanceiro.has(situacaoOS) &&
+            (o.situacao_financeiro === '0' || o.situacao_financeiro === 0)) {
           const pagamentos = o.pagamentos || [];
           for (const p of pagamentos) {
             const pg = p.pagamento || p;
