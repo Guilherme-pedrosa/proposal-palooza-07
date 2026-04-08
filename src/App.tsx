@@ -117,6 +117,7 @@ function AppRoutes() {
       <Route path="/configuracoes" element={<ProtectedRoute><CompanySettings /></ProtectedRoute>} />
       <Route path="/usuarios" element={<ProtectedRoute><Usuarios /></ProtectedRoute>} />
       <Route path="/logs" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
+      <Route path="/simulador-roi" element={<ProtectedRoute><SimuladorROI /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
