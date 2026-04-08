@@ -165,10 +165,12 @@ const callPerplexity = async (
   }
 
   if (isRefusal(content)) {
-    console.error(`Perplexity recusou acessar a URL na etapa ${stage}:`, content.substring(0, 300));
-    throw new Error(
-      `A IA não conseguiu acessar o cardápio online. Verifique se a URL está correta e acessível publicamente. Cardápios em apps como Goomer/iFood podem não ser acessíveis para análise automática.`,
-    );
+    console.log(`Perplexity recusou acessar a URL na etapa ${stage}:`, content.substring(0, 200));
+    return {
+      parsed: { pratos_detectados: [], restaurante: {} },
+      finishReason: "refusal",
+      content,
+    };
   }
 
   return {
