@@ -936,13 +936,13 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               </div>
             </div>
 
-            {/* 2 Modalidades */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              {[{ forma: forma1, parcelas: parcelas1, entrada: entrada1, jurosCartao: jurosCartao1 }, { forma: forma2, parcelas: parcelas2, entrada: entrada2, jurosCartao: jurosCartao2 }].map((opt, idx) => {
+            {/* Modalidades */}
+            <div className={`grid ${gridCols} gap-4 mb-8`}>
+              {opts.map((opt, idx) => {
                 const isLeasing = opt.forma === 'leasing';
-                const valor = getValor(opt.forma, opt.parcelas, opt.entrada, opt.jurosCartao);
+                const valor = getValor(opt);
                 return (
-                  <div key={idx} className="rounded-lg p-5" style={{ backgroundColor: isLeasing ? '#f0fdf4' : '#fafafa', border: isLeasing ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
+                  <div key={opt.id || idx} className="rounded-lg p-5" style={{ backgroundColor: isLeasing ? '#f0fdf4' : '#fafafa', border: isLeasing ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
                     <p className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: '#9ca3af' }}>Opção {idx + 1}</p>
                     <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: isLeasing ? '#15803d' : '#6b7280' }}>{getLabel(opt.forma, opt.parcelas)}</p>
                     {opt.entrada > 0 && opt.forma !== 'leasing' && (
@@ -957,7 +957,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                     <p className="text-xs mt-1" style={{ color: isLeasing ? '#16a34a' : '#9ca3af' }}>
                       {descMap[opt.forma] || opt.forma}
                       {isLeasing && ` (${taxa.toFixed(3).replace('.', ',')}% a.m.)`}
-                      {opt.forma === 'cartao' && opt.jurosCartao > 0 && ` (${opt.jurosCartao.toFixed(2).replace('.', ',')}% a.m.)`}
+                      {opt.forma === 'cartao' && opt.juros > 0 && ` (${opt.juros.toFixed(2).replace('.', ',')}% a.m.)`}
                     </p>
                   </div>
                 );
