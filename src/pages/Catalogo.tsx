@@ -1,10 +1,19 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from '@/components/ui/pagination';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -117,6 +126,8 @@ export default function Catalogo() {
   const [filtroGrupo, setFiltroGrupo] = useState<string>('todos');
   const [apenasDestaques, setApenasDestaques] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const ITENS_POR_PAGINA = 100;
 
   const { data: produtos = [], isLoading } = useQuery({
     queryKey: ['produtos_gc'],
@@ -171,6 +182,22 @@ export default function Catalogo() {
       });
   }, [produtos, categoriaAtiva, busca, filtroTipo, filtroDisponivel, filtroGrupo, apenasDestaques]);
 
+  // Reset page when filters change
+  useEffect(() => {
+    setPaginaAtual(1);
+  }, [categoriaAtiva, busca, filtroTipo, filtroDisponivel, filtroGrupo, apenasDestaques]);
+
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / ITENS_POR_PAGINA));
+  const paginados = useMemo(() => {
+    const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
+    return filtrados.slice(inicio, inicio + ITENS_POR_PAGINA);
+  }, [filtrados, paginaAtual, ITENS_POR_PAGINA]);
+
+  const irParaPagina = useCallback((p: number) => {
+    setPaginaAtual(Math.max(1, Math.min(p, totalPaginas)));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [totalPaginas]);
+
   const cacheTime = getCacheTimestamp();
 
   return (
@@ -180,7 +207,10 @@ export default function Catalogo() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold">Catálogo</h1>
-            <Badge variant="secondary" className="text-xs">{produtos.length} produtos</Badge>
+            <Badge variant="secondary" className="text-xs">{filtrados.length} produtos</Badge>
+            {totalPaginas > 1 && (
+              <Badge variant="outline" className="text-xs">Pág. {paginaAtual}/{totalPaginas}</Badge>
+            )}
           </div>
         </div>
 
@@ -300,15 +330,58 @@ export default function Catalogo() {
             <p className="text-sm">Tente ajustar os filtros ou a busca.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {filtrados.map((p) => (
-              <ProductCard
-                key={p.id}
-                produto={p}
-                onClick={() => navigate(`/catalogo/${p.id}`)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {paginados.map((p) => (
+                <ProductCard
+                  key={p.id}
+                  produto={p}
+                  onClick={() => navigate(`/catalogo/${p.id}`)}
+                />
+              ))}
+            </div>
+
+            {totalPaginas > 1 && (
+              <Pagination className="pt-4">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => irParaPagina(paginaAtual - 1)}
+                      className={paginaAtual === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+
+                  {Array.from({ length: totalPaginas }, (_, i) => i + 1)
+                    .filter((p) => p === 1 || p === totalPaginas || Math.abs(p - paginaAtual) <= 1)
+                    .map((p, idx, arr) => (
+                      <span key={p} className="contents">
+                        {idx > 0 && arr[idx - 1] !== p - 1 && (
+                          <PaginationItem>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        )}
+                        <PaginationItem>
+                          <PaginationLink
+                            isActive={p === paginaAtual}
+                            onClick={() => irParaPagina(p)}
+                            className="cursor-pointer"
+                          >
+                            {p}
+                          </PaginationLink>
+                        </PaginationItem>
+                      </span>
+                    ))}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => irParaPagina(paginaAtual + 1)}
+                      className={paginaAtual === totalPaginas ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
+          </>
         )}
       </div>
     </MainLayout>
