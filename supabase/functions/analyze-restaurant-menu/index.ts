@@ -505,13 +505,47 @@ Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
     );
 
     let discoveredMenu = discoveryCall.parsed;
-    const discoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
-    const declaredCount = getDeclaredCount(discoveredMenu);
+    let discoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
+    let declaredCount = getDeclaredCount(discoveredMenu);
+
+    // If first attempt returned 0 dishes, try a broader web search approach
+    if (discoveredCount === 0) {
+      console.log("Primeira tentativa retornou 0 pratos. Tentando busca ampla pelo nome do restaurante...");
+
+      // Extract restaurant name from URL or from partial result
+      const restaurantName = discoveredMenu?.restaurante?.nome ||
+        cardapio_url.replace(/https?:\/\//, "").split(/[./]/)[0].replace(/-/g, " ");
+
+      const broadSearchCall = await callPerplexity(
+        PERPLEXITY_API_KEY,
+        [
+          { role: "system", content: buildDiscoverySystemPrompt() },
+          {
+            role: "user",
+            content: `Pesquise o cardápio completo do restaurante "${restaurantName}".
+
+URL de referência: ${cardapio_url}
+
+Busque em TODAS as fontes disponíveis na internet: site oficial, Google Maps, iFood, Rappi, TripAdvisor, redes sociais, blogs de gastronomia, avaliações de clientes que mencionam pratos.
+
+Liste TODOS os pratos com preparo em cozinha que encontrar, com preço quando disponível.
+Se não encontrar preço exato, estime com base no tipo de restaurante e região.
+
+Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
+          },
+        ],
+        "descoberta ampla",
+      );
+
+      discoveredMenu = chooseBestDiscovery(discoveredMenu, broadSearchCall.parsed);
+      discoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
+      declaredCount = getDeclaredCount(discoveredMenu);
+    }
 
     if (
       isTruncated(discoveryCall.finishReason) ||
       (declaredCount > 0 && discoveredCount < declaredCount) ||
-      discoveredCount < 15
+      (discoveredCount > 0 && discoveredCount < 15)
     ) {
       console.log(
         `Auditoria de descoberta acionada: listados=${discoveredCount}, declarados=${declaredCount}, finish_reason=${discoveryCall.finishReason}`,
