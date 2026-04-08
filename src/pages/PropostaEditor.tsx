@@ -247,6 +247,7 @@ export default function PropostaEditor() {
       setFormaPagamento(proposta.forma_pagamento ?? '');
       setNumParcelas(proposta.num_parcelas ?? 1);
       setEntradaPercent(proposta.entrada_percent ?? 0);
+      setTaxaJuros((proposta as any).taxa_juros ?? 1.99);
       setCondicoesPagamento(proposta.condicoes_pagamento ?? '');
       setPrazoEntrega(proposta.prazo_entrega ?? '');
       setStatus(proposta.status ?? 'rascunho');
@@ -439,6 +440,7 @@ export default function PropostaEditor() {
         forma_pagamento: formaPagamento || null,
         num_parcelas: numParcelas,
         entrada_percent: entradaPercent,
+        taxa_juros: taxaJuros,
         condicoes_pagamento: condicoesPagamento || null,
         prazo_entrega: prazoEntrega || null,
       };
