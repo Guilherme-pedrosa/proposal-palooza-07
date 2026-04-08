@@ -60,8 +60,8 @@ function getClientStatusColor(ultimaCompra: string | null, financeiroAtrasado?: 
   if (!ultimaCompra) return '#6B7280';
   const days = differenceInDays(new Date(), new Date(ultimaCompra));
   if (days <= 30) return '#22C55E';
-  if (days <= 60) return '#EAB308';
-  if (days <= 90) return '#EF4444';
+  if (days <= 90) return '#EAB308';
+  if (days <= 180) return '#EF4444';
   return '#6B7280';
 }
 
@@ -70,8 +70,8 @@ function getClientStatusLabel(ultimaCompra: string | null, financeiroAtrasado?: 
   if (!ultimaCompra) return 'Inativo';
   const days = differenceInDays(new Date(), new Date(ultimaCompra));
   if (days <= 30) return 'Ativo';
-  if (days <= 60) return 'Morno';
-  if (days <= 90) return 'Em Risco';
+  if (days <= 90) return 'Morno';
+  if (days <= 180) return 'Em Risco';
   return 'Inativo';
 }
 
