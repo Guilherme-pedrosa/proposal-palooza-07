@@ -38,6 +38,7 @@ import Visitas from "./pages/Visitas";
 import Usuarios from "./pages/Usuarios";
 import Logs from "./pages/Logs";
 import Tarefas from "./pages/Tarefas";
+import SimuladorROI from "./pages/SimuladorROI";
 
 const queryClient = new QueryClient();
 
