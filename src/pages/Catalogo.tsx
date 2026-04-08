@@ -330,15 +330,58 @@ export default function Catalogo() {
             <p className="text-sm">Tente ajustar os filtros ou a busca.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {filtrados.map((p) => (
-              <ProductCard
-                key={p.id}
-                produto={p}
-                onClick={() => navigate(`/catalogo/${p.id}`)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {paginados.map((p) => (
+                <ProductCard
+                  key={p.id}
+                  produto={p}
+                  onClick={() => navigate(`/catalogo/${p.id}`)}
+                />
+              ))}
+            </div>
+
+            {totalPaginas > 1 && (
+              <Pagination className="pt-4">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => irParaPagina(paginaAtual - 1)}
+                      className={paginaAtual === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+
+                  {Array.from({ length: totalPaginas }, (_, i) => i + 1)
+                    .filter((p) => p === 1 || p === totalPaginas || Math.abs(p - paginaAtual) <= 1)
+                    .map((p, idx, arr) => (
+                      <span key={p} className="contents">
+                        {idx > 0 && arr[idx - 1] !== p - 1 && (
+                          <PaginationItem>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        )}
+                        <PaginationItem>
+                          <PaginationLink
+                            isActive={p === paginaAtual}
+                            onClick={() => irParaPagina(p)}
+                            className="cursor-pointer"
+                          >
+                            {p}
+                          </PaginationLink>
+                        </PaginationItem>
+                      </span>
+                    ))}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => irParaPagina(paginaAtual + 1)}
+                      className={paginaAtual === totalPaginas ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
+          </>
         )}
       </div>
     </MainLayout>
