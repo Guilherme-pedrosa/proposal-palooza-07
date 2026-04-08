@@ -57,14 +57,10 @@ const EQUIPAMENTOS = [
 /* ═══════════════════════════════════════════════ */
 
 interface PratoAnalisado {
-  prato_ifood: string;
+  prato: string;
   preco_venda: number;
   insumo_match: string;
-  custo_insumo_kg: number;
-  rendimento_final: number;
-  porcao_g: number;
-  kg_bruto_necessario: number;
-  custo_proteina_porcao: number;
+  custo_porcao: number;
   participacao_vendas: number;
   porcoes_dia: number;
   custo_mensal: number;
@@ -75,9 +71,9 @@ interface PratoAnalisado {
 interface AnaliseResult {
   restaurante: {
     nome: string;
-    nota_ifood: number;
+    nota_ifood?: number;
     qtd_pratos_cardapio: number;
-    ticket_medio_ifood: number;
+    ticket_medio?: number;
     tipo_operacao_inferido: string;
     metodo_coccao_predominante: string;
     categorias: string[];
@@ -125,8 +121,8 @@ export default function SimuladorROI() {
   const [valorInvestimento, setValorInvestimento] = useState(0);
   const [manualMode, setManualMode] = useState(false);
 
-  // ── BLOCO B: iFood ──
-  const [ifoodUrl, setIfoodUrl] = useState('');
+  // ── BLOCO B: Cardápio ──
+  const [cardapioUrl, setCardapioUrl] = useState('');
   const [refeicoesDia, setRefeicoesDia] = useState(200);
   const [diasMes, setDiasMes] = useState(26);
   const [analisando, setAnalisando] = useState(false);
@@ -202,9 +198,9 @@ export default function SimuladorROI() {
     }
   }, [propostaId, propostas]);
 
-  // ── ANÁLISE iFOOD ──
+  // ── ANÁLISE CARDÁPIO ──
   const handleAnalisar = async () => {
-    if (!ifoodUrl) {
+    if (!cardapioUrl) {
       toast.error('Cole o link do cardápio do cliente');
       return;
     }
@@ -218,7 +214,7 @@ export default function SimuladorROI() {
 
     try {
       const { data, error } = await supabase.functions.invoke('analyze-restaurant-menu', {
-        body: { ifood_url: ifoodUrl, refeicoes_dia: refeicoesDia, dias_mes: diasMes },
+        body: { cardapio_url: cardapioUrl, refeicoes_dia: refeicoesDia, dias_mes: diasMes },
       });
 
       if (error) throw error;
@@ -536,9 +532,9 @@ export default function SimuladorROI() {
                   <div className="space-y-2">
                     <Label>Link do cardápio online</Label>
                     <Input
-                      placeholder="Cole aqui o link do iFood, Goomer, site do restaurante ou qualquer plataforma de cardápio"
-                      value={ifoodUrl}
-                      onChange={(e) => setIfoodUrl(e.target.value)}
+                      placeholder="iFood, Goomer, site do restaurante..."
+                      value={cardapioUrl}
+                      onChange={(e) => setCardapioUrl(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
@@ -602,15 +598,17 @@ export default function SimuladorROI() {
                         <div className="flex items-center gap-2">
                           <Check className="h-5 w-5 text-[#87B537]" />
                           <span className="font-semibold text-lg">{analiseResult.restaurante.nome}</span>
-                          <Badge variant="secondary" className="text-xs">
-                            <Star className="h-3 w-3 mr-1 text-yellow-500" />
-                            {analiseResult.restaurante.nota_ifood}
-                          </Badge>
+                          {analiseResult.restaurante.nota_ifood ? (
+                            <Badge variant="secondary" className="text-xs">
+                              <Star className="h-3 w-3 mr-1 text-yellow-500" />
+                              {analiseResult.restaurante.nota_ifood}
+                            </Badge>
+                          ) : null}
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
                           📋 {analiseResult.restaurante.qtd_pratos_cardapio} pratos
                           {' • '}🍖 Predominante: {analiseResult.restaurante.metodo_coccao_predominante}
-                          {' • '}💰 Ticket médio: {formatBRL(analiseResult.restaurante.ticket_medio_ifood)}
+                          {analiseResult.restaurante.ticket_medio ? `${' • '}💰 Ticket médio: ${formatBRL(analiseResult.restaurante.ticket_medio)}` : ''}
                         </p>
                       </div>
                     </div>
@@ -628,11 +626,11 @@ export default function SimuladorROI() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {analiseResult.pratos_analisados.slice(0, 10).map((p, i) => (
+                          {analiseResult.pratos_analisados.map((p, i) => (
                             <TableRow key={i}>
-                              <TableCell className="font-medium text-sm">{p.prato_ifood}</TableCell>
+                              <TableCell className="font-medium text-sm">{p.prato}</TableCell>
                               <TableCell className="text-sm text-muted-foreground">{p.insumo_match}</TableCell>
-                              <TableCell className="text-right text-sm">{formatBRL(p.custo_proteina_porcao)}</TableCell>
+                              <TableCell className="text-right text-sm">{formatBRL(p.custo_porcao)}</TableCell>
                               <TableCell className="text-right text-sm">{(p.participacao_vendas * 100).toFixed(0)}%</TableCell>
                               <TableCell className="text-right text-sm font-medium">{formatBRL(p.custo_mensal)}</TableCell>
                             </TableRow>
@@ -947,7 +945,8 @@ export default function SimuladorROI() {
               {/* Footer P1 */}
               {analiseResult && (
                 <div style={{ fontSize: '11px', color: '#888', borderTop: '1px solid #e4e4e7', paddingTop: '12px' }}>
-                  📊 Baseado no cardápio real de <strong>{analiseResult.restaurante.nome}</strong> (iFood ⭐ {analiseResult.restaurante.nota_ifood})
+                  📊 Baseado no cardápio real de <strong>{analiseResult.restaurante.nome}</strong>
+                  {analiseResult.restaurante.nota_ifood ? ` (⭐ ${analiseResult.restaurante.nota_ifood})` : ''}
                   {' • '}{analiseResult.restaurante.qtd_pratos_cardapio} pratos analisados
                   {' • '}Cocção predominante: {analiseResult.restaurante.metodo_coccao_predominante}
                   {' • '}Volume: {refeicoesDia} refeições/dia | Percentuais conservadores
