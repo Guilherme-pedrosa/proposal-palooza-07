@@ -31,7 +31,11 @@ import {
   Calculator, FileText, Download, Search, TrendingUp,
   DollarSign, Clock, Zap, Check, Droplets, Flame, Star,
   ExternalLink, Loader2, UtensilsCrossed, ChefHat,
+  Save, FolderOpen, Trash2,
 } from 'lucide-react';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+} from '@/components/ui/dialog';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -461,6 +465,80 @@ export default function SimuladorROI() {
     },
   ];
 
+  // ── SALVAR / CARREGAR SIMULAÇÕES ──
+  const [salvando, setSalvando] = useState(false);
+  const [loadDialogOpen, setLoadDialogOpen] = useState(false);
+
+  const { data: simulacoesSalvas, refetch: refetchSimulacoes } = useQuery({
+    queryKey: ['simulacoes_roi', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('simulacoes_roi')
+        .select('*')
+        .order('updated_at', { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!user,
+  });
+
+  const handleSalvar = async () => {
+    if (!user) { toast.error('Faça login para salvar'); return; }
+    const nome = clienteSelecionado?.nome || 'Simulação sem cliente';
+    setSalvando(true);
+    try {
+      const payload = {
+        vendedor_id: user.id,
+        nome_restaurante: nome,
+        url_cardapio: cardapioUrl || null,
+        materias_primas: categoriasMP as any,
+        custo_energia: custoEnergia,
+        custo_gordura: custoGordura,
+        custo_mao_obra: horasEconomizadas * custoHora,
+        custo_agua: custoAgua,
+        refeicoes_dia: refeicoesDia,
+        dias_mes: diasMes,
+        resultado_analise: analiseResult as any,
+        economia_mensal: economia.mensal,
+        economia_anual: economia.anual,
+      };
+      const { error } = await supabase.from('simulacoes_roi').insert(payload);
+      if (error) throw error;
+      toast.success('Simulação salva!');
+      refetchSimulacoes();
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao salvar');
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  const handleCarregar = (sim: any) => {
+    const mp = sim.materias_primas;
+    if (Array.isArray(mp) && mp.length === 4) {
+      setCategoriasMP(mp.map((c: any, i: number) => ({
+        ...DEFAULT_CATEGORIAS_MP[i],
+        kgMes: c.kgMes ?? 0,
+        precoKg: c.precoKg ?? 0,
+        pctEconomia: c.pctEconomia ?? 25,
+      })));
+    }
+    setCustoEnergia(sim.custo_energia ?? 0);
+    setCustoGordura(sim.custo_gordura ?? 0);
+    setCustoAgua(sim.custo_agua ?? 0);
+    setRefeicoesDia(sim.refeicoes_dia ?? 200);
+    setDiasMes(sim.dias_mes ?? 26);
+    setCardapioUrl(sim.url_cardapio ?? '');
+    if (sim.resultado_analise) setAnaliseResult(sim.resultado_analise);
+    setLoadDialogOpen(false);
+    toast.success(`Simulação "${sim.nome_restaurante}" carregada!`);
+  };
+
+  const handleExcluirSimulacao = async (id: string) => {
+    const { error } = await supabase.from('simulacoes_roi').delete().eq('id', id);
+    if (error) toast.error('Erro ao excluir');
+    else { toast.success('Excluída'); refetchSimulacoes(); }
+  };
+
   /* ═══════════════════════════════════════════════ */
   /*  RENDER                                        */
   /* ═══════════════════════════════════════════════ */
@@ -469,7 +547,7 @@ export default function SimuladorROI() {
     <MainLayout>
       <div className="p-4 md:p-6 space-y-6 max-w-[1600px] mx-auto">
         {/* HEADER */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
               <Calculator className="h-6 w-6 text-[#87B537]" />
@@ -479,17 +557,54 @@ export default function SimuladorROI() {
               Analise o cardápio real do restaurante e calcule o payback do equipamento Rational
             </p>
           </div>
-          {economia.mensal > 0 && (
-            <Button
-              onClick={handleGerarPdf}
-              disabled={gerando}
-              className="bg-[#87B537] hover:bg-[#6f9a2c] text-white"
-              size="lg"
-            >
-              {gerando ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
-              Gerar Relatório PDF
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleSalvar} disabled={salvando}>
+              {salvando ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />}
+              Salvar
             </Button>
-          )}
+            <Dialog open={loadDialogOpen} onOpenChange={setLoadDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <FolderOpen className="h-4 w-4 mr-1" /> Carregar
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg max-h-[70vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Simulações salvas</DialogTitle>
+                </DialogHeader>
+                {!simulacoesSalvas?.length ? (
+                  <p className="text-muted-foreground text-sm py-4">Nenhuma simulação salva.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {simulacoesSalvas.map((s: any) => (
+                      <div key={s.id} className="flex items-center justify-between border rounded-lg p-3">
+                        <button onClick={() => handleCarregar(s)} className="text-left flex-1">
+                          <p className="font-medium text-sm">{s.nome_restaurante}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Economia: {formatBRL(s.economia_mensal)}/mês · {new Date(s.updated_at).toLocaleDateString('pt-BR')}
+                          </p>
+                        </button>
+                        <Button variant="ghost" size="icon" onClick={() => handleExcluirSimulacao(s.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+            {economia.mensal > 0 && (
+              <Button
+                onClick={handleGerarPdf}
+                disabled={gerando}
+                className="bg-[#87B537] hover:bg-[#6f9a2c] text-white"
+                size="sm"
+              >
+                {gerando ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <FileText className="h-4 w-4 mr-1" />}
+                Gerar PDF
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
