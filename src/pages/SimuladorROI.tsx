@@ -31,7 +31,11 @@ import {
   Calculator, FileText, Download, Search, TrendingUp,
   DollarSign, Clock, Zap, Check, Droplets, Flame, Star,
   ExternalLink, Loader2, UtensilsCrossed, ChefHat,
+  Save, FolderOpen, Trash2,
 } from 'lucide-react';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+} from '@/components/ui/dialog';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
