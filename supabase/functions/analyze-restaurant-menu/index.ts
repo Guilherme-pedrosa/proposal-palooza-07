@@ -485,8 +485,10 @@ serve(async (req) => {
       searchDomain = new URL(cardapio_url).hostname;
     } catch { /* ignore */ }
 
+    // Don't filter by SPA domains (Goomer, etc.) - they're not indexed
+    const isSPADomain = searchDomain && /goomer|ifood|rappi|aiqfome/i.test(searchDomain);
     const discoveryExtra: Record<string, unknown> = {};
-    if (searchDomain) {
+    if (searchDomain && !isSPADomain) {
       discoveryExtra.search_domain_filter = [searchDomain];
     }
 
