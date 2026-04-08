@@ -727,10 +727,6 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-4 text-center text-sm" style={{ color: '#4b5563' }}>{product.unit}</td>
-                      <td className="px-4 py-4 text-center text-sm" style={{ color: '#4b5563' }}>
-                        {product.quantity.toFixed(2).replace('.', ',')}
-                      </td>
                       <td className="px-2 py-3 text-center text-xs" style={{ color: '#4b5563' }}>{product.unit}</td>
                       <td className="px-2 py-3 text-center text-xs" style={{ color: '#4b5563' }}>
                         {product.quantity.toFixed(2).replace('.', ',')}
