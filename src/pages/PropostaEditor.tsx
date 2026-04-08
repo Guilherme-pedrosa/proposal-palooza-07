@@ -135,7 +135,7 @@ export default function PropostaEditor() {
   const [formaPagamento, setFormaPagamento] = useState('');
   const [numParcelas, setNumParcelas] = useState(1);
   const [entradaPercent, setEntradaPercent] = useState(0);
-  const [taxaJuros, setTaxaJuros] = useState(1.99);
+  const taxaJuros = 2.303;
   const [leasingDialogOpen, setLeasingDialogOpen] = useState(false);
   const [status, setStatus] = useState<string>('rascunho');
   const [versao, setVersao] = useState(1);
@@ -247,7 +247,7 @@ export default function PropostaEditor() {
       setFormaPagamento(proposta.forma_pagamento ?? '');
       setNumParcelas(proposta.num_parcelas ?? 1);
       setEntradaPercent(proposta.entrada_percent ?? 0);
-      setTaxaJuros((proposta as any).taxa_juros ?? 1.99);
+      // taxaJuros is now fixed at 2.303%
       setCondicoesPagamento(proposta.condicoes_pagamento ?? '');
       setPrazoEntrega(proposta.prazo_entrega ?? '');
       setStatus(proposta.status ?? 'rascunho');
@@ -1008,13 +1008,9 @@ export default function PropostaEditor() {
                     <Label className="text-xs">Prazo (meses)</Label>
                     <Input type="number" min={1} max={60} value={numParcelas || ''} onChange={(e) => setNumParcelas(e.target.value === '' ? 0 : parseInt(e.target.value) || 0)} />
                   </div>
-                  <div>
-                    <Label className="text-xs">Taxa mensal (%)</Label>
-                    <Input type="number" min={0} max={10} step={0.01} value={taxaJuros} onChange={(e) => setTaxaJuros(parseFloat(e.target.value) || 0)} />
-                  </div>
                   <div className="flex items-end">
                     <div className="text-right w-full">
-                      <p className="text-xs text-muted-foreground">Parcela estimada</p>
+                      <p className="text-xs text-muted-foreground">Parcela estimada ({taxaJuros.toFixed(3).replace('.', ',')}% a.m.)</p>
                       <p className="text-lg font-bold text-primary">{formatBRL(calcPMT(total, taxaJuros, numParcelas || 36))}/mês</p>
                     </div>
                   </div>
