@@ -439,7 +439,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     let list = clientes;
     if (segmentoFilter !== 'todos') list = list.filter(c => c.segmento === segmentoFilter);
     if (cidadeFilter !== 'todos') list = list.filter(c => c.cidade === cidadeFilter);
-    if (statusFilter !== 'todos') list = list.filter(c => getClientStatusLabel(c.ultima_compra_gc, !!c.financeiro_atrasado) === statusFilter);
+    if (statusFilter !== 'todos') list = list.filter(c => getClientStatusLabel(c.ultima_compra_gc, !!c.financeiro_atrasado, c.valor_atrasado_gc) === statusFilter);
     if (busca.length >= 2) {
       const q = busca.toLowerCase();
       list = list.filter(c =>
@@ -509,7 +509,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
 
     if (showClientes) {
       mapFilteredClientes.forEach(c => {
-        const color = getClientStatusColor(c.ultima_compra_gc, !!c.financeiro_atrasado);
+        const color = getClientStatusColor(c.ultima_compra_gc, !!c.financeiro_atrasado, c.valor_atrasado_gc);
         const isActive = color === '#22C55E';
         const isAtrasado = color === '#F97316';
         const highlighted = isActive || isAtrasado;
@@ -1044,7 +1044,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
       <div>
         <div className="p-2 space-y-1">
           {filteredClientes.slice(0, 50).map(c => {
-            const statusColor = getClientStatusColor(c.ultima_compra_gc, !!c.financeiro_atrasado);
+            const statusColor = getClientStatusColor(c.ultima_compra_gc, !!c.financeiro_atrasado, c.valor_atrasado_gc);
             const distKm = userLocation ? haversineKm(userLocation.lat, userLocation.lng, c.latitude, c.longitude) : null;
             return (
               <button key={c.id} onClick={() => centerOnClient(c)} className="w-full text-left p-3 rounded-lg hover:bg-accent/50 transition-colors border border-transparent hover:border-border">
@@ -1187,7 +1187,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                   <div className="max-w-xs space-y-2 p-1" style={{ fontFamily: 'Inter, sans-serif' }}>
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-bold text-sm" style={{ color: '#111827' }}>{selectedClient.razao_social || selectedClient.nome}</h3>
-                      <div className="w-3 h-3 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: getClientStatusColor(selectedClient.ultima_compra_gc, !!selectedClient.financeiro_atrasado) }} />
+                      <div className="w-3 h-3 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: getClientStatusColor(selectedClient.ultima_compra_gc, !!selectedClient.financeiro_atrasado, selectedClient.valor_atrasado_gc) }} />
                     </div>
                     {selectedClient.cnpj && <p className="text-xs" style={{ color: '#6B7280' }}>CNPJ: {selectedClient.cnpj}</p>}
                     <hr style={{ borderColor: '#E5E7EB' }} />
@@ -1197,7 +1197,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                     <hr style={{ borderColor: '#E5E7EB' }} />
                     <div className="text-xs" style={{ color: '#374151' }}>
                       {selectedClient.segmento && <p>🏷️ {selectedClient.segmento}</p>}
-                      <p>📊 {getClientStatusLabel(selectedClient.ultima_compra_gc, !!selectedClient.financeiro_atrasado)}</p>
+                      <p>📊 {getClientStatusLabel(selectedClient.ultima_compra_gc, !!selectedClient.financeiro_atrasado, selectedClient.valor_atrasado_gc)}</p>
                       {selectedClient.financeiro_atrasado && selectedClient.valor_atrasado_gc && selectedClient.valor_atrasado_gc > 0 && (
                         <p style={{ color: '#EA580C' }}>⚠️ Em atraso: {formatBRL(selectedClient.valor_atrasado_gc)}</p>
                       )}
