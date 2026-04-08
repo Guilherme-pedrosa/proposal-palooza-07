@@ -118,11 +118,45 @@ export async function finalizarCheckout(payload: {
       status: 'concluida',
     })
     .eq('id', payload.visita_id)
-    .select()
+    .select('*, cliente:clientes_gc(id, nome)')
     .single();
 
   if (error) throw error;
-  return data as unknown as VisitaRow;
+
+  const visitaData = data as any;
+
+  // Auto-create follow-up activity when "próxima ação" is filled
+  if (payload.proxima_acao) {
+    const { data: visitaFull } = await supabase
+      .from('visitas')
+      .select('vendedor_id, cliente_id, oportunidade_id')
+      .eq('id', payload.visita_id)
+      .single();
+
+    if (visitaFull) {
+      const clienteNome = visitaData?.cliente?.nome || 'Cliente';
+      await supabase.from('atividades').insert({
+        vendedor_id: visitaFull.vendedor_id,
+        cliente_id: visitaFull.cliente_id,
+        oportunidade_id: visitaFull.oportunidade_id,
+        tipo: 'tarefa',
+        titulo: `📋 ${payload.proxima_acao}`,
+        descricao: `Follow-up automático da visita a ${clienteNome}`,
+        data_prevista: payload.proxima_data || new Date().toISOString(),
+        concluida: false,
+      });
+
+      // Update oportunidade.ultima_atividade_em if linked
+      if (visitaFull.oportunidade_id) {
+        await supabase
+          .from('oportunidades')
+          .update({ ultima_atividade_em: checkoutAt.toISOString() })
+          .eq('id', visitaFull.oportunidade_id);
+      }
+    }
+  }
+
+  return visitaData as unknown as VisitaRow;
 }
 
 export async function agendarVisita(payload: {
