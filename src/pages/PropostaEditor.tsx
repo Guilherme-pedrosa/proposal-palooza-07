@@ -136,6 +136,7 @@ export default function PropostaEditor() {
     { id: crypto.randomUUID(), forma: 'leasing', parcelas: 36, entrada: 0, juros: 0 },
   ]);
   const [descontoAVista, setDescontoAVista] = useState(0);
+  const [descontoAVistaTipo, setDescontoAVistaTipo] = useState<'percent' | 'value'>('percent');
   const taxaJuros = 2.303;
   const [leasingDialogOpen, setLeasingDialogOpen] = useState(false);
   const [status, setStatus] = useState<string>('rascunho');
