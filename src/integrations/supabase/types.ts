@@ -358,6 +358,75 @@ export type Database = {
         }
         Relationships: []
       }
+      insumos_referencia: {
+        Row: {
+          aliases: string[] | null
+          ativo: boolean | null
+          atualizado_em: string | null
+          categoria: string
+          custo_por_porcao: number | null
+          energia_kwh_porcao: number | null
+          fonte_preco: string | null
+          id: string
+          nome: string
+          porcao_padrao_g: number
+          preco_kg_max: number | null
+          preco_kg_min: number | null
+          preco_kg_referencia: number
+          qtd_oleo_ml_porcao: number | null
+          rendimento_bruto: number
+          rendimento_coccao: number
+          rendimento_final: number | null
+          tempo_preparo_min: number | null
+          tipo_coccao: string[] | null
+          usa_oleo: boolean | null
+        }
+        Insert: {
+          aliases?: string[] | null
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          categoria: string
+          custo_por_porcao?: number | null
+          energia_kwh_porcao?: number | null
+          fonte_preco?: string | null
+          id?: string
+          nome: string
+          porcao_padrao_g: number
+          preco_kg_max?: number | null
+          preco_kg_min?: number | null
+          preco_kg_referencia: number
+          qtd_oleo_ml_porcao?: number | null
+          rendimento_bruto: number
+          rendimento_coccao: number
+          rendimento_final?: number | null
+          tempo_preparo_min?: number | null
+          tipo_coccao?: string[] | null
+          usa_oleo?: boolean | null
+        }
+        Update: {
+          aliases?: string[] | null
+          ativo?: boolean | null
+          atualizado_em?: string | null
+          categoria?: string
+          custo_por_porcao?: number | null
+          energia_kwh_porcao?: number | null
+          fonte_preco?: string | null
+          id?: string
+          nome?: string
+          porcao_padrao_g?: number
+          preco_kg_max?: number | null
+          preco_kg_min?: number | null
+          preco_kg_referencia?: number
+          qtd_oleo_ml_porcao?: number | null
+          rendimento_bruto?: number
+          rendimento_coccao?: number
+          rendimento_final?: number | null
+          tempo_preparo_min?: number | null
+          tipo_coccao?: string[] | null
+          usa_oleo?: boolean | null
+        }
+        Relationships: []
+      }
       metas: {
         Row: {
           ano: number
