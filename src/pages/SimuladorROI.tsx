@@ -205,7 +205,7 @@ export default function SimuladorROI() {
   // ── ANÁLISE iFOOD ──
   const handleAnalisar = async () => {
     if (!ifoodUrl) {
-      toast.error('Cole o link do iFood do cliente');
+      toast.error('Cole o link do cardápio do cliente');
       return;
     }
     if (!refeicoesDia || refeicoesDia < 10) {
@@ -589,7 +589,7 @@ export default function SimuladorROI() {
                     <p className="text-sm text-muted-foreground">
                       Analisando cardápio{clienteSelecionado ? ` de ${clienteSelecionado.nome}` : ''}...
                     </p>
-                    <p className="text-xs text-muted-foreground">Extraindo pratos do iFood e calculando custos prato a prato</p>
+                    <p className="text-xs text-muted-foreground">Extraindo pratos do cardápio e calculando custos prato a prato</p>
                   </div>
                 )}
 
