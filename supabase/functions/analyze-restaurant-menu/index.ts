@@ -7,107 +7,204 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
+const PERPLEXITY_URL = "https://api.perplexity.ai/chat/completions";
+const PERPLEXITY_MODEL = "sonar-pro";
+const PERPLEXITY_MAX_TOKENS = 16000;
+
+const sanitizeSecret = (value?: string | null) =>
+  value?.replace(/[\u0000-\u001F\u007F]/g, "").trim();
+
+const jsonResponse = (payload: unknown, status = 200) =>
+  new Response(JSON.stringify(payload), { status, headers: jsonHeaders });
+
+const extractJsonObject = (content: string) => {
+  const start = content.indexOf("{");
+  const end = content.lastIndexOf("}");
+
+  if (start === -1 || end === -1 || end <= start) {
+    throw new Error("Nenhum JSON encontrado na resposta da IA");
   }
 
-  try {
-    const { cardapio_url, refeicoes_dia, dias_mes = 26 } = await req.json();
+  return JSON.parse(content.slice(start, end + 1));
+};
 
-    if (!cardapio_url || !refeicoes_dia) {
-      return new Response(
-        JSON.stringify({ error: "cardapio_url e refeicoes_dia são obrigatórios" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+const normalizeText = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+const getDishCount = (payload: any, key: "pratos_detectados" | "pratos_analisados") =>
+  Array.isArray(payload?.[key]) ? payload[key].length : 0;
+
+const getDeclaredCount = (payload: any) => {
+  const value = Number(payload?.restaurante?.qtd_pratos_cardapio ?? 0);
+  return Number.isFinite(value) ? value : 0;
+};
+
+const isTruncated = (finishReason?: string | null) =>
+  finishReason === "length" || finishReason === "max_tokens";
+
+const callPerplexity = async (
+  apiKey: string,
+  messages: Array<{ role: "system" | "user"; content: string }>,
+  stage: string,
+) => {
+  const response = await fetch(PERPLEXITY_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: PERPLEXITY_MODEL,
+      messages,
+      max_tokens: PERPLEXITY_MAX_TOKENS,
+      temperature: 0.1,
+    }),
+  });
+
+  const rawText = await response.text();
+
+  if (!response.ok) {
+    console.error(`Perplexity ${stage} error:`, response.status, rawText);
+
+    if (response.status === 429) {
+      throw new Error("Rate limit excedido, tente novamente em alguns segundos.");
     }
 
-    const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY")?.trim();
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    throw new Error(`Erro na etapa ${stage}: API retornou ${response.status}`);
+  }
 
-    if (!PERPLEXITY_API_KEY) throw new Error("PERPLEXITY_API_KEY não configurada");
+  let responseJson: any;
+  try {
+    responseJson = JSON.parse(rawText);
+  } catch {
+    throw new Error(`A IA retornou uma resposta HTTP inválida na etapa ${stage}`);
+  }
 
-    // 1. Buscar base de insumos do Supabase
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const { data: insumos, error: insumosError } = await supabase
-      .from("insumos_referencia")
-      .select("nome, categoria, preco_kg_referencia, rendimento_bruto, rendimento_coccao, porcao_padrao_g, custo_por_porcao, tipo_coccao, usa_oleo, qtd_oleo_ml_porcao, energia_kwh_porcao, tempo_preparo_min, aliases")
-      .eq("ativo", true);
+  const content = responseJson?.choices?.[0]?.message?.content;
+  if (!content) {
+    throw new Error(`A IA não retornou conteúdo na etapa ${stage}`);
+  }
 
-    if (insumosError) throw new Error(`Erro ao buscar insumos: ${insumosError.message}`);
+  return {
+    parsed: extractJsonObject(content),
+    finishReason: responseJson?.choices?.[0]?.finish_reason ?? null,
+    content,
+  };
+};
 
-    console.log(`Analisando cardápio: ${cardapio_url} (${refeicoes_dia} ref/dia × ${dias_mes} dias)`);
+const buildDiscoverySystemPrompt = () => `Você é um auditor de cardápio de restaurantes.
 
-    // 2. UMA chamada ao Perplexity — ele acessa a URL e faz tudo
-    const response = await fetch("https://api.perplexity.ai/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${PERPLEXITY_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "sonar-pro",
-        messages: [
-          {
-            role: "system",
-            content: `Você é um consultor financeiro especialista em food service. 
-Sua tarefa: acessar a URL do cardápio, extrair TODOS os pratos, 
-e calcular custos operacionais mensais prato a prato.
+Sua única tarefa é ACESSAR a URL informada e LISTAR EXAUSTIVAMENTE todos os itens do cardápio que envolvem preparo em cozinha.
+
+REGRA CRÍTICA:
+- Você DEVE percorrer TODAS as categorias, seções, abas e blocos do cardápio.
+- NÃO resumir.
+- NÃO agrupar.
+- NÃO retornar só os pratos principais.
+- Se existirem tamanhos/versões diferentes de um prato, cada uma é uma linha separada.
+- Se o cardápio tiver 45 pratos com preparo, retorne os 45.
+
+Itens que DEVEM entrar se existirem:
+- Petiscos/entradas
+- Pratos executivos
+- Pratos completos/compartilhar
+- Pratos individuais
+- Porções de carne
+- Peixes e frutos do mar
+- Frango
+- Suínos
+- Guarnições com preparo
+- Sobremesas com preparo
+
+Ignorar APENAS:
+- bebidas prontas
+- molhos avulsos
+- itens sem preparo em cozinha
+
+RETORNAR EXCLUSIVAMENTE JSON válido neste formato:
+{
+  "restaurante": {
+    "nome": "...",
+    "qtd_pratos_cardapio": 45,
+    "categorias": ["Carnes", "Petiscos", "Executivos"],
+    "ticket_medio": 55,
+    "tipo_operacao_inferido": "churrascaria",
+    "metodo_coccao_predominante": "brasa"
+  },
+  "pratos_detectados": [
+    {
+      "prato": "Costela ao bafo 500g",
+      "preco_venda": 124.9,
+      "descricao": "...",
+      "categoria_menu": "Carnes"
+    }
+  ]
+}`;
+
+const buildDiscoveryAuditPrompt = (
+  cardapioUrl: string,
+  previousResult: any,
+  previousCount: number,
+  declaredCount: number,
+) => `Sua extração anterior deste cardápio ficou INCOMPLETA.
+
+URL: ${cardapioUrl}
+
+Contagem declarada no próprio resultado anterior: ${declaredCount}
+Itens efetivamente listados: ${previousCount}
+
+RESULTADO PARCIAL ANTERIOR:
+${JSON.stringify(previousResult)}
+
+TAREFA:
+- Revisite a URL inteira.
+- Procure categorias/abas/blocos não listados.
+- Retorne novamente o JSON COMPLETO, corrigido, com TODOS os pratos com preparo.
+- O array pratos_detectados precisa conter a lista completa, não parcial.`;
+
+const buildAnalysisSystemPrompt = (
+  insumos: any[],
+  refeicoesDia: number,
+  diasMes: number,
+  discoveredMenu: any,
+) => `Você é um consultor financeiro especialista em food service.
+
+Você recebeu uma LISTA-FONTE EXAUSTIVA dos pratos do cardápio. Use essa lista como VERDADE ABSOLUTA.
+NÃO remova pratos. NÃO agrupe pratos. NÃO omita pratos.
+O array pratos_analisados DEVE ter EXATAMENTE ${getDishCount(discoveredMenu, "pratos_detectados")} linhas, uma para cada item listado em pratos_detectados.
+
+LISTA-FONTE OBRIGATÓRIA:
+${JSON.stringify(discoveredMenu)}
 
 BASE DE CUSTOS DE INSUMOS (usar obrigatoriamente):
 ${JSON.stringify(insumos)}
 
-VOLUME INFORMADO: ${refeicoes_dia} refeições/dia × ${dias_mes} dias/mês
+VOLUME INFORMADO: ${refeicoesDia} refeições/dia × ${diasMes} dias/mês
 
-REGRA CRÍTICA: Extrair e analisar TODOS os pratos do cardápio que 
-envolvem preparo em cozinha. NÃO resumir. NÃO agrupar. NÃO pegar 
-só os principais. Cada prato é uma linha separada.
-
-Lista MÍNIMA de categorias que devem aparecer se existirem no cardápio:
-- Petiscos/entradas (bolinhos, croquetas, iscas, caldos, escondidinho)
-- Pratos executivos (todos)
-- Pratos completos/compartilhar (todos)
-- Pratos individuais (todos)
-- Porções de carne (costela, picanha, carne de sol, filé mignon na chapa)
-- Peixes e frutos do mar (tilápia, camarão, lambari)
-- Frango (passarinho, parmegiana, iscas)
-- Suínos (costelinha, torresmo, lombo)
-- Guarnições com preparo (batata frita, mandioca frita, banana milanesa, feijão tropeiro)
-- Sobremesas com preparo
-
-Ignorar APENAS: bebidas prontas (refrigerante, cerveja, água, suco, 
-vinho, café cápsula), molhos avulsos e itens sem preparo em cozinha.
-
-Se retornar menos de 15 pratos de um cardápio com 40+, sua resposta está ERRADA.
-
-PARA CADA PRATO:
-1. Identificar o insumo principal da base (match por nome/aliases)
-2. Se não encontrar match exato, usar o insumo mais próximo
-3. Usar custo_por_porcao da base
-4. Estimar participação nas vendas (% dos pedidos)
-5. Calcular: custo_porcao × ${refeicoes_dia} × participacao × ${dias_mes}
-
-REGRAS DE PARTICIPAÇÃO:
-- Pratos carro-chefe (mais baratos e populares): 15-25% cada
-- Pratos premium (mais caros): 5-10% cada  
-- Executivos/individuais: 5-10% cada
-- Petiscos e entradas: 2-5% cada
-- Guarnições (batata, mandioca, banana): 3-5% cada
-- A soma de todas as participações deve dar 100%
-
-Para óleo: somar qtd_oleo_ml_porcao de cada prato que usa_oleo=true, ponderar pela participação, converter para litros/mês, multiplicar pelo preço do óleo da base.
-Para energia: somar energia_kwh_porcao de cada prato, ponderar pela participação, × ${refeicoes_dia} × ${dias_mes}.
-Para mão de obra: somar tempo_preparo_min, ponderar, converter em horas/mês.
-
-IMPORTANTE: Ser CONSERVADOR. Na dúvida, projetar pra baixo.
+REGRAS:
+1. Para CADA prato da lista-fonte:
+   - identificar insumo principal da base (match por nome/aliases)
+   - se não encontrar match exato, usar o insumo mais próximo
+   - usar custo_por_porcao da base
+   - estimar participação nas vendas
+   - calcular custo_mensal = custo_porcao × ${refeicoesDia} × participacao × ${diasMes}
+2. Cada prato da lista-fonte vira UMA linha separada em pratos_analisados
+3. A soma de todas as participações deve dar 100%
+4. Ser conservador nas estimativas
+5. Não inventar pratos fora da lista-fonte
 
 RETORNAR EXCLUSIVAMENTE JSON válido neste formato:
 {
   "restaurante": {
     "nome": "...",
     "nota_ifood": 0,
-    "qtd_pratos_cardapio": 45,
+    "qtd_pratos_cardapio": ${getDishCount(discoveredMenu, "pratos_detectados")},
     "ticket_medio": 55.00,
     "tipo_operacao_inferido": "churrascaria",
     "metodo_coccao_predominante": "brasa",
@@ -148,70 +245,190 @@ RETORNAR EXCLUSIVAMENTE JSON válido neste formato:
     "economia_mensal_total": 0,
     "economia_anual": 0
   }
-}`
+}`;
+
+const buildAnalysisAuditPrompt = (
+  discoveredMenu: any,
+  partialAnalysis: any,
+  missingDishNames: string[],
+) => `Sua análise anterior ficou INCOMPLETA.
+
+LISTA-FONTE COMPLETA OBRIGATÓRIA:
+${JSON.stringify(discoveredMenu)}
+
+ANÁLISE PARCIAL ANTERIOR:
+${JSON.stringify(partialAnalysis)}
+
+PRATOS AUSENTES QUE PRECISAM APARECER NA NOVA RESPOSTA:
+${JSON.stringify(missingDishNames)}
+
+Retorne NOVAMENTE o JSON COMPLETO no formato final, agora com TODOS os pratos da lista-fonte.
+O array pratos_analisados precisa ter EXATAMENTE ${getDishCount(discoveredMenu, "pratos_detectados")} itens.`;
+
+const chooseBestDiscovery = (current: any, candidate: any) => {
+  const currentCount = getDishCount(current, "pratos_detectados");
+  const candidateCount = getDishCount(candidate, "pratos_detectados");
+  return candidateCount > currentCount ? candidate : current;
+};
+
+const chooseBestAnalysis = (current: any, candidate: any) => {
+  const currentCount = getDishCount(current, "pratos_analisados");
+  const candidateCount = getDishCount(candidate, "pratos_analisados");
+  return candidateCount > currentCount ? candidate : current;
+};
+
+const getMissingDishNames = (discoveredMenu: any, analysis: any) => {
+  const analyzed = new Set(
+    (analysis?.pratos_analisados ?? []).map((item: any) => normalizeText(String(item?.prato ?? ""))),
+  );
+
+  return (discoveredMenu?.pratos_detectados ?? [])
+    .map((item: any) => String(item?.prato ?? "").trim())
+    .filter(Boolean)
+    .filter((dishName: string) => !analyzed.has(normalizeText(dishName)));
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { cardapio_url, refeicoes_dia, dias_mes = 26 } = await req.json();
+
+    if (!cardapio_url || !refeicoes_dia) {
+      return jsonResponse({ error: "cardapio_url e refeicoes_dia são obrigatórios" }, 400);
+    }
+
+    const PERPLEXITY_API_KEY = sanitizeSecret(Deno.env.get("PERPLEXITY_API_KEY"));
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    if (!PERPLEXITY_API_KEY) {
+      throw new Error("PERPLEXITY_API_KEY não configurada");
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const { data: insumos, error: insumosError } = await supabase
+      .from("insumos_referencia")
+      .select("nome, categoria, preco_kg_referencia, rendimento_bruto, rendimento_coccao, porcao_padrao_g, custo_por_porcao, tipo_coccao, usa_oleo, qtd_oleo_ml_porcao, energia_kwh_porcao, tempo_preparo_min, aliases")
+      .eq("ativo", true);
+
+    if (insumosError) {
+      throw new Error(`Erro ao buscar insumos: ${insumosError.message}`);
+    }
+
+    console.log(`Analisando cardápio: ${cardapio_url} (${refeicoes_dia} ref/dia × ${dias_mes} dias)`);
+
+    let discoveryCall = await callPerplexity(
+      PERPLEXITY_API_KEY,
+      [
+        { role: "system", content: buildDiscoverySystemPrompt() },
+        { role: "user", content: `Acesse esta URL e liste TODOS os pratos com preparo: ${cardapio_url}` },
+      ],
+      "descoberta inicial",
+    );
+
+    let discoveredMenu = discoveryCall.parsed;
+    const discoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
+    const declaredCount = getDeclaredCount(discoveredMenu);
+
+    if (
+      isTruncated(discoveryCall.finishReason) ||
+      (declaredCount > 0 && discoveredCount < declaredCount) ||
+      discoveredCount < 15
+    ) {
+      console.log(
+        `Auditoria de descoberta acionada: listados=${discoveredCount}, declarados=${declaredCount}, finish_reason=${discoveryCall.finishReason}`,
+      );
+
+      const auditDiscoveryCall = await callPerplexity(
+        PERPLEXITY_API_KEY,
+        [
+          { role: "system", content: buildDiscoverySystemPrompt() },
+          {
+            role: "user",
+            content: buildDiscoveryAuditPrompt(cardapio_url, discoveredMenu, discoveredCount, declaredCount),
+          },
+        ],
+        "auditoria de descoberta",
+      );
+
+      discoveredMenu = chooseBestDiscovery(discoveredMenu, auditDiscoveryCall.parsed);
+    }
+
+    const finalDiscoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
+    if (finalDiscoveredCount === 0) {
+      return jsonResponse({ error: "A IA não conseguiu identificar pratos no cardápio informado" }, 422);
+    }
+
+    let analysisCall = await callPerplexity(
+      PERPLEXITY_API_KEY,
+      [
+        {
+          role: "system",
+          content: buildAnalysisSystemPrompt(insumos ?? [], Number(refeicoes_dia), Number(dias_mes), discoveredMenu),
+        },
+        {
+          role: "user",
+          content: `Analise financeiramente TODOS os pratos da lista-fonte acima sem omitir nenhum item.`,
+        },
+      ],
+      "análise principal",
+    );
+
+    let analysis = analysisCall.parsed;
+    let missingDishNames = getMissingDishNames(discoveredMenu, analysis);
+
+    if (isTruncated(analysisCall.finishReason) || missingDishNames.length > 0) {
+      console.log(
+        `Auditoria de análise acionada: faltando=${missingDishNames.length}, finish_reason=${analysisCall.finishReason}`,
+      );
+
+      const auditAnalysisCall = await callPerplexity(
+        PERPLEXITY_API_KEY,
+        [
+          {
+            role: "system",
+            content: buildAnalysisSystemPrompt(insumos ?? [], Number(refeicoes_dia), Number(dias_mes), discoveredMenu),
           },
           {
             role: "user",
-            content: `Acesse esta URL do cardápio e analise TODOS os pratos: ${cardapio_url}`
-          }
+            content: buildAnalysisAuditPrompt(discoveredMenu, analysis, missingDishNames),
+          },
         ],
-        max_tokens: 16000,
-        temperature: 0.1,
-      }),
-    });
+        "auditoria de análise",
+      );
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("Perplexity error:", response.status, errText);
+      analysis = chooseBestAnalysis(analysis, auditAnalysisCall.parsed);
+      missingDishNames = getMissingDishNames(discoveredMenu, analysis);
+    }
 
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit excedido, tente novamente em alguns segundos." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+    const analyzedCount = getDishCount(analysis, "pratos_analisados");
+    const finalExpectedCount = Math.max(getDeclaredCount(discoveredMenu), finalDiscoveredCount, analyzedCount);
 
-      return new Response(
-        JSON.stringify({ error: "Erro na análise do cardápio", details: `API retornou ${response.status}` }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    analysis.restaurante = {
+      ...(discoveredMenu?.restaurante ?? {}),
+      ...(analysis?.restaurante ?? {}),
+      qtd_pratos_cardapio: finalExpectedCount,
+    };
+
+    if (missingDishNames.length > 0) {
+      console.error(`Análise incompleta detectada: ${analyzedCount}/${finalDiscoveredCount} pratos`, missingDishNames);
+      return jsonResponse(
+        {
+          error: `A análise ainda ficou incompleta (${analyzedCount}/${finalDiscoveredCount} pratos). Tente novamente.`,
+          missing_dishes: missingDishNames,
+        },
+        422,
       );
     }
 
-    const result = await response.json();
-    const content = result.choices?.[0]?.message?.content;
+    console.log(`Análise concluída: ${analyzedCount} pratos`);
 
-    if (!content) {
-      return new Response(
-        JSON.stringify({ error: "IA não retornou conteúdo" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Extrair JSON da resposta (Perplexity pode incluir texto ao redor)
-    let parsed;
-    try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error("Nenhum JSON encontrado na resposta");
-      parsed = JSON.parse(jsonMatch[0]);
-    } catch {
-      console.error("JSON parse error:", content);
-      return new Response(
-        JSON.stringify({ error: "IA retornou formato inválido", raw: content?.substring(0, 500) }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    console.log(`Análise concluída: ${parsed.pratos_analisados?.length ?? 0} pratos`);
-
-    return new Response(
-      JSON.stringify({ success: true, data: parsed }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return jsonResponse({ success: true, data: analysis });
   } catch (e) {
     console.error("analyze-restaurant-menu error:", e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return jsonResponse({ error: e instanceof Error ? e.message : "Erro desconhecido" }, 500);
   }
 });
