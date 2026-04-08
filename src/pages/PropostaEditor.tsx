@@ -371,6 +371,7 @@ export default function PropostaEditor() {
       unitPrice: p.unitPrice,
       totalPrice: p.totalPrice,
       discount: p.discount,
+      photoUrl: p.photoUrl,
     })),
     termsConditions: termos.map((t) => ({ id: t.id, title: t.title, description: t.description })),
     images: imagens.map((img) => ({ id: img.id, url: img.url, name: img.name || 'Imagem' })),
