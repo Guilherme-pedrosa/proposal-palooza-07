@@ -66,7 +66,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             {/* Logo — top right */}
             <div className="flex justify-end" style={{ marginBottom: '60px' }}>
               <div className="bg-white rounded-lg p-3" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.25)' }}>
-                <img src={companyLogo} alt={company.name} className="h-12 w-auto object-contain" />
+                <img src={companyLogo} alt={company.name} className="h-12 w-auto object-contain" onError={() => setLogoError(true)} />
               </div>
             </div>
 
