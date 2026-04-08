@@ -525,13 +525,14 @@ Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
       const restaurantName = discoveredMenu?.restaurante?.nome ||
         cardapio_url.replace(/https?:\/\//, "").split(/[./]/)[0].replace(/-/g, " ");
 
-      const broadSearchCall = await callPerplexity(
-        PERPLEXITY_API_KEY,
-        [
-          { role: "system", content: buildDiscoverySystemPrompt() },
-          {
-            role: "user",
-            content: `Pesquise o cardápio completo do restaurante "${restaurantName}".
+      try {
+        const broadSearchCall = await callPerplexity(
+          PERPLEXITY_API_KEY,
+          [
+            { role: "system", content: buildDiscoverySystemPrompt() },
+            {
+              role: "user",
+              content: `Pesquise o cardápio completo do restaurante "${restaurantName}".
 
 URL de referência: ${cardapio_url}
 
@@ -541,14 +542,17 @@ Liste TODOS os pratos com preparo em cozinha que encontrar, com preço quando di
 Se não encontrar preço exato, estime com base no tipo de restaurante e região.
 
 Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
-          },
-        ],
-        "descoberta ampla",
-      );
+            },
+          ],
+          "descoberta ampla",
+        );
 
-      discoveredMenu = chooseBestDiscovery(discoveredMenu, broadSearchCall.parsed);
-      discoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
-      declaredCount = getDeclaredCount(discoveredMenu);
+        discoveredMenu = chooseBestDiscovery(discoveredMenu, broadSearchCall.parsed);
+        discoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
+        declaredCount = getDeclaredCount(discoveredMenu);
+      } catch (broadError) {
+        console.log("Busca ampla também falhou:", (broadError as Error).message?.substring(0, 200));
+      }
     }
 
     if (
