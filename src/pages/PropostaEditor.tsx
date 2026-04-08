@@ -966,15 +966,25 @@ export default function PropostaEditor() {
             {/* À Vista — sempre visível */}
             <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800 p-3 space-y-2">
               <p className="text-sm font-semibold text-foreground flex items-center gap-2">💵 À Vista (PIX / Transferência)</p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <Label className="text-xs">Desconto à vista (%)</Label>
-                  <Input type="number" min={0} max={100} step={0.5} value={descontoAVista || ''} onChange={(e) => setDescontoAVista(parseFloat(e.target.value) || 0)} className="h-8" placeholder="0" />
+                  <Label className="text-xs">Tipo desconto</Label>
+                  <Select value={descontoAVistaTipo} onValueChange={(v: 'percent' | 'value') => setDescontoAVistaTipo(v)}>
+                    <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="percent">% Percentual</SelectItem>
+                      <SelectItem value="value">R$ Valor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Desconto {descontoAVistaTipo === 'percent' ? '(%)' : '(R$)'}</Label>
+                  <Input type="number" min={0} max={descontoAVistaTipo === 'percent' ? 100 : total} step={descontoAVistaTipo === 'percent' ? 0.5 : 1} value={descontoAVista || ''} onChange={(e) => setDescontoAVista(parseFloat(e.target.value) || 0)} className="h-8" placeholder="0" />
                 </div>
                 <div className="flex items-end">
                   <p className="text-sm font-bold text-primary">
-                    {formatBRL(total * (1 - (descontoAVista || 0) / 100))}
-                    {descontoAVista > 0 && <span className="text-xs font-normal text-muted-foreground ml-1">(-{descontoAVista}%)</span>}
+                    {formatBRL(descontoAVistaTipo === 'percent' ? total * (1 - (descontoAVista || 0) / 100) : total - (descontoAVista || 0))}
+                    {descontoAVista > 0 && <span className="text-xs font-normal text-muted-foreground ml-1">(-{descontoAVistaTipo === 'percent' ? `${descontoAVista}%` : formatBRL(descontoAVista)})</span>}
                   </p>
                 </div>
               </div>
