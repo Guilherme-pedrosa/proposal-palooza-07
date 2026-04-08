@@ -559,7 +559,7 @@ Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
       )
     ) {
       console.log(
-        `Auditoria de descoberta acionada: listados=${discoveredCount}, declarados=${declaredCount}, finish_reason=${discoveryCall.finishReason}`,
+        `Auditoria de descoberta acionada: listados=${discoveredCount}, declarados=${declaredCount}, finish_reason=${discoveryCall?.finishReason}`,
       );
 
       const auditDiscoveryCall = await callPerplexity(
