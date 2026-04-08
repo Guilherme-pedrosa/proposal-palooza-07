@@ -222,7 +222,11 @@ export default function SimuladorROI() {
 
       const result = data.data as AnaliseResult;
       setAnaliseResult(result);
-      toast.success(`Cardápio de "${result.restaurante.nome}" analisado com sucesso!`);
+      if (data.completeness?.is_complete === false) {
+        toast.warning(`Análise parcial: ${data.completeness.analyzed_dishes}/${data.completeness.expected_dishes} pratos processados.`);
+      } else {
+        toast.success(`Cardápio de "${result.restaurante.nome}" analisado com sucesso!`);
+      }
     } catch (err: any) {
       console.error('Erro ao analisar:', err);
       toast.error(err.message || 'Erro ao analisar cardápio');
