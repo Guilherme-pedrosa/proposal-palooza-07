@@ -40,7 +40,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         url: ifood_url,
-        source: "ifood.com.br",
+        target: "ifood.com.br",
         type: "pdp",
       }),
     });
