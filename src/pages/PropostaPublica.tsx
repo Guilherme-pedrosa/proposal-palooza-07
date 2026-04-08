@@ -23,9 +23,22 @@ import logoWedoDefault from '@/assets/logo-wedo.png';
 
 export default function PropostaPublica() {
   const { uuid } = useParams();
-  const { company } = useCompany();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [aprovada, setAprovada] = useState(false);
+  const [logoError, setLogoError] = useState(false);
+
+  // Load company settings directly (works for anon users via public RLS)
+  const { data: companyData } = useQuery({
+    queryKey: ['company_settings_public'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('company_settings')
+        .select('*')
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+  });
 
   const { data: proposta, isLoading, refetch } = useQuery({
     queryKey: ['proposta_publica', uuid],
