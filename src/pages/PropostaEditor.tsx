@@ -1006,7 +1006,7 @@ export default function PropostaEditor() {
                 <div className="grid grid-cols-3 gap-3">
                   <div>
                     <Label className="text-xs">Prazo (meses)</Label>
-                    <Input type="number" min={6} max={60} value={numParcelas || 36} onChange={(e) => setNumParcelas(parseInt(e.target.value) || 36)} />
+                    <Input type="number" min={1} max={60} value={numParcelas || ''} onChange={(e) => setNumParcelas(e.target.value === '' ? 0 : parseInt(e.target.value) || 0)} />
                   </div>
                   <div>
                     <Label className="text-xs">Taxa mensal (%)</Label>
