@@ -161,7 +161,26 @@ export default function PropostaPublica() {
         <Card>
           <CardContent className="p-4">
             <h2 className="font-bold text-lg mb-2">{proposta.titulo}</h2>
-            {proposta.descricao && <p className="text-sm text-muted-foreground whitespace-pre-line">{proposta.descricao}</p>}
+            {proposta.descricao && (() => {
+              const parts = proposta.descricao.split('•').map(s => s.trim()).filter(Boolean);
+              const intro = parts[0];
+              const bullets = parts.slice(1);
+              return (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-3" style={{ lineHeight: '1.7' }}>{intro}</p>
+                  {bullets.length > 0 && (
+                    <ul className="space-y-1.5">
+                      {bullets.map((b, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                          <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 bg-primary" />
+                          <span>{b}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
 
