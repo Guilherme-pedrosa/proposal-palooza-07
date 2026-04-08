@@ -479,40 +479,81 @@ serve(async (req) => {
       `Analisando cardápio: ${cardapio_url} (${refeicoes_dia} ref/dia × ${dias_mes} dias)`,
     );
 
-    // ── PASSO 1: Baixar o HTML da URL no servidor ──
+    // ── PASSO 1: Baixar conteúdo da URL (Firecrawl para SPAs, fetch para sites normais) ──
     let conteudoCardapio = '';
-    try {
-      console.log("Baixando HTML da URL...");
-      const htmlResponse = await fetch(cardapio_url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        },
-      });
-      const html = await htmlResponse.text();
-      console.log(`HTML baixado: ${html.length} chars, status ${htmlResponse.status}`);
+    const isSPADomain = /goomer|ifood|rappi|aiqfome/i.test(cardapio_url);
 
-      conteudoCardapio = html
-        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-        .replace(/<img[^>]*>/gi, '')
-        .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '')
-        .replace(/data:[^"'\s]*/gi, '')
-        .replace(/<[^>]+>/g, ' ')
-        .replace(/&nbsp;/gi, ' ')
-        .replace(/&amp;/gi, '&')
-        .replace(/&lt;/gi, '<')
-        .replace(/&gt;/gi, '>')
-        .replace(/&quot;/gi, '"')
-        .replace(/&#[0-9]+;/gi, '')
-        .replace(/\s{2,}/g, '\n')
-        .trim()
-        .substring(0, 30000);
+    if (isSPADomain) {
+      // Usar Firecrawl para renderizar JavaScript e extrair conteúdo
+      const FIRECRAWL_API_KEY = Deno.env.get("FIRECRAWL_API_KEY");
+      if (FIRECRAWL_API_KEY) {
+        try {
+          console.log("SPA detectado. Usando Firecrawl para renderizar JS...");
+          const fcResponse = await fetch("https://api.firecrawl.dev/v1/scrape", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${FIRECRAWL_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              url: cardapio_url,
+              formats: ["markdown"],
+              waitFor: 5000,
+              onlyMainContent: true,
+            }),
+          });
+          const fcData = await fcResponse.json();
+          if (fcResponse.ok && (fcData?.data?.markdown || fcData?.markdown)) {
+            conteudoCardapio = (fcData?.data?.markdown || fcData?.markdown || "").substring(0, 30000);
+            console.log(`Firecrawl OK: ${conteudoCardapio.length} chars`);
+          } else {
+            console.error("Firecrawl falhou:", fcResponse.status, JSON.stringify(fcData).substring(0, 300));
+          }
+        } catch (fcErr) {
+          console.error("Firecrawl error:", fcErr);
+        }
+      } else {
+        console.log("FIRECRAWL_API_KEY não configurada, pulando renderização SPA");
+      }
+    }
 
-      console.log(`Conteúdo limpo: ${conteudoCardapio.length} chars`);
-    } catch (fetchErr) {
-      console.error('Fetch HTML falhou:', fetchErr);
-      conteudoCardapio = '';
+    // Fallback: fetch HTML direto (funciona para sites normais)
+    if (!conteudoCardapio || conteudoCardapio.length < 200) {
+      try {
+        console.log("Baixando HTML da URL...");
+        const htmlResponse = await fetch(cardapio_url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          },
+        });
+        const html = await htmlResponse.text();
+        console.log(`HTML baixado: ${html.length} chars, status ${htmlResponse.status}`);
+
+        const cleaned = html
+          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+          .replace(/<img[^>]*>/gi, '')
+          .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '')
+          .replace(/data:[^"'\s]*/gi, '')
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/&nbsp;/gi, ' ')
+          .replace(/&amp;/gi, '&')
+          .replace(/&lt;/gi, '<')
+          .replace(/&gt;/gi, '>')
+          .replace(/&quot;/gi, '"')
+          .replace(/&#[0-9]+;/gi, '')
+          .replace(/\s{2,}/g, '\n')
+          .trim()
+          .substring(0, 30000);
+
+        if (cleaned.length > conteudoCardapio.length) {
+          conteudoCardapio = cleaned;
+        }
+        console.log(`Conteúdo limpo: ${conteudoCardapio.length} chars`);
+      } catch (fetchErr) {
+        console.error('Fetch HTML falhou:', fetchErr);
+      }
     }
 
     const hasHtmlContent = conteudoCardapio.length > 500;
