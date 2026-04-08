@@ -55,8 +55,8 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function getClientStatusColor(ultimaCompra: string | null, financeiroAtrasado?: boolean): string {
-  if (financeiroAtrasado) return '#F97316'; // orange
+function getClientStatusColor(ultimaCompra: string | null, financeiroAtrasado?: boolean, valorAtrasado?: number): string {
+  if (financeiroAtrasado && (valorAtrasado ?? 0) > 0) return '#F97316'; // orange
   if (!ultimaCompra) return '#6B7280';
   const days = differenceInDays(new Date(), new Date(ultimaCompra));
   if (days <= 30) return '#22C55E';
