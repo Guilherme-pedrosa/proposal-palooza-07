@@ -42,54 +42,80 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
       >
         {/* Cover Page */}
         <div className="relative overflow-hidden pdf-page" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid', backgroundColor: '#0A1628' }}>
-          {/* Background image — bottom portion */}
+          {/* Background image — full page */}
           <div
-            className="absolute bg-cover bg-center"
+            className="absolute inset-0 bg-cover bg-center"
             style={{
-              left: 0, right: 0, bottom: 0, height: '45%',
               backgroundImage: `url(${industrialKitchenBg})`,
             }}
           />
-          {/* Dark overlay over the image */}
-          <div className="absolute" style={{ left: 0, right: 0, bottom: 0, height: '45%', backgroundColor: 'rgba(10,22,40,0.75)' }} />
-          {/* Gradient fade from solid navy into image area */}
-          <div className="absolute" style={{ left: 0, right: 0, bottom: '30%', height: '20%', background: 'linear-gradient(to bottom, #0A1628 0%, transparent 100%)' }} />
+          {/* Gradient overlay — navy top fading into semi-transparent bottom */}
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(to bottom, #0A1628 0%, #0A1628 35%, rgba(10,22,40,0.6) 65%, rgba(10,22,40,0.45) 100%)',
+          }} />
+
+          {/* Decorative geometric accent — top right */}
+          <div className="absolute" style={{ top: 0, right: 0, width: '200px', height: '200px', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: '-60px', right: '-60px', width: '200px', height: '200px', border: '2px solid rgba(0,102,255,0.3)', borderRadius: '50%' }} />
+            <div style={{ position: 'absolute', top: '-30px', right: '-30px', width: '140px', height: '140px', border: '1px solid rgba(0,102,255,0.15)', borderRadius: '50%' }} />
+          </div>
 
           {/* Content */}
           <div className="relative z-10 flex flex-col" style={{ height: '297mm', padding: '80px 56px 48px 56px' }}>
+            {/* Logo — top right */}
+            <div className="flex justify-end" style={{ marginBottom: '60px' }}>
+              <div className="bg-white rounded-lg p-3" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.25)' }}>
+                <img src={companyLogo} alt={company.name} className="h-12 w-auto object-contain" />
+              </div>
+            </div>
+
             {/* Title block */}
-            <div style={{ marginTop: '40px' }}>
-              <h1 style={{ fontFamily: "'Georgia', 'Times New Roman', serif", fontSize: '72px', lineHeight: 1.05, color: '#ffffff', fontWeight: 700, letterSpacing: '-0.5px', marginBottom: '4px' }}>
+            <div style={{ marginTop: '20px' }}>
+              {/* Electric blue accent line above title */}
+              <div style={{ width: '64px', height: '4px', backgroundColor: '#0066FF', marginBottom: '28px', borderRadius: '2px' }} />
+
+              <h1 style={{ fontFamily: "'Georgia', 'Times New Roman', serif", fontSize: '68px', lineHeight: 1.08, color: '#ffffff', fontWeight: 700, letterSpacing: '-1px', marginBottom: '0' }}>
                 Proposta
               </h1>
-              <h1 style={{ fontFamily: "'Georgia', 'Times New Roman', serif", fontSize: '72px', lineHeight: 1.05, color: '#ffffff', fontWeight: 700, letterSpacing: '-0.5px', marginBottom: '24px' }}>
+              <h1 style={{ fontFamily: "'Georgia', 'Times New Roman', serif", fontSize: '68px', lineHeight: 1.08, color: '#ffffff', fontWeight: 700, letterSpacing: '-1px', marginBottom: '36px' }}>
                 Comercial
               </h1>
 
-              {/* Accent line */}
-              <div style={{ width: '80px', height: '3px', backgroundColor: '#C0392B', marginBottom: '32px' }} />
-
-              {/* Client name */}
-              <p className="text-base" style={{ color: '#ffffff', marginBottom: '16px' }}>
-                Elaborada para <strong style={{ fontWeight: 700 }}>{proposal.client?.name || '[NOME DO CLIENTE]'}</strong>
-              </p>
+              {/* Client name — with subtle card */}
+              <div style={{ backgroundColor: 'rgba(0,102,255,0.12)', borderLeft: '3px solid #0066FF', padding: '16px 20px', borderRadius: '0 8px 8px 0', marginBottom: '24px', maxWidth: '85%' }}>
+                <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', marginBottom: '4px' }}>
+                  Elaborada para
+                </p>
+                <p style={{ color: '#ffffff', fontSize: '18px', fontWeight: 700, letterSpacing: '0.3px' }}>
+                  {proposal.client?.name || '[NOME DO CLIENTE]'}
+                </p>
+              </div>
 
               {/* Meta info */}
-              <p className="text-sm" style={{ color: '#ffffff' }}>
-                Data: {formatDate(proposal.createdAt as Date)}
-                <span style={{ margin: '0 12px', opacity: 0.5 }}>|</span>
-                Proposta nº <strong>{proposal.number || 'WDO-0000'}</strong>
-              </p>
+              <div className="flex items-center gap-6" style={{ marginTop: '8px' }}>
+                <div>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '2px' }}>Data</p>
+                  <p style={{ color: '#ffffff', fontSize: '14px', fontWeight: 500 }}>{formatDate(proposal.createdAt as Date)}</p>
+                </div>
+                <div style={{ width: '1px', height: '32px', backgroundColor: 'rgba(255,255,255,0.2)' }} />
+                <div>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '2px' }}>Proposta nº</p>
+                  <p style={{ color: '#ffffff', fontSize: '14px', fontWeight: 700 }}>{proposal.number || 'WDO-0000'}</p>
+                </div>
+              </div>
             </div>
 
             {/* Spacer */}
             <div style={{ flex: 1 }} />
 
-            {/* Logo — bottom right */}
-            <div className="flex justify-end">
-              <div className="bg-white rounded-lg p-3 shadow-lg" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>
-                <img src={companyLogo} alt={company.name} className="h-14 w-auto object-contain" />
-              </div>
+            {/* Bottom bar */}
+            <div className="flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px' }}>
+              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>
+                {company.name} • {company.phone}
+              </p>
+              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px' }}>
+                {company.cnpj}
+              </p>
             </div>
           </div>
         </div>
