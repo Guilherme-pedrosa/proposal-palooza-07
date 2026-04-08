@@ -19,6 +19,7 @@ import {
   LogOut,
   Users,
   ScrollText,
+  Calculator,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCompany } from '@/contexts/CompanyContext';
