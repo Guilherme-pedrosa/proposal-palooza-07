@@ -95,9 +95,27 @@ Deno.serve(async (req) => {
     return allRecords;
   }
 
+  // Situações que NÃO contam como transação realizada
+  const SITUACOES_IGNORAR = new Set([
+    'cancelado', 'cancelada', 'reprovado', 'reprovada',
+  ]);
+
+  function processarTransacoes(records: any[]) {
+    let total = 0;
+    let ultimaData: string | null = null;
+    for (const r of records) {
+      const sit = String(r.situacao || r.nome_situacao || '').toLowerCase();
+      if (SITUACOES_IGNORAR.has(sit)) continue;
+      total += parseFloat(r.valor_total || '0') || 0;
+      const d = r.data || null;
+      if (d && (!ultimaData || d > ultimaData)) ultimaData = d;
+    }
+    return { total, ultimaData };
+  }
+
   for (const cliente of clientes) {
     try {
-      // 1) Buscar vendas e OS para calcular total_compras e ultima_compra
+      // 1) Buscar vendas, OS e orçamentos para calcular total_compras e ultima_compra
       const vendas = await fetchAllGC('vendas', {
         cliente_id: cliente.gc_id,
         ordenacao: 'data',
@@ -112,34 +130,20 @@ Deno.serve(async (req) => {
       });
       await new Promise(r => setTimeout(r, DELAY_MS));
 
-      // Calcular totais (excluindo cancelados)
-      let totalVendas = 0;
-      let ultimaDataVenda: string | null = null;
-      for (const v of vendas) {
-        const sit = String(v.situacao || '').toLowerCase();
-        if (sit === 'cancelado' || sit === 'cancelada') continue;
-        totalVendas += parseFloat(v.valor_total || '0') || 0;
-        const d = v.data || null;
-        if (d && (!ultimaDataVenda || d > ultimaDataVenda)) ultimaDataVenda = d;
-      }
+      const orcamentos = await fetchAllGC('orcamentos', {
+        cliente_id: cliente.gc_id,
+        ordenacao: 'data',
+        direcao: 'desc',
+      });
+      await new Promise(r => setTimeout(r, DELAY_MS));
 
-      let totalOS = 0;
-      let ultimaDataOS: string | null = null;
-      for (const o of ordens) {
-        const sit = String(o.situacao || '').toLowerCase();
-        if (sit === 'cancelado' || sit === 'cancelada') continue;
-        totalOS += parseFloat(o.valor_total || '0') || 0;
-        const d = o.data || null;
-        if (d && (!ultimaDataOS || d > ultimaDataOS)) ultimaDataOS = d;
-      }
+      const resVendas = processarTransacoes(vendas);
+      const resOS = processarTransacoes(ordens);
+      const resOrc = processarTransacoes(orcamentos);
 
-      const totalCompras = totalVendas + totalOS;
-      let ultimaCompra: string | null = null;
-      if (ultimaDataVenda && ultimaDataOS) {
-        ultimaCompra = ultimaDataVenda > ultimaDataOS ? ultimaDataVenda : ultimaDataOS;
-      } else {
-        ultimaCompra = ultimaDataVenda || ultimaDataOS;
-      }
+      const totalCompras = resVendas.total + resOS.total + resOrc.total;
+      const datas = [resVendas.ultimaData, resOS.ultimaData, resOrc.ultimaData].filter(Boolean) as string[];
+      const ultimaCompra = datas.length > 0 ? datas.sort().pop()! : null;
 
       // 2) Buscar recebimentos em atraso diretamente do módulo financeiro
       const recebimentosAtrasados = await fetchAllGC('recebimentos', {
@@ -175,7 +179,7 @@ Deno.serve(async (req) => {
         } else {
           atualizados++;
           const flag = financeiroAtrasado ? ` ⚠️ ATRASADO R$${valorAtrasado.toFixed(2)}` : '';
-          console.log(`✅ ${cliente.nome}: R$ ${totalCompras.toFixed(2)} (${vendas.length}V, ${ordens.length}OS) última: ${ultimaCompra}${flag}`);
+          console.log(`✅ ${cliente.nome}: R$ ${totalCompras.toFixed(2)} (${vendas.length}V, ${ordens.length}OS, ${orcamentos.length}Orç) última: ${ultimaCompra}${flag}`);
         }
       } else {
         await supabase.from('clientes_gc').update({
