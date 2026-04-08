@@ -68,6 +68,20 @@ interface PratoAnalisado {
   usa_oleo: boolean;
 }
 
+interface MateriaPrimaCategoria {
+  kg_mes: number;
+  preco_medio_kg: number;
+  custo_mensal: number;
+  itens: string[];
+}
+
+interface MateriasPrimas {
+  carnes: MateriaPrimaCategoria;
+  aves: MateriaPrimaCategoria;
+  legumes_guarnicoes: MateriaPrimaCategoria;
+  pescados: MateriaPrimaCategoria;
+}
+
 interface AnaliseResult {
   restaurante: {
     nome: string;
@@ -79,8 +93,8 @@ interface AnaliseResult {
     categorias: string[];
   };
   pratos_analisados: PratoAnalisado[];
+  materias_primas: MateriasPrimas;
   totais_mensais: {
-    proteinas_reais: number;
     energia_kwh: number;
     custo_kwh_usado: number;
     energia_reais: number;
@@ -91,6 +105,8 @@ interface AnaliseResult {
     mao_obra_reais: number;
     agua_descalcificacao_reais: number;
     custo_total_operacional: number;
+    // legacy field kept for backward compat
+    proteinas_reais?: number;
   };
   resumo_economia_rational: {
     economia_proteina_20pct: number;
@@ -102,6 +118,25 @@ interface AnaliseResult {
     economia_anual: number;
   };
 }
+
+/* ═══════════════════════════════════════════════ */
+/*  Matéria-prima state helper                     */
+/* ═══════════════════════════════════════════════ */
+
+interface CategoriaMP {
+  label: string;
+  icon: string;
+  kgMes: number;
+  precoKg: number;
+  pctEconomia: number;
+}
+
+const DEFAULT_CATEGORIAS_MP: CategoriaMP[] = [
+  { label: 'Carnes', icon: '🥩', kgMes: 0, precoKg: 0, pctEconomia: 25 },
+  { label: 'Aves', icon: '🍗', kgMes: 0, precoKg: 0, pctEconomia: 25 },
+  { label: 'Legumes / Guarnições', icon: '🥦', kgMes: 0, precoKg: 0, pctEconomia: 25 },
+  { label: 'Pescados', icon: '🐟', kgMes: 0, precoKg: 0, pctEconomia: 25 },
+];
 
 /* ═══════════════════════════════════════════════ */
 /*  COMPONENTE PRINCIPAL                          */
@@ -128,17 +163,18 @@ export default function SimuladorROI() {
   const [analisando, setAnalisando] = useState(false);
   const [analiseResult, setAnaliseResult] = useState<AnaliseResult | null>(null);
 
-  // ── BLOCO C: CUSTOS (auto-preenchidos pela análise) ──
-  const [custoProteinas, setCustoProteinas] = useState(0);
+  // ── BLOCO C: CUSTOS ──
+  // Matérias-primas por categoria (4 linhas)
+  const [categoriasMP, setCategoriasMP] = useState<CategoriaMP[]>(DEFAULT_CATEGORIAS_MP);
+
   const [custoEnergia, setCustoEnergia] = useState(0);
   const [custoKwh, setCustoKwh] = useState(0.80);
   const [custoGordura, setCustoGordura] = useState(0);
   const [horasEconomizadas, setHorasEconomizadas] = useState(0);
   const [custoHora, setCustoHora] = useState(23);
-  const [custoAgua, setCustoAgua] = useState(270);
+  const [custoAgua, setCustoAgua] = useState(0);
 
-  // ── BLOCO D: PERCENTUAIS ──
-  const [pctProteinas, setPctProteinas] = useState(20);
+  // ── BLOCO D: PERCENTUAIS (não-MP) ──
   const [pctEnergia, setPctEnergia] = useState(50);
   const [pctGordura, setPctGordura] = useState(80);
   const [pctMaoDeObra, setPctMaoDeObra] = useState(40);
@@ -146,6 +182,11 @@ export default function SimuladorROI() {
 
   const [gerando, setGerando] = useState(false);
   const [showPdf, setShowPdf] = useState(false);
+
+  // Helper to update a single categoria MP field
+  const updateCategoriaMP = (index: number, field: keyof CategoriaMP, value: number) => {
+    setCategoriasMP(prev => prev.map((c, i) => i === index ? { ...c, [field]: value } : c));
+  };
 
   // ── QUERIES ──
   const { data: clientes } = useQuery({
@@ -238,7 +279,30 @@ export default function SimuladorROI() {
   const handleUsarValoresAnalise = () => {
     if (!analiseResult) return;
     const t = analiseResult.totais_mensais;
-    setCustoProteinas(t.proteinas_reais);
+    const mp = analiseResult.materias_primas;
+
+    // Fill 4 categories from analysis
+    if (mp) {
+      const keys: Array<{ key: keyof MateriasPrimas; idx: number }> = [
+        { key: 'carnes', idx: 0 },
+        { key: 'aves', idx: 1 },
+        { key: 'legumes_guarnicoes', idx: 2 },
+        { key: 'pescados', idx: 3 },
+      ];
+      setCategoriasMP(prev => prev.map((cat, i) => {
+        const mapping = keys.find(k => k.idx === i);
+        if (!mapping || !mp[mapping.key]) return cat;
+        const src = mp[mapping.key];
+        return { ...cat, kgMes: src.kg_mes || 0, precoKg: src.preco_medio_kg || 0 };
+      }));
+    } else if (t.proteinas_reais) {
+      // Legacy fallback: dump all into carnes
+      setCategoriasMP(prev => prev.map((cat, i) => i === 0
+        ? { ...cat, kgMes: Math.round(t.proteinas_reais! / 35), precoKg: 35 }
+        : cat
+      ));
+    }
+
     setCustoEnergia(t.energia_reais);
     setCustoKwh(t.custo_kwh_usado);
     setCustoGordura(t.gordura_reais);
@@ -250,12 +314,21 @@ export default function SimuladorROI() {
 
   // ── CÁLCULOS ──
   const economia = useMemo(() => {
-    const econProteinas = custoProteinas * (pctProteinas / 100);
+    // Economia por categoria de MP
+    const econMP = categoriasMP.map(c => ({
+      label: c.label,
+      icon: c.icon,
+      custoAtual: c.kgMes * c.precoKg,
+      pct: c.pctEconomia,
+      economia: c.kgMes * c.precoKg * (c.pctEconomia / 100),
+    }));
+    const totalEconMP = econMP.reduce((s, c) => s + c.economia, 0);
+
     const econEnergia = custoEnergia * (pctEnergia / 100);
     const econGordura = custoGordura * (pctGordura / 100);
     const econMaoDeObra = horasEconomizadas * custoHora * (pctMaoDeObra / 100);
     const econAgua = pctAgua ? custoAgua : 0;
-    const mensal = econProteinas + econEnergia + econGordura + econMaoDeObra + econAgua;
+    const mensal = totalEconMP + econEnergia + econGordura + econMaoDeObra + econAgua;
     const anual = mensal * 12;
     const paybackMeses = mensal > 0 ? Math.ceil(valorInvestimento / mensal) : 0;
     const roi12m = valorInvestimento > 0
@@ -264,7 +337,8 @@ export default function SimuladorROI() {
     const em5anos = anual * 5;
 
     return {
-      proteinas: econProteinas,
+      mp: econMP,
+      totalMP: totalEconMP,
       energia: econEnergia,
       gordura: econGordura,
       maoDeObra: econMaoDeObra,
@@ -275,7 +349,7 @@ export default function SimuladorROI() {
       roi12m,
       em5anos,
     };
-  }, [custoProteinas, custoEnergia, custoGordura, horasEconomizadas, custoHora, custoAgua, pctProteinas, pctEnergia, pctGordura, pctMaoDeObra, pctAgua, valorInvestimento]);
+  }, [categoriasMP, custoEnergia, custoGordura, horasEconomizadas, custoHora, custoAgua, pctEnergia, pctGordura, pctMaoDeObra, pctAgua, valorInvestimento]);
 
   // ── GRÁFICO DE PAYBACK ──
   const chartData = useMemo(() => {
@@ -350,13 +424,13 @@ export default function SimuladorROI() {
 
   // ── TABELA ECONOMIA PARA PDF ──
   const tabelaEconomia = [
-    {
-      categoria: `Proteínas (−${pctProteinas}%)`,
-      atual: custoProteinas,
-      comRational: custoProteinas - economia.proteinas,
-      economia: economia.proteinas,
-      icon: '🥩',
-    },
+    ...economia.mp.map(c => ({
+      categoria: `${c.label} (−${c.pct}%)`,
+      atual: c.custoAtual,
+      comRational: c.custoAtual - c.economia,
+      economia: c.economia,
+      icon: c.icon,
+    })),
     {
       categoria: `Energia (−${pctEnergia}%)`,
       atual: custoEnergia,
@@ -643,6 +717,30 @@ export default function SimuladorROI() {
                       </Table>
                     </div>
 
+                    {/* Matérias-primas resumo da análise */}
+                    {analiseResult.materias_primas && (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+                        {([
+                          { key: 'carnes' as const, label: '🥩 Carnes' },
+                          { key: 'aves' as const, label: '🍗 Aves' },
+                          { key: 'legumes_guarnicoes' as const, label: '🥦 Legumes' },
+                          { key: 'pescados' as const, label: '🐟 Pescados' },
+                        ]).map(({ key, label }) => {
+                          const cat = analiseResult.materias_primas[key];
+                          if (!cat || cat.custo_mensal === 0) return null;
+                          return (
+                            <div key={key} className="bg-background rounded-lg p-3 border text-sm">
+                              <div className="font-medium text-xs text-muted-foreground">{label}</div>
+                              <div className="font-bold">{formatBRL(cat.custo_mensal)}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {formatNum(cat.kg_mes)} kg × {formatBRL(cat.preco_medio_kg)}/kg
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
                     {/* Botões */}
                     <div className="flex gap-3">
                       <Button onClick={handleUsarValoresAnalise} className="bg-[#87B537] hover:bg-[#6f9a2c] text-white">
@@ -664,12 +762,76 @@ export default function SimuladorROI() {
                   <DollarSign className="h-4 w-4" /> Custos Operacionais Mensais
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs">Proteínas/mês (R$)</Label>
-                    <Input type="number" value={custoProteinas} onChange={(e) => setCustoProteinas(Number(e.target.value))} />
+              <CardContent className="space-y-4">
+                {/* Matérias-primas — 4 categorias */}
+                <div>
+                  <Label className="text-sm font-semibold mb-3 block">Consumo de Matérias-Primas por Mês</Label>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b text-muted-foreground text-xs">
+                          <th className="text-left py-2 pr-2">Categoria</th>
+                          <th className="text-right py-2 px-2">Kg/mês</th>
+                          <th className="text-right py-2 px-2">R$/kg</th>
+                          <th className="text-center py-2 px-2 w-[160px]">Economia %</th>
+                          <th className="text-right py-2 pl-2">Economia R$</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {categoriasMP.map((cat, i) => {
+                          const econVal = cat.kgMes * cat.precoKg * (cat.pctEconomia / 100);
+                          return (
+                            <tr key={i} className="border-b last:border-0">
+                              <td className="py-2 pr-2 font-medium">{cat.icon} {cat.label}</td>
+                              <td className="py-2 px-2">
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  className="w-24 h-8 text-right text-sm"
+                                  value={cat.kgMes || ''}
+                                  onChange={(e) => updateCategoriaMP(i, 'kgMes', Number(e.target.value))}
+                                />
+                              </td>
+                              <td className="py-2 px-2">
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  step={0.5}
+                                  className="w-24 h-8 text-right text-sm"
+                                  value={cat.precoKg || ''}
+                                  onChange={(e) => updateCategoriaMP(i, 'precoKg', Number(e.target.value))}
+                                />
+                              </td>
+                              <td className="py-2 px-2">
+                                <div className="flex items-center gap-2">
+                                  <Slider
+                                    value={[cat.pctEconomia]}
+                                    onValueChange={([v]) => updateCategoriaMP(i, 'pctEconomia', v)}
+                                    min={0} max={30} step={1}
+                                    className="flex-1"
+                                  />
+                                  <span className="text-xs font-mono w-10 text-right text-[#87B537] font-bold">{cat.pctEconomia}%</span>
+                                </div>
+                              </td>
+                              <td className="py-2 pl-2 text-right font-medium text-[#87B537]">
+                                {formatBRL(econVal)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        <tr className="font-bold border-t-2">
+                          <td className="py-2 pr-2" colSpan={4}>Total economia matérias-primas</td>
+                          <td className="py-2 pl-2 text-right text-[#87B537]">{formatBRL(economia.totalMP)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
+                </div>
+
+                <Separator />
+
+                {/* Outros custos */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label className="text-xs">Energia/mês (R$)</Label>
                     <Input type="number" value={custoEnergia} onChange={(e) => setCustoEnergia(Number(e.target.value))} />
@@ -698,7 +860,7 @@ export default function SimuladorROI() {
               </CardContent>
             </Card>
 
-            {/* BLOCO D: Percentuais de Economia */}
+            {/* BLOCO D: Percentuais de Economia (não-MP) */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
@@ -706,20 +868,6 @@ export default function SimuladorROI() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Proteínas */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm flex items-center gap-2">
-                      <Flame className="h-4 w-4 text-red-500" /> Proteínas
-                    </Label>
-                    <span className="text-sm font-mono">
-                      <span className="text-[#87B537] font-bold">{pctProteinas}%</span>
-                      <span className="text-muted-foreground ml-2 text-xs">(Rational: até 25%)</span>
-                    </span>
-                  </div>
-                  <Slider value={[pctProteinas]} onValueChange={([v]) => setPctProteinas(v)} min={0} max={30} step={1} />
-                </div>
-
                 {/* Energia */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -770,6 +918,10 @@ export default function SimuladorROI() {
                   </Label>
                   <Switch checked={pctAgua} onCheckedChange={setPctAgua} />
                 </div>
+
+                <p className="text-xs text-muted-foreground italic">
+                  💡 Os percentuais de economia por categoria de matéria-prima são editáveis na tabela acima (slider por linha).
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -1044,7 +1196,9 @@ export default function SimuladorROI() {
                 Por que investir em Rational:
               </h3>
               <div style={{ fontSize: '13px', lineHeight: '2', color: '#333' }}>
-                <div>✅ {pctProteinas}% menos perda de peso na cocção — mais porções por kg</div>
+                {categoriasMP.some(c => c.kgMes > 0) && (
+                  <div>✅ Até 25% menos perda de peso na cocção — mais porções por kg de carne, ave, legume e pescado</div>
+                )}
                 <div>✅ {pctEnergia}% menos energia — economia na conta de luz</div>
                 <div>✅ {pctGordura}% menos gordura — redução de compra e descarte</div>
                 <div>✅ {pctMaoDeObra}% mais eficiência — equipe produz mais em menos tempo</div>
