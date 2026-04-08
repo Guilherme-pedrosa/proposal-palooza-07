@@ -304,7 +304,9 @@ RETORNAR EXCLUSIVAMENTE JSON válido neste formato:
     "economia_mensal_total": 0,
     "economia_anual": 0
   }
-}`;
+}
+
+FORMATO DE RESPOSTA: Retorne APENAS o JSON, sem texto antes, sem texto depois, sem markdown, sem \`\`\`json\`\`\`, sem explicação. Comece a resposta com { e termine com }. NADA MAIS.`;
 
 const buildAnalysisAuditPrompt = (
   discoveredMenu: any,
