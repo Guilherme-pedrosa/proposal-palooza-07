@@ -932,7 +932,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 {descontoAV > 0 && (
                   <div className="text-right">
                     <p className="text-xs" style={{ color: '#6b7280' }}>Desconto</p>
-                    <p className="text-lg font-bold" style={{ color: '#047857' }}>-{descontoAV}%</p>
+                    <p className="text-lg font-bold" style={{ color: '#047857' }}>{descontoTipo === 'percent' ? `-${descontoAV}%` : `-${formatCurrency(descontoAV)}`}</p>
                   </div>
                 )}
               </div>
