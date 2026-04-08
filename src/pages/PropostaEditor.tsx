@@ -1003,18 +1003,28 @@ export default function PropostaEditor() {
             {formaPagamento === 'leasing' && total > 0 && (
               <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 space-y-2 text-sm">
                 <p className="font-medium text-foreground flex items-center gap-1">🏦 Leasing / Locação</p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
                     <Label className="text-xs">Prazo (meses)</Label>
                     <Input type="number" min={6} max={60} value={numParcelas || 36} onChange={(e) => setNumParcelas(parseInt(e.target.value) || 36)} />
                   </div>
+                  <div>
+                    <Label className="text-xs">Taxa mensal (%)</Label>
+                    <Input type="number" min={0} max={10} step={0.01} value={taxaJuros} onChange={(e) => setTaxaJuros(parseFloat(e.target.value) || 0)} />
+                  </div>
                   <div className="flex items-end">
                     <div className="text-right w-full">
                       <p className="text-xs text-muted-foreground">Parcela estimada</p>
-                      <p className="text-lg font-bold text-primary">{formatBRL(total / (numParcelas || 36))}/mês</p>
+                      <p className="text-lg font-bold text-primary">{formatBRL(calcPMT(total, taxaJuros, numParcelas || 36))}/mês</p>
                     </div>
                   </div>
                 </div>
+                {taxaJuros > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Total financiado: {formatBRL(calcPMT(total, taxaJuros, numParcelas || 36) * (numParcelas || 36))} 
+                    {' '}(juros: {formatBRL(calcPMT(total, taxaJuros, numParcelas || 36) * (numParcelas || 36) - total)})
+                  </p>
+                )}
                 <Separator />
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">💡 Benefícios Fiscais (Lucro Real):</p>
