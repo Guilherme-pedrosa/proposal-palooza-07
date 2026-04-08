@@ -1039,6 +1039,63 @@ export type Database = {
         }
         Relationships: []
       }
+      simulacoes_roi: {
+        Row: {
+          created_at: string
+          custo_agua: number | null
+          custo_energia: number | null
+          custo_gordura: number | null
+          custo_mao_obra: number | null
+          dias_mes: number | null
+          economia_anual: number | null
+          economia_mensal: number | null
+          id: string
+          materias_primas: Json
+          nome_restaurante: string
+          refeicoes_dia: number | null
+          resultado_analise: Json | null
+          updated_at: string
+          url_cardapio: string | null
+          vendedor_id: string
+        }
+        Insert: {
+          created_at?: string
+          custo_agua?: number | null
+          custo_energia?: number | null
+          custo_gordura?: number | null
+          custo_mao_obra?: number | null
+          dias_mes?: number | null
+          economia_anual?: number | null
+          economia_mensal?: number | null
+          id?: string
+          materias_primas?: Json
+          nome_restaurante: string
+          refeicoes_dia?: number | null
+          resultado_analise?: Json | null
+          updated_at?: string
+          url_cardapio?: string | null
+          vendedor_id: string
+        }
+        Update: {
+          created_at?: string
+          custo_agua?: number | null
+          custo_energia?: number | null
+          custo_gordura?: number | null
+          custo_mao_obra?: number | null
+          dias_mes?: number | null
+          economia_anual?: number | null
+          economia_mensal?: number | null
+          id?: string
+          materias_primas?: Json
+          nome_restaurante?: string
+          refeicoes_dia?: number | null
+          resultado_analise?: Json | null
+          updated_at?: string
+          url_cardapio?: string | null
+          vendedor_id?: string
+        }
+        Relationships: []
+      }
       tabelas_preco: {
         Row: {
           ativa: boolean
