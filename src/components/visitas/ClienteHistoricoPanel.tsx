@@ -54,6 +54,17 @@ const tipoConfig: Record<string, { label: string; icon: React.ReactNode; color: 
   os: { label: 'Ordem de Serviço', icon: <Wrench className="h-3.5 w-3.5" />, color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
 };
 
+function resolverDataGC(registro: any): string {
+  return registro?.data
+    || registro?.data_saida
+    || registro?.data_entrada
+    || registro?.data_abertura
+    || registro?.data_emissao
+    || registro?.created_at
+    || registro?.updated_at
+    || '';
+}
+
 export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNome, gcId }: ClienteHistoricoPanelProps) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -116,7 +127,7 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
             items.push({
               id: `venda-${v.id}`,
               tipo: 'venda',
-              data: v.data || v.created_at || '',
+              data: resolverDataGC(v),
               titulo: `Venda #${v.codigo || v.numero || v.id}`,
               valor: parseFloat(v.valor_total) || 0,
               produtos: allProds.length > 0 ? allProds : undefined,
@@ -135,7 +146,7 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
             items.push({
               id: `orc-${o.id}`,
               tipo: 'orcamento',
-              data: o.data || o.created_at || '',
+              data: resolverDataGC(o),
               titulo: `Orçamento #${o.codigo || o.numero || o.id}`,
               valor: parseFloat(o.valor_total) || 0,
               produtos: allProds.length > 0 ? allProds : undefined,
@@ -155,7 +166,7 @@ export function ClienteHistoricoPanel({ open, onOpenChange, clienteId, clienteNo
             items.push({
               id: `os-${os.id}`,
               tipo: 'os',
-              data: os.data || os.created_at || '',
+              data: resolverDataGC(os),
               titulo: `OS #${os.codigo || os.id}`,
               valor: parseFloat(os.valor_total) || 0,
               produtos: allItems.length > 0 ? allItems : undefined,
@@ -355,7 +366,7 @@ export function HistoricoResumo({
             result.push({
               id: `vd-${v.id}`,
               tipo: 'venda',
-              data: v.data || '',
+              data: resolverDataGC(v),
               titulo: `Venda #${v.codigo || v.numero || v.id}`,
               valor: parseFloat(v.valor_total) || 0,
             });
@@ -365,7 +376,7 @@ export function HistoricoResumo({
             result.push({
               id: `os-${os.id}`,
               tipo: 'os',
-              data: os.data || '',
+              data: resolverDataGC(os),
               titulo: `OS #${os.codigo || os.id}`,
               valor: parseFloat(os.valor_total) || 0,
             });
