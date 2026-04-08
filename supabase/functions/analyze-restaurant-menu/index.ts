@@ -13,113 +13,56 @@ serve(async (req) => {
   }
 
   try {
-    const { ifood_url, refeicoes_dia, dias_mes = 26 } = await req.json();
+    const { cardapio_url, refeicoes_dia, dias_mes = 26 } = await req.json();
 
-    if (!ifood_url || !refeicoes_dia) {
+    if (!cardapio_url || !refeicoes_dia) {
       return new Response(
-        JSON.stringify({ error: "URL do cardápio e refeicoes_dia são obrigatórios" }),
+        JSON.stringify({ error: "cardapio_url e refeicoes_dia são obrigatórios" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const GECKO_API_KEY = Deno.env.get("GECKO_API_KEY");
-    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY não configurada");
+    if (!PERPLEXITY_API_KEY) throw new Error("PERPLEXITY_API_KEY não configurada");
 
-    // ── 1. EXTRAIR CARDÁPIO — decide pela fonte ──
-    let cardapioData: unknown;
-    let fonte: string;
-    const url = ifood_url.trim();
-
-    if (url.includes("ifood.com.br")) {
-      // iFood → GeckoAPI (necessário pq iFood é client-side rendered)
-      if (!GECKO_API_KEY) throw new Error("GECKO_API_KEY não configurada");
-
-      console.log("Extraindo cardápio do iFood via GeckoAPI...");
-      const geckoResponse = await fetch("https://api.geckoapi.com.br/v1/extract", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${GECKO_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          url,
-          target: "ifood.com.br",
-          type: "pdp",
-        }),
-      });
-
-      if (!geckoResponse.ok) {
-        const errText = await geckoResponse.text();
-        console.error("GeckoAPI error:", geckoResponse.status, errText);
-        return new Response(
-          JSON.stringify({
-            error: "Erro ao extrair cardápio do iFood",
-            details: `GeckoAPI retornou ${geckoResponse.status}`,
-          }),
-          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      cardapioData = await geckoResponse.json();
-      fonte = "ifood_gecko";
-    } else {
-      // Qualquer outra URL → fetch direto do HTML (páginas públicas)
-      console.log("Extraindo cardápio via fetch direto:", url);
-      const htmlResponse = await fetch(url, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; WeDo-ROI/1.0)",
-          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        },
-      });
-
-      if (!htmlResponse.ok) {
-        return new Response(
-          JSON.stringify({
-            error: "Erro ao acessar o site do restaurante",
-            details: `O site retornou status ${htmlResponse.status}`,
-          }),
-          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      const html = await htmlResponse.text();
-
-      // Limpar HTML pesado (tirar scripts, styles, imagens base64)
-      const cleanHtml = html
-        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-        .replace(/data:image[^"']*/gi, "")
-        .replace(/<img[^>]*>/gi, "")
-        .replace(/\s{2,}/g, " ")
-        .substring(0, 50000); // Limitar a 50k chars pro token da OpenAI
-
-      cardapioData = cleanHtml;
-      fonte = "html_direto";
-    }
-
-    console.log(`Cardápio extraído com sucesso (fonte: ${fonte})`);
-
-    // ── 2. Buscar base de insumos do Supabase ──
+    // 1. Buscar base de insumos do Supabase
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const { data: insumos, error: insumosError } = await supabase
       .from("insumos_referencia")
-      .select("*")
+      .select("nome, categoria, preco_kg_referencia, rendimento_bruto, rendimento_coccao, porcao_padrao_g, custo_por_porcao, tipo_coccao, usa_oleo, qtd_oleo_ml_porcao, energia_kwh_porcao, tempo_preparo_min, aliases")
       .eq("ativo", true);
 
     if (insumosError) throw new Error(`Erro ao buscar insumos: ${insumosError.message}`);
 
-    // ── 3. Enviar para OpenAI analisar prato a prato ──
-    const cardapioStr = typeof cardapioData === "string" ? cardapioData : JSON.stringify(cardapioData);
+    console.log(`Analisando cardápio: ${cardapio_url} (${refeicoes_dia} ref/dia × ${dias_mes} dias)`);
 
-    const systemPrompt = `Você é um consultor financeiro especialista em food service.
+    // 2. UMA chamada ao Perplexity — ele acessa a URL e faz tudo
+    const response = await fetch("https://api.perplexity.ai/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${PERPLEXITY_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "sonar-pro",
+        messages: [
+          {
+            role: "system",
+            content: `Você é um consultor financeiro especialista em food service. 
+Sua tarefa: acessar a URL do cardápio, extrair TODOS os pratos, 
+e calcular custos operacionais mensais prato a prato.
 
-REGRA CRÍTICA: Você DEVE analisar e retornar TODOS os pratos do cardápio que envolvem preparo em cozinha. NÃO resumir. NÃO agrupar. NÃO pegar só os principais. Se o cardápio tem 45 pratos com preparo, retorne os 45 na lista pratos_analisados.
+BASE DE CUSTOS DE INSUMOS (usar obrigatoriamente):
+${JSON.stringify(insumos)}
 
-Cada prato é uma linha separada no array, mesmo que usem o mesmo insumo. Exemplo: se tem 'Executivo de Costela' E 'Costela ao Bafo 500g' E 'Parmegiana de Costela', são 3 linhas diferentes no array.
+VOLUME INFORMADO: ${refeicoes_dia} refeições/dia × ${dias_mes} dias/mês
+
+REGRA CRÍTICA: Extrair e analisar TODOS os pratos do cardápio que 
+envolvem preparo em cozinha. NÃO resumir. NÃO agrupar. NÃO pegar 
+só os principais. Cada prato é uma linha separada.
 
 Lista MÍNIMA de categorias que devem aparecer se existirem no cardápio:
 - Petiscos/entradas (bolinhos, croquetas, iscas, caldos, escondidinho)
@@ -133,141 +76,109 @@ Lista MÍNIMA de categorias que devem aparecer se existirem no cardápio:
 - Guarnições com preparo (batata frita, mandioca frita, banana milanesa, feijão tropeiro)
 - Sobremesas com preparo
 
-Os ÚNICOS itens a ignorar são: bebidas prontas (refrigerante, cerveja, água, suco, vinho, café cápsula), molhos avulsos e itens sem preparo.
+Ignorar APENAS: bebidas prontas (refrigerante, cerveja, água, suco, 
+vinho, café cápsula), molhos avulsos e itens sem preparo em cozinha.
 
 Se retornar menos de 15 pratos de um cardápio com 40+, sua resposta está ERRADA.
 
-O cardápio do restaurante foi extraído automaticamente e pode estar em um destes formatos:
-- JSON estruturado (se veio do iFood via API)
-- HTML de página web (se veio de Goomer, site próprio ou outra plataforma)
+PARA CADA PRATO:
+1. Identificar o insumo principal da base (match por nome/aliases)
+2. Se não encontrar match exato, usar o insumo mais próximo
+3. Usar custo_por_porcao da base
+4. Estimar participação nas vendas (% dos pedidos)
+5. Calcular: custo_porcao × ${refeicoes_dia} × participacao × ${dias_mes}
 
-Em QUALQUER formato, sua tarefa é:
-1. Extrair TODOS os pratos que envolvem preparo em cozinha
-2. Para cada prato: identificar nome, preço, descrição e o insumo principal
-3. Calcular o custo operacional mensal PRATO A PRATO
+REGRAS DE PARTICIPAÇÃO:
+- Pratos carro-chefe (mais baratos e populares): 15-25% cada
+- Pratos premium (mais caros): 5-10% cada  
+- Executivos/individuais: 5-10% cada
+- Petiscos e entradas: 2-5% cada
+- Guarnições (batata, mandioca, banana): 3-5% cada
+- A soma de todas as participações deve dar 100%
 
-CARDÁPIO DO RESTAURANTE (extraído automaticamente, fonte: ${fonte}):
-${cardapioStr}
+Para óleo: somar qtd_oleo_ml_porcao de cada prato que usa_oleo=true, ponderar pela participação, converter para litros/mês, multiplicar pelo preço do óleo da base.
+Para energia: somar energia_kwh_porcao de cada prato, ponderar pela participação, × ${refeicoes_dia} × ${dias_mes}.
+Para mão de obra: somar tempo_preparo_min, ponderar, converter em horas/mês.
 
-VOLUME INFORMADO:
-- Refeições/dia: ${refeicoes_dia}
-- Dias operação/mês: ${dias_mes}
+IMPORTANTE: Ser CONSERVADOR. Na dúvida, projetar pra baixo.
 
-BASE DE CUSTOS DE INSUMOS (use OBRIGATORIAMENTE estes valores de referência):
-${JSON.stringify(insumos)}
-
-INSTRUÇÕES OBRIGATÓRIAS:
-
-1. Para CADA prato do cardápio:
-   a. Identificar qual insumo da base corresponde (match por nome/aliases)
-   b. Usar o custo_por_porcao calculado da base
-   c. Estimar participação nas vendas (% dos pedidos totais)
-   d. Calcular: custo_porcao × refeicoes_dia × participacao × dias_mes
-
-2. Regras de participação nas vendas:
-   - Pratos principais de carne: 50-65% dos pedidos (distribuir entre eles)
-   - Acompanhamentos: 20-30%
-   - Sobremesas/bebidas: 5-15%
-   - O prato mais barato e mais popular geralmente lidera as vendas
-   - Pratos premium (mais caros) têm menor participação
-
-3. Para óleo: somar qtd_oleo_ml_porcao de cada prato que usa_oleo=true, ponderar pela participação, converter para litros/mês, multiplicar pelo preço do óleo da base
-
-4. Para energia: somar energia_kwh_porcao de cada prato, ponderar pela participação, × refeicoes_dia × dias_mes
-
-5. Para mão de obra: somar tempo_preparo_min, ponderar, converter em horas/mês
-
-6. IMPORTANTE: Ser CONSERVADOR. Na dúvida, projetar pra baixo. É melhor o cliente descobrir que economiza MAIS do que o projetado.
-
-7. Se o cardápio veio em HTML e não conseguiu identificar preços, use 0 para preco_venda e foque nos custos operacionais.
-
-RETORNAR EXCLUSIVAMENTE este JSON:
+RETORNAR EXCLUSIVAMENTE JSON válido neste formato:
 {
   "restaurante": {
     "nome": "...",
     "nota_ifood": 0,
     "qtd_pratos_cardapio": 45,
-    "ticket_medio_ifood": 55.00,
+    "ticket_medio": 55.00,
     "tipo_operacao_inferido": "churrascaria",
     "metodo_coccao_predominante": "brasa",
-    "categorias": ["Carnes", "Acompanhamentos", "Bebidas"]
+    "categorias": ["Carnes", "Petiscos", "Executivos", "Peixes"]
   },
   "pratos_analisados": [
     {
-      "prato_ifood": "Costela no bafo 500g",
-      "preco_venda": 79.90,
+      "prato": "Costela ao bafo 500g",
+      "preco_venda": 124.90,
       "insumo_match": "Costela bovina",
-      "custo_insumo_kg": 21.00,
-      "rendimento_final": 0.42,
-      "porcao_g": 400,
-      "kg_bruto_necessario": 0.95,
-      "custo_proteina_porcao": 19.95,
-      "participacao_vendas": 0.45,
-      "porcoes_dia": 90,
-      "custo_mensal": 46683,
+      "custo_porcao": 19.95,
+      "participacao_vendas": 0.15,
+      "porcoes_dia": 30,
+      "custo_mensal": 15561.00,
       "tipo_coccao": "brasa",
       "usa_oleo": false
     }
   ],
   "totais_mensais": {
-    "proteinas_reais": 84240,
-    "energia_kwh": 6760,
+    "proteinas_reais": 0,
+    "energia_kwh": 0,
     "custo_kwh_usado": 0.80,
-    "energia_reais": 5408,
-    "gordura_litros": 156,
-    "gordura_reais": 1326,
-    "horas_cozinha": 1200,
+    "energia_reais": 0,
+    "gordura_litros": 0,
+    "gordura_reais": 0,
+    "horas_cozinha": 0,
     "custo_hora": 23,
-    "mao_obra_reais": 27600,
+    "mao_obra_reais": 0,
     "agua_descalcificacao_reais": 270,
-    "custo_total_operacional": 118844
+    "custo_total_operacional": 0
   },
   "resumo_economia_rational": {
-    "economia_proteina_20pct": 16848,
-    "economia_energia_50pct": 2704,
-    "economia_gordura_80pct": 1061,
-    "economia_mao_obra_40pct": 11040,
-    "economia_agua_100pct": 270,
-    "economia_mensal_total": 31923,
-    "economia_anual": 383076
+    "economia_proteina_20pct": 0,
+    "economia_energia_50pct": 0,
+    "economia_gordura_80pct": 0,
+    "economia_mao_obra_40pct": 0,
+    "economia_agua_100pct": 0,
+    "economia_mensal_total": 0,
+    "economia_anual": 0
   }
-}`;
-
-    console.log("Enviando para OpenAI...");
-    const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [{ role: "system", content: systemPrompt }],
-        response_format: { type: "json_object" },
-        temperature: 0.2,
-        max_tokens: 8000,
+}`
+          },
+          {
+            role: "user",
+            content: `Acesse esta URL do cardápio e analise TODOS os pratos: ${cardapio_url}`
+          }
+        ],
+        max_tokens: 16000,
+        temperature: 0.1,
       }),
     });
 
-    if (!openaiResponse.ok) {
-      const errText = await openaiResponse.text();
-      console.error("OpenAI error:", openaiResponse.status, errText);
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error("Perplexity error:", response.status, errText);
 
-      if (openaiResponse.status === 429) {
+      if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit da OpenAI excedido, tente novamente em alguns segundos." }),
+          JSON.stringify({ error: "Rate limit excedido, tente novamente em alguns segundos." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
       return new Response(
-        JSON.stringify({ error: "Erro na análise pela IA", details: `OpenAI retornou ${openaiResponse.status}` }),
+        JSON.stringify({ error: "Erro na análise do cardápio", details: `API retornou ${response.status}` }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const aiResult = await openaiResponse.json();
-    const content = aiResult.choices?.[0]?.message?.content;
+    const result = await response.json();
+    const content = result.choices?.[0]?.message?.content;
 
     if (!content) {
       return new Response(
@@ -276,21 +187,24 @@ RETORNAR EXCLUSIVAMENTE este JSON:
       );
     }
 
+    // Extrair JSON da resposta (Perplexity pode incluir texto ao redor)
     let parsed;
     try {
-      parsed = JSON.parse(content);
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error("Nenhum JSON encontrado na resposta");
+      parsed = JSON.parse(jsonMatch[0]);
     } catch {
-      console.error("JSON inválido da IA:", content);
+      console.error("JSON parse error:", content);
       return new Response(
-        JSON.stringify({ error: "IA retornou JSON inválido" }),
+        JSON.stringify({ error: "IA retornou formato inválido", raw: content?.substring(0, 500) }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log("Análise concluída com sucesso");
+    console.log(`Análise concluída: ${parsed.pratos_analisados?.length ?? 0} pratos`);
 
     return new Response(
-      JSON.stringify({ success: true, data: parsed, fonte }),
+      JSON.stringify({ success: true, data: parsed }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
