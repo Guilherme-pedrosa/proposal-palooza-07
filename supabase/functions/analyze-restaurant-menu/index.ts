@@ -101,10 +101,25 @@ const getDeclaredCount = (payload: any) => {
 const isTruncated = (finishReason?: string | null) =>
   finishReason === "length" || finishReason === "max_tokens";
 
+const REFUSAL_PATTERNS = [
+  /n[aã]o consigo acessar/i,
+  /n[aã]o posso acessar/i,
+  /n[aã]o tenho acesso/i,
+  /cannot access/i,
+  /can'?t access/i,
+  /unable to access/i,
+  /n[aã]o consigo navegar/i,
+  /n[aã]o posso navegar/i,
+];
+
+const isRefusal = (text: string) =>
+  REFUSAL_PATTERNS.some((p) => p.test(text));
+
 const callPerplexity = async (
   apiKey: string,
   messages: Array<{ role: "system" | "user"; content: string }>,
   stage: string,
+  extraBody?: Record<string, unknown>,
 ) => {
   const response = await fetch(PERPLEXITY_URL, {
     method: "POST",
@@ -117,6 +132,7 @@ const callPerplexity = async (
       messages,
       max_tokens: PERPLEXITY_MAX_TOKENS,
       temperature: 0.1,
+      ...extraBody,
     }),
   });
 
@@ -146,6 +162,13 @@ const callPerplexity = async (
   const content = responseJson?.choices?.[0]?.message?.content;
   if (!content) {
     throw new Error(`A IA não retornou conteúdo na etapa ${stage}`);
+  }
+
+  if (isRefusal(content)) {
+    console.error(`Perplexity recusou acessar a URL na etapa ${stage}:`, content.substring(0, 300));
+    throw new Error(
+      `A IA não conseguiu acessar o cardápio online. Verifique se a URL está correta e acessível publicamente. Cardápios em apps como Goomer/iFood podem não ser acessíveis para análise automática.`,
+    );
   }
 
   return {
@@ -454,26 +477,75 @@ serve(async (req) => {
       `Analisando cardápio: ${cardapio_url} (${refeicoes_dia} ref/dia × ${dias_mes} dias)`,
     );
 
+    // Extract domain from URL for search filtering
+    let searchDomain: string | undefined;
+    try {
+      searchDomain = new URL(cardapio_url).hostname;
+    } catch { /* ignore */ }
+
+    const discoveryExtra: Record<string, unknown> = {};
+    if (searchDomain) {
+      discoveryExtra.search_domain_filter = [searchDomain];
+    }
+
     let discoveryCall = await callPerplexity(
       PERPLEXITY_API_KEY,
       [
         { role: "system", content: buildDiscoverySystemPrompt() },
         {
           role: "user",
-          content: `Acesse esta URL: ${cardapio_url}\nExtraia TODOS os pratos com preparo e retorne SOMENTE o JSON. Nenhum texto fora do JSON.`,
+          content: `Pesquise e extraia o cardápio completo do restaurante nesta URL: ${cardapio_url}
+
+Busque TODAS as informações disponíveis sobre o cardápio deste restaurante, incluindo pratos, preços e categorias.
+Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
         },
       ],
       "descoberta inicial",
+      discoveryExtra,
     );
 
     let discoveredMenu = discoveryCall.parsed;
-    const discoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
-    const declaredCount = getDeclaredCount(discoveredMenu);
+    let discoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
+    let declaredCount = getDeclaredCount(discoveredMenu);
+
+    // If first attempt returned 0 dishes, try a broader web search approach
+    if (discoveredCount === 0) {
+      console.log("Primeira tentativa retornou 0 pratos. Tentando busca ampla pelo nome do restaurante...");
+
+      // Extract restaurant name from URL or from partial result
+      const restaurantName = discoveredMenu?.restaurante?.nome ||
+        cardapio_url.replace(/https?:\/\//, "").split(/[./]/)[0].replace(/-/g, " ");
+
+      const broadSearchCall = await callPerplexity(
+        PERPLEXITY_API_KEY,
+        [
+          { role: "system", content: buildDiscoverySystemPrompt() },
+          {
+            role: "user",
+            content: `Pesquise o cardápio completo do restaurante "${restaurantName}".
+
+URL de referência: ${cardapio_url}
+
+Busque em TODAS as fontes disponíveis na internet: site oficial, Google Maps, iFood, Rappi, TripAdvisor, redes sociais, blogs de gastronomia, avaliações de clientes que mencionam pratos.
+
+Liste TODOS os pratos com preparo em cozinha que encontrar, com preço quando disponível.
+Se não encontrar preço exato, estime com base no tipo de restaurante e região.
+
+Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
+          },
+        ],
+        "descoberta ampla",
+      );
+
+      discoveredMenu = chooseBestDiscovery(discoveredMenu, broadSearchCall.parsed);
+      discoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
+      declaredCount = getDeclaredCount(discoveredMenu);
+    }
 
     if (
       isTruncated(discoveryCall.finishReason) ||
       (declaredCount > 0 && discoveredCount < declaredCount) ||
-      discoveredCount < 15
+      (discoveredCount > 0 && discoveredCount < 15)
     ) {
       console.log(
         `Auditoria de descoberta acionada: listados=${discoveredCount}, declarados=${declaredCount}, finish_reason=${discoveryCall.finishReason}`,
