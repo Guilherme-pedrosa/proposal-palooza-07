@@ -22,7 +22,7 @@ serve(async (req) => {
       );
     }
 
-    const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY");
+    const PERPLEXITY_API_KEY = Deno.env.get("PERPLEXITY_API_KEY")?.trim();
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
