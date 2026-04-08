@@ -653,11 +653,22 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                   {proposal.products.map((product, index) => (
                     <tr key={product.id} style={{ backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9fafb' }}>
                       <td className="px-4 py-4">
-                        <p className="font-medium" style={{ color: '#111827' }}>{product.name}</p>
-                        <p className="mt-1 text-sm" style={{ color: '#6b7280' }}>{product.description}</p>
-                        {product.discountNote && (
-                          <p className="mt-1 text-xs italic" style={{ color: '#9ca3af' }}>* {product.discountNote}</p>
-                        )}
+                        <div className="flex items-start gap-3">
+                          {product.photoUrl && (
+                            <img
+                              src={product.photoUrl}
+                              alt={product.name}
+                              style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '6px', flexShrink: 0, border: '1px solid #e5e7eb' }}
+                            />
+                          )}
+                          <div>
+                            <p className="font-medium" style={{ color: '#111827' }}>{product.name}</p>
+                            <p className="mt-1 text-sm" style={{ color: '#6b7280' }}>{product.description}</p>
+                            {product.discountNote && (
+                              <p className="mt-1 text-xs italic" style={{ color: '#9ca3af' }}>* {product.discountNote}</p>
+                            )}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-4 py-4 text-center text-sm" style={{ color: '#4b5563' }}>{product.unit}</td>
                       <td className="px-4 py-4 text-center text-sm" style={{ color: '#4b5563' }}>

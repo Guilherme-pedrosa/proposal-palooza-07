@@ -17,6 +17,7 @@ export interface Product {
   totalPrice: number;
   discount?: number;
   discountNote?: string;
+  photoUrl?: string;
 }
 
 export interface TermCondition {
