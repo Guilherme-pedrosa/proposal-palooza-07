@@ -11,6 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   Building2, 
   Upload, 
@@ -27,6 +30,7 @@ import {
   Key,
   Moon,
   Sun,
+  ChefHat,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import logoWedoDefault from '@/assets/logo-wedo.png';
