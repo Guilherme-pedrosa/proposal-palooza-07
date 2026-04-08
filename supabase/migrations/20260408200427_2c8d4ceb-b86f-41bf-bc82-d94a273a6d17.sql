@@ -1,0 +1,1 @@
+ALTER TABLE public.propostas ADD COLUMN taxa_juros numeric DEFAULT 0;

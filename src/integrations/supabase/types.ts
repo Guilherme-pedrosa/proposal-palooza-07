@@ -755,6 +755,7 @@ export type Database = {
           prazo_entrega: string | null
           produtos: Json
           status: string | null
+          taxa_juros: number | null
           template_id: string | null
           termos_condicoes: Json
           titulo: string
@@ -791,6 +792,7 @@ export type Database = {
           prazo_entrega?: string | null
           produtos?: Json
           status?: string | null
+          taxa_juros?: number | null
           template_id?: string | null
           termos_condicoes?: Json
           titulo: string
@@ -827,6 +829,7 @@ export type Database = {
           prazo_entrega?: string | null
           produtos?: Json
           status?: string | null
+          taxa_juros?: number | null
           template_id?: string | null
           termos_condicoes?: Json
           titulo?: string

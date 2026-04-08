@@ -58,6 +58,13 @@ interface PropostaTermo {
   description: string;
 }
 
+// PMT formula (Price) for leasing with interest
+function calcPMT(pv: number, rate: number, n: number): number {
+  if (rate === 0) return pv / n;
+  const r = rate / 100; // monthly rate as decimal
+  return pv * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+}
+
 const validadeOptions = [
   { value: '7', label: '7 dias' },
   { value: '10', label: '10 dias' },
@@ -128,6 +135,7 @@ export default function PropostaEditor() {
   const [formaPagamento, setFormaPagamento] = useState('');
   const [numParcelas, setNumParcelas] = useState(1);
   const [entradaPercent, setEntradaPercent] = useState(0);
+  const [taxaJuros, setTaxaJuros] = useState(1.99);
   const [leasingDialogOpen, setLeasingDialogOpen] = useState(false);
   const [status, setStatus] = useState<string>('rascunho');
   const [versao, setVersao] = useState(1);
@@ -239,6 +247,7 @@ export default function PropostaEditor() {
       setFormaPagamento(proposta.forma_pagamento ?? '');
       setNumParcelas(proposta.num_parcelas ?? 1);
       setEntradaPercent(proposta.entrada_percent ?? 0);
+      setTaxaJuros((proposta as any).taxa_juros ?? 1.99);
       setCondicoesPagamento(proposta.condicoes_pagamento ?? '');
       setPrazoEntrega(proposta.prazo_entrega ?? '');
       setStatus(proposta.status ?? 'rascunho');
@@ -431,6 +440,7 @@ export default function PropostaEditor() {
         forma_pagamento: formaPagamento || null,
         num_parcelas: numParcelas,
         entrada_percent: entradaPercent,
+        taxa_juros: taxaJuros,
         condicoes_pagamento: condicoesPagamento || null,
         prazo_entrega: prazoEntrega || null,
       };
@@ -993,18 +1003,28 @@ export default function PropostaEditor() {
             {formaPagamento === 'leasing' && total > 0 && (
               <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 space-y-2 text-sm">
                 <p className="font-medium text-foreground flex items-center gap-1">🏦 Leasing / Locação</p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
                     <Label className="text-xs">Prazo (meses)</Label>
                     <Input type="number" min={6} max={60} value={numParcelas || 36} onChange={(e) => setNumParcelas(parseInt(e.target.value) || 36)} />
                   </div>
+                  <div>
+                    <Label className="text-xs">Taxa mensal (%)</Label>
+                    <Input type="number" min={0} max={10} step={0.01} value={taxaJuros} onChange={(e) => setTaxaJuros(parseFloat(e.target.value) || 0)} />
+                  </div>
                   <div className="flex items-end">
                     <div className="text-right w-full">
                       <p className="text-xs text-muted-foreground">Parcela estimada</p>
-                      <p className="text-lg font-bold text-primary">{formatBRL(total / (numParcelas || 36))}/mês</p>
+                      <p className="text-lg font-bold text-primary">{formatBRL(calcPMT(total, taxaJuros, numParcelas || 36))}/mês</p>
                     </div>
                   </div>
                 </div>
+                {taxaJuros > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Total financiado: {formatBRL(calcPMT(total, taxaJuros, numParcelas || 36) * (numParcelas || 36))} 
+                    {' '}(juros: {formatBRL(calcPMT(total, taxaJuros, numParcelas || 36) * (numParcelas || 36) - total)})
+                  </p>
+                )}
                 <Separator />
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">💡 Benefícios Fiscais (Lucro Real):</p>
