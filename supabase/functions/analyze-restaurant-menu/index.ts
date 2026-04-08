@@ -480,19 +480,22 @@ serve(async (req) => {
         `Análise incompleta detectada: ${analyzedCount}/${finalDiscoveredCount} pratos`,
         missingDishNames,
       );
-      return jsonResponse(
-        {
-          error:
-            `A análise ainda ficou incompleta (${analyzedCount}/${finalDiscoveredCount} pratos). Tente novamente.`,
-          missing_dishes: missingDishNames,
-        },
-        422,
-      );
     }
 
-    console.log(`Análise concluída: ${analyzedCount} pratos`);
+    console.log(
+      `Análise concluída: ${analyzedCount} pratos (esperado: ${finalDiscoveredCount})`,
+    );
 
-    return jsonResponse({ success: true, data: analysis });
+    return jsonResponse({
+      success: true,
+      data: analysis,
+      completeness: {
+        expected_dishes: finalDiscoveredCount,
+        analyzed_dishes: analyzedCount,
+        missing_dishes: missingDishNames,
+        is_complete: missingDishNames.length === 0,
+      },
+    });
   } catch (e) {
     console.error("analyze-restaurant-menu error:", e);
     return jsonResponse({
