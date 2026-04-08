@@ -356,11 +356,13 @@ export function HistoricoResumo({
           });
           const vendas = data?.vendas || [];
           const oss = data?.ordens_servicos || [];
+          const orcamentos = data?.orcamentos || [];
 
           // Extract vendedor from most recent transaction
           const firstVenda = vendas[0];
           const firstOS = oss[0];
-          vendedor = firstVenda?.nome_vendedor || firstVenda?.nome_tecnico || firstOS?.nome_tecnico || firstOS?.nome_vendedor || null;
+          const firstOrc = orcamentos[0];
+          vendedor = firstVenda?.nome_vendedor || firstVenda?.nome_tecnico || firstOS?.nome_tecnico || firstOS?.nome_vendedor || firstOrc?.nome_vendedor || null;
 
           vendas.slice(0, 2).forEach((v: any) => {
             result.push({
@@ -379,6 +381,16 @@ export function HistoricoResumo({
               data: resolverDataGC(os),
               titulo: `OS #${os.codigo || os.id}`,
               valor: parseFloat(os.valor_total) || 0,
+            });
+          });
+
+          orcamentos.slice(0, 2).forEach((orc: any) => {
+            result.push({
+              id: `orc-${orc.id}`,
+              tipo: 'orcamento',
+              data: resolverDataGC(orc),
+              titulo: `Orç #${orc.codigo || orc.id}`,
+              valor: parseFloat(orc.valor_total) || 0,
             });
           });
         } catch (e) {
