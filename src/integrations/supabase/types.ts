@@ -167,6 +167,7 @@ export type Database = {
           total_compras_gc: number | null
           ultima_compra_gc: string | null
           updated_at: string | null
+          valor_atrasado_gc: number | null
         }
         Insert: {
           ativo?: boolean | null
@@ -195,6 +196,7 @@ export type Database = {
           total_compras_gc?: number | null
           ultima_compra_gc?: string | null
           updated_at?: string | null
+          valor_atrasado_gc?: number | null
         }
         Update: {
           ativo?: boolean | null
@@ -223,6 +225,7 @@ export type Database = {
           total_compras_gc?: number | null
           ultima_compra_gc?: string | null
           updated_at?: string | null
+          valor_atrasado_gc?: number | null
         }
         Relationships: []
       }
