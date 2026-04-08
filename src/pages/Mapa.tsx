@@ -65,8 +65,8 @@ function getClientStatusColor(ultimaCompra: string | null, financeiroAtrasado?: 
   return '#6B7280';
 }
 
-function getClientStatusLabel(ultimaCompra: string | null, financeiroAtrasado?: boolean): string {
-  if (financeiroAtrasado) return 'Financeiro Atrasado';
+function getClientStatusLabel(ultimaCompra: string | null, financeiroAtrasado?: boolean, valorAtrasado?: number): string {
+  if (financeiroAtrasado && (valorAtrasado ?? 0) > 0) return 'Financeiro Atrasado';
   if (!ultimaCompra) return 'Inativo';
   const days = differenceInDays(new Date(), new Date(ultimaCompra));
   if (days <= 30) return 'Ativo';
