@@ -326,9 +326,27 @@ export default function SimuladorROI() {
     }
   };
 
-  const clientesFiltrados = (clientes ?? []).filter(
-    (c: any) => c.nome?.toLowerCase().includes(clienteSearch.toLowerCase())
-  );
+  const clientesFiltrados = useMemo(() => {
+    const termo = clienteSearch.trim().toLowerCase();
+    if (!termo) return clientes ?? [];
+
+    return (clientes ?? []).filter((c: any) => {
+      const nome = c.nome?.toLowerCase() ?? '';
+      const razaoSocial = c.razao_social?.toLowerCase() ?? '';
+      const cidade = c.cidade?.toLowerCase() ?? '';
+      const estado = c.estado?.toLowerCase() ?? '';
+      const cnpj = c.cnpj?.replace(/\D/g, '') ?? '';
+      const termoNumerico = termo.replace(/\D/g, '');
+
+      return (
+        nome.includes(termo) ||
+        razaoSocial.includes(termo) ||
+        cidade.includes(termo) ||
+        estado.includes(termo) ||
+        (termoNumerico.length > 0 && cnpj.includes(termoNumerico))
+      );
+    });
+  }, [clientes, clienteSearch]);
 
   // ── TABELA ECONOMIA PARA PDF ──
   const tabelaEconomia = [
@@ -422,7 +440,7 @@ export default function SimuladorROI() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-[350px] p-0" align="start">
-                        <Command>
+                        <Command shouldFilter={false}>
                           <CommandInput placeholder="Buscar..." value={clienteSearch} onValueChange={setClienteSearch} />
                           <CommandList>
                             <CommandEmpty>Nenhum cliente encontrado</CommandEmpty>
@@ -430,6 +448,7 @@ export default function SimuladorROI() {
                               {clientesFiltrados.slice(0, 50).map((c: any) => (
                                 <CommandItem
                                   key={c.id}
+                                  value={`${c.nome} ${c.razao_social ?? ''} ${c.cidade ?? ''} ${c.estado ?? ''} ${c.cnpj ?? ''}`}
                                   onSelect={() => {
                                     setClienteSelecionado(c);
                                     setClienteOpen(false);
