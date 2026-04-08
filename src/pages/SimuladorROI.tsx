@@ -363,10 +363,13 @@ export default function SimuladorROI() {
         mes: i,
         economiaAcumulada: economia.mensal * i,
         investimento: valorInvestimento,
+        isPayback: economia.paybackMeses > 0 && i === economia.paybackMeses,
+        beforePayback: i <= economia.paybackMeses ? economia.mensal * i : undefined,
+        afterPayback: i >= economia.paybackMeses ? economia.mensal * i : undefined,
       });
     }
     return meses;
-  }, [economia.mensal, valorInvestimento]);
+  }, [economia.mensal, economia.paybackMeses, valorInvestimento]);
 
   // ── PDF ──
   const handleGerarPdf = async () => {
