@@ -440,7 +440,7 @@ export default function PropostaEditor() {
         forma_pagamento: formaPagamento || null,
         num_parcelas: numParcelas,
         entrada_percent: entradaPercent,
-        taxa_juros: taxaJuros,
+        taxa_juros: 2.303,
         condicoes_pagamento: condicoesPagamento || null,
         prazo_entrega: prazoEntrega || null,
       };
