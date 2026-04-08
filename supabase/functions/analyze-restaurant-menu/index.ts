@@ -37,8 +37,10 @@ const normalizeText = (value: string) =>
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 
-const getDishCount = (payload: any, key: "pratos_detectados" | "pratos_analisados") =>
-  Array.isArray(payload?.[key]) ? payload[key].length : 0;
+const getDishCount = (
+  payload: any,
+  key: "pratos_detectados" | "pratos_analisados",
+) => Array.isArray(payload?.[key]) ? payload[key].length : 0;
 
 const getDeclaredCount = (payload: any) => {
   const value = Number(payload?.restaurante?.qtd_pratos_cardapio ?? 0);
@@ -73,7 +75,9 @@ const callPerplexity = async (
     console.error(`Perplexity ${stage} error:`, response.status, rawText);
 
     if (response.status === 429) {
-      throw new Error("Rate limit excedido, tente novamente em alguns segundos.");
+      throw new Error(
+        "Rate limit excedido, tente novamente em alguns segundos.",
+      );
     }
 
     throw new Error(`Erro na etapa ${stage}: API retornou ${response.status}`);
@@ -83,7 +87,9 @@ const callPerplexity = async (
   try {
     responseJson = JSON.parse(rawText);
   } catch {
-    throw new Error(`A IA retornou uma resposta HTTP inválida na etapa ${stage}`);
+    throw new Error(
+      `A IA retornou uma resposta HTTP inválida na etapa ${stage}`,
+    );
   }
 
   const content = responseJson?.choices?.[0]?.message?.content;
@@ -98,7 +104,8 @@ const callPerplexity = async (
   };
 };
 
-const buildDiscoverySystemPrompt = () => `Você é um auditor de cardápio de restaurantes.
+const buildDiscoverySystemPrompt = () =>
+  `Você é um auditor de cardápio de restaurantes.
 
 Sua única tarefa é ACESSAR a URL informada e LISTAR EXAUSTIVAMENTE todos os itens do cardápio que envolvem preparo em cozinha.
 
@@ -152,7 +159,8 @@ const buildDiscoveryAuditPrompt = (
   previousResult: any,
   previousCount: number,
   declaredCount: number,
-) => `Sua extração anterior deste cardápio ficou INCOMPLETA.
+) =>
+  `Sua extração anterior deste cardápio ficou INCOMPLETA.
 
 URL: ${cardapioUrl}
 
@@ -173,11 +181,14 @@ const buildAnalysisSystemPrompt = (
   refeicoesDia: number,
   diasMes: number,
   discoveredMenu: any,
-) => `Você é um consultor financeiro especialista em food service.
+) =>
+  `Você é um consultor financeiro especialista em food service.
 
 Você recebeu uma LISTA-FONTE EXAUSTIVA dos pratos do cardápio. Use essa lista como VERDADE ABSOLUTA.
 NÃO remova pratos. NÃO agrupe pratos. NÃO omita pratos.
-O array pratos_analisados DEVE ter EXATAMENTE ${getDishCount(discoveredMenu, "pratos_detectados")} linhas, uma para cada item listado em pratos_detectados.
+O array pratos_analisados DEVE ter EXATAMENTE ${
+    getDishCount(discoveredMenu, "pratos_detectados")
+  } linhas, uma para cada item listado em pratos_detectados.
 
 LISTA-FONTE OBRIGATÓRIA:
 ${JSON.stringify(discoveredMenu)}
@@ -251,7 +262,8 @@ const buildAnalysisAuditPrompt = (
   discoveredMenu: any,
   partialAnalysis: any,
   missingDishNames: string[],
-) => `Sua análise anterior ficou INCOMPLETA.
+) =>
+  `Sua análise anterior ficou INCOMPLETA.
 
 LISTA-FONTE COMPLETA OBRIGATÓRIA:
 ${JSON.stringify(discoveredMenu)}
@@ -263,7 +275,9 @@ PRATOS AUSENTES QUE PRECISAM APARECER NA NOVA RESPOSTA:
 ${JSON.stringify(missingDishNames)}
 
 Retorne NOVAMENTE o JSON COMPLETO no formato final, agora com TODOS os pratos da lista-fonte.
-O array pratos_analisados precisa ter EXATAMENTE ${getDishCount(discoveredMenu, "pratos_detectados")} itens.`;
+O array pratos_analisados precisa ter EXATAMENTE ${
+    getDishCount(discoveredMenu, "pratos_detectados")
+  } itens.`;
 
 const chooseBestDiscovery = (current: any, candidate: any) => {
   const currentCount = getDishCount(current, "pratos_detectados");
@@ -279,7 +293,9 @@ const chooseBestAnalysis = (current: any, candidate: any) => {
 
 const getMissingDishNames = (discoveredMenu: any, analysis: any) => {
   const analyzed = new Set(
-    (analysis?.pratos_analisados ?? []).map((item: any) => normalizeText(String(item?.prato ?? ""))),
+    (analysis?.pratos_analisados ?? []).map((item: any) =>
+      normalizeText(String(item?.prato ?? ""))
+    ),
   );
 
   return (discoveredMenu?.pratos_detectados ?? [])
@@ -297,12 +313,18 @@ serve(async (req) => {
     const { cardapio_url, refeicoes_dia, dias_mes = 26 } = await req.json();
 
     if (!cardapio_url || !refeicoes_dia) {
-      return jsonResponse({ error: "cardapio_url e refeicoes_dia são obrigatórios" }, 400);
+      return jsonResponse({
+        error: "cardapio_url e refeicoes_dia são obrigatórios",
+      }, 400);
     }
 
-    const PERPLEXITY_API_KEY = sanitizeSecret(Deno.env.get("PERPLEXITY_API_KEY"));
+    const PERPLEXITY_API_KEY = sanitizeSecret(
+      Deno.env.get("PERPLEXITY_API_KEY"),
+    );
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get(
+      "SUPABASE_SERVICE_ROLE_KEY",
+    )!;
 
     if (!PERPLEXITY_API_KEY) {
       throw new Error("PERPLEXITY_API_KEY não configurada");
@@ -311,20 +333,28 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const { data: insumos, error: insumosError } = await supabase
       .from("insumos_referencia")
-      .select("nome, categoria, preco_kg_referencia, rendimento_bruto, rendimento_coccao, porcao_padrao_g, custo_por_porcao, tipo_coccao, usa_oleo, qtd_oleo_ml_porcao, energia_kwh_porcao, tempo_preparo_min, aliases")
+      .select(
+        "nome, categoria, preco_kg_referencia, rendimento_bruto, rendimento_coccao, porcao_padrao_g, custo_por_porcao, tipo_coccao, usa_oleo, qtd_oleo_ml_porcao, energia_kwh_porcao, tempo_preparo_min, aliases",
+      )
       .eq("ativo", true);
 
     if (insumosError) {
       throw new Error(`Erro ao buscar insumos: ${insumosError.message}`);
     }
 
-    console.log(`Analisando cardápio: ${cardapio_url} (${refeicoes_dia} ref/dia × ${dias_mes} dias)`);
+    console.log(
+      `Analisando cardápio: ${cardapio_url} (${refeicoes_dia} ref/dia × ${dias_mes} dias)`,
+    );
 
     let discoveryCall = await callPerplexity(
       PERPLEXITY_API_KEY,
       [
         { role: "system", content: buildDiscoverySystemPrompt() },
-        { role: "user", content: `Acesse esta URL e liste TODOS os pratos com preparo: ${cardapio_url}` },
+        {
+          role: "user",
+          content:
+            `Acesse esta URL e liste TODOS os pratos com preparo: ${cardapio_url}`,
+        },
       ],
       "descoberta inicial",
     );
@@ -348,18 +378,31 @@ serve(async (req) => {
           { role: "system", content: buildDiscoverySystemPrompt() },
           {
             role: "user",
-            content: buildDiscoveryAuditPrompt(cardapio_url, discoveredMenu, discoveredCount, declaredCount),
+            content: buildDiscoveryAuditPrompt(
+              cardapio_url,
+              discoveredMenu,
+              discoveredCount,
+              declaredCount,
+            ),
           },
         ],
         "auditoria de descoberta",
       );
 
-      discoveredMenu = chooseBestDiscovery(discoveredMenu, auditDiscoveryCall.parsed);
+      discoveredMenu = chooseBestDiscovery(
+        discoveredMenu,
+        auditDiscoveryCall.parsed,
+      );
     }
 
-    const finalDiscoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
+    const finalDiscoveredCount = getDishCount(
+      discoveredMenu,
+      "pratos_detectados",
+    );
     if (finalDiscoveredCount === 0) {
-      return jsonResponse({ error: "A IA não conseguiu identificar pratos no cardápio informado" }, 422);
+      return jsonResponse({
+        error: "A IA não conseguiu identificar pratos no cardápio informado",
+      }, 422);
     }
 
     let analysisCall = await callPerplexity(
@@ -367,11 +410,17 @@ serve(async (req) => {
       [
         {
           role: "system",
-          content: buildAnalysisSystemPrompt(insumos ?? [], Number(refeicoes_dia), Number(dias_mes), discoveredMenu),
+          content: buildAnalysisSystemPrompt(
+            insumos ?? [],
+            Number(refeicoes_dia),
+            Number(dias_mes),
+            discoveredMenu,
+          ),
         },
         {
           role: "user",
-          content: `Analise financeiramente TODOS os pratos da lista-fonte acima sem omitir nenhum item.`,
+          content:
+            `Analise financeiramente TODOS os pratos da lista-fonte acima sem omitir nenhum item.`,
         },
       ],
       "análise principal",
@@ -390,11 +439,20 @@ serve(async (req) => {
         [
           {
             role: "system",
-            content: buildAnalysisSystemPrompt(insumos ?? [], Number(refeicoes_dia), Number(dias_mes), discoveredMenu),
+            content: buildAnalysisSystemPrompt(
+              insumos ?? [],
+              Number(refeicoes_dia),
+              Number(dias_mes),
+              discoveredMenu,
+            ),
           },
           {
             role: "user",
-            content: buildAnalysisAuditPrompt(discoveredMenu, analysis, missingDishNames),
+            content: buildAnalysisAuditPrompt(
+              discoveredMenu,
+              analysis,
+              missingDishNames,
+            ),
           },
         ],
         "auditoria de análise",
@@ -405,7 +463,11 @@ serve(async (req) => {
     }
 
     const analyzedCount = getDishCount(analysis, "pratos_analisados");
-    const finalExpectedCount = Math.max(getDeclaredCount(discoveredMenu), finalDiscoveredCount, analyzedCount);
+    const finalExpectedCount = Math.max(
+      getDeclaredCount(discoveredMenu),
+      finalDiscoveredCount,
+      analyzedCount,
+    );
 
     analysis.restaurante = {
       ...(discoveredMenu?.restaurante ?? {}),
@@ -414,10 +476,14 @@ serve(async (req) => {
     };
 
     if (missingDishNames.length > 0) {
-      console.error(`Análise incompleta detectada: ${analyzedCount}/${finalDiscoveredCount} pratos`, missingDishNames);
+      console.error(
+        `Análise incompleta detectada: ${analyzedCount}/${finalDiscoveredCount} pratos`,
+        missingDishNames,
+      );
       return jsonResponse(
         {
-          error: `A análise ainda ficou incompleta (${analyzedCount}/${finalDiscoveredCount} pratos). Tente novamente.`,
+          error:
+            `A análise ainda ficou incompleta (${analyzedCount}/${finalDiscoveredCount} pratos). Tente novamente.`,
           missing_dishes: missingDishNames,
         },
         422,
@@ -429,6 +495,8 @@ serve(async (req) => {
     return jsonResponse({ success: true, data: analysis });
   } catch (e) {
     console.error("analyze-restaurant-menu error:", e);
-    return jsonResponse({ error: e instanceof Error ? e.message : "Erro desconhecido" }, 500);
+    return jsonResponse({
+      error: e instanceof Error ? e.message : "Erro desconhecido",
+    }, 500);
   }
 });
