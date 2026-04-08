@@ -210,6 +210,18 @@ REGRAS:
 4. Ser conservador nas estimativas
 5. Não inventar pratos fora da lista-fonte
 
+SEPARAR MATÉRIAS-PRIMAS EM 4 CATEGORIAS (igual calculadora Rational):
+1. CARNES: toda carne bovina e suína (costela, picanha, filé, carne de sol, calabresa, costelinha, torresmo, linguiça etc)
+2. AVES: frango, peru, chester (peito, coxa, passarinho, milanesa de frango)
+3. LEGUMES/GUARNIÇÕES: batata, mandioca, banana, legumes, arroz, feijão, farofa e vegetais em geral
+4. PESCADOS: tilápia, camarão, salmão, lambari, peixe em geral
+
+Para cada categoria retornar:
+- kg_mes: total de kg consumidos no mês (baseado no volume e participação dos pratos que usam esse insumo)
+- preco_medio_kg: média ponderada do preço/kg dos insumos da categoria
+- custo_mensal: kg_mes × preco_medio_kg
+- itens: lista dos insumos incluídos
+
 RETORNAR EXCLUSIVAMENTE JSON válido neste formato:
 {
   "restaurante": {
@@ -234,8 +246,33 @@ RETORNAR EXCLUSIVAMENTE JSON válido neste formato:
       "usa_oleo": false
     }
   ],
+  "materias_primas": {
+    "carnes": {
+      "kg_mes": 1200,
+      "preco_medio_kg": 35.00,
+      "custo_mensal": 42000,
+      "itens": ["Costela bovina", "Carne de sol", "Picanha"]
+    },
+    "aves": {
+      "kg_mes": 300,
+      "preco_medio_kg": 18.00,
+      "custo_mensal": 5400,
+      "itens": ["Peito de frango"]
+    },
+    "legumes_guarnicoes": {
+      "kg_mes": 500,
+      "preco_medio_kg": 6.00,
+      "custo_mensal": 3000,
+      "itens": ["Batata", "Mandioca"]
+    },
+    "pescados": {
+      "kg_mes": 200,
+      "preco_medio_kg": 45.00,
+      "custo_mensal": 9000,
+      "itens": ["Tilápia", "Camarão"]
+    }
+  },
   "totais_mensais": {
-    "proteinas_reais": 0,
     "energia_kwh": 0,
     "custo_kwh_usado": 0.80,
     "energia_reais": 0,
@@ -244,7 +281,7 @@ RETORNAR EXCLUSIVAMENTE JSON válido neste formato:
     "horas_cozinha": 0,
     "custo_hora": 23,
     "mao_obra_reais": 0,
-    "agua_descalcificacao_reais": 270,
+    "agua_descalcificacao_reais": 0,
     "custo_total_operacional": 0
   },
   "resumo_economia_rational": {
@@ -277,7 +314,8 @@ ${JSON.stringify(missingDishNames)}
 Retorne NOVAMENTE o JSON COMPLETO no formato final, agora com TODOS os pratos da lista-fonte.
 O array pratos_analisados precisa ter EXATAMENTE ${
     getDishCount(discoveredMenu, "pratos_detectados")
-  } itens.`;
+  } itens.
+Inclua também o objeto materias_primas com as 4 categorias (carnes, aves, legumes_guarnicoes, pescados).`;
 
 const chooseBestDiscovery = (current: any, candidate: any) => {
   const currentCount = getDishCount(current, "pratos_detectados");
@@ -420,7 +458,7 @@ serve(async (req) => {
         {
           role: "user",
           content:
-            `Analise financeiramente TODOS os pratos da lista-fonte acima sem omitir nenhum item.`,
+            `Analise financeiramente TODOS os pratos da lista-fonte acima sem omitir nenhum item. Inclua obrigatoriamente o objeto materias_primas com as 4 categorias separadas.`,
         },
       ],
       "análise principal",
@@ -498,8 +536,9 @@ serve(async (req) => {
     });
   } catch (e) {
     console.error("analyze-restaurant-menu error:", e);
-    return jsonResponse({
-      error: e instanceof Error ? e.message : "Erro desconhecido",
-    }, 500);
+    return jsonResponse(
+      { error: e instanceof Error ? e.message : "Erro interno" },
+      500,
+    );
   }
 });
