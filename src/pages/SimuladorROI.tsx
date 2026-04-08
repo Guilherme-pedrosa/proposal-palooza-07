@@ -427,7 +427,7 @@ export default function SimuladorROI() {
                           <CommandList>
                             <CommandEmpty>Nenhum cliente encontrado</CommandEmpty>
                             <CommandGroup>
-                              {clientesFiltrados.slice(0, 15).map((c: any) => (
+                              {clientesFiltrados.slice(0, 50).map((c: any) => (
                                 <CommandItem
                                   key={c.id}
                                   onSelect={() => {
