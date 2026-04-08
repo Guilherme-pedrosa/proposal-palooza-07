@@ -126,6 +126,8 @@ export default function Catalogo() {
   const [filtroGrupo, setFiltroGrupo] = useState<string>('todos');
   const [apenasDestaques, setApenasDestaques] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const ITENS_POR_PAGINA = 100;
 
   const { data: produtos = [], isLoading } = useQuery({
     queryKey: ['produtos_gc'],
