@@ -422,6 +422,11 @@ export default function PropostaEditor() {
     companyPhone: company.phone,
     companyEmail: company.email || undefined,
     templateId: templateId || undefined,
+    formaPagamento,
+    formaPagamento2,
+    numParcelas,
+    numParcelas2,
+    taxaJuros,
   });
 
   const handleSave = async (newStatus?: string) => {
