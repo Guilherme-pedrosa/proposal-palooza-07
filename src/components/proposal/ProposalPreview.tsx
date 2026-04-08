@@ -865,37 +865,35 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           const taxaDecimal = taxa / 100;
           const pmtCalc = (pv: number, n: number) => taxaDecimal === 0 ? pv / n : pv * (taxaDecimal * Math.pow(1 + taxaDecimal, n)) / (Math.pow(1 + taxaDecimal, n) - 1);
           
-          const forma1 = proposal.formaPagamento || 'boleto';
-          const forma2 = proposal.formaPagamento2 || 'leasing';
-          const parcelas1 = proposal.numParcelas || 1;
-          const parcelas2 = proposal.numParcelas2 || 36;
+          // Dynamic payment options
+          const opts = proposal.opcoesPagamento && proposal.opcoesPagamento.length > 0
+            ? proposal.opcoesPagamento
+            : [
+                { id: '1', forma: proposal.formaPagamento || 'boleto', parcelas: proposal.numParcelas || 1, entrada: proposal.entradaPercent || 0, juros: proposal.taxaJurosCartao || 0 },
+                { id: '2', forma: proposal.formaPagamento2 || 'leasing', parcelas: proposal.numParcelas2 || 36, entrada: proposal.entradaPercent2 || 0, juros: proposal.taxaJurosCartao2 || 0 },
+              ];
           const descontoAV = proposal.descontoAVista || 0;
-          const entrada1 = proposal.entradaPercent || 0;
-          const entrada2 = proposal.entradaPercent2 || 0;
-          const jurosCartao1 = proposal.taxaJurosCartao || 0;
-          const jurosCartao2 = proposal.taxaJurosCartao2 || 0;
           
           const labelMap: Record<string, string> = { avista: 'À Vista', boleto: 'Boleto', cartao: 'Cartão', leasing: 'Leasing', financiamento: 'Financiamento' };
           const descMap: Record<string, string> = { avista: 'PIX / Transferência', boleto: 'Boleto Bancário', cartao: 'Cartão de Crédito', leasing: 'Locação de equipamentos', financiamento: 'Financiamento' };
           
-          const getValor = (forma: string, parcelas: number, entrada: number, jurosCartao: number) => {
-            const base = totalValue * (1 - entrada / 100);
-            if (forma === 'avista') return totalValue * (1 - descontoAV / 100);
-            if (forma === 'leasing') return pmtCalc(totalValue, parcelas);
-            if (forma === 'cartao' && jurosCartao > 0) {
-              const r = jurosCartao / 100;
-              return base * (r * Math.pow(1 + r, parcelas)) / (Math.pow(1 + r, parcelas) - 1);
+          const getValor = (opt: { forma: string; parcelas: number; entrada: number; juros: number }) => {
+            const base = totalValue * (1 - opt.entrada / 100);
+            if (opt.forma === 'leasing') return pmtCalc(totalValue, opt.parcelas);
+            if (opt.forma === 'cartao' && opt.juros > 0) {
+              const r = opt.juros / 100;
+              return base * (r * Math.pow(1 + r, opt.parcelas)) / (Math.pow(1 + r, opt.parcelas) - 1);
             }
-            return base / parcelas;
+            return base / opt.parcelas;
           };
-          const getLabel = (forma: string, parcelas: number) => {
-            if (forma === 'avista') return labelMap[forma];
-            return `${labelMap[forma] || forma} ${parcelas}x`;
-          };
+          const getLabel = (forma: string, parcelas: number) => `${labelMap[forma] || forma} ${parcelas}x`;
 
-          const hasLeasing = forma1 === 'leasing' || forma2 === 'leasing';
-          const leasingParcelas = forma1 === 'leasing' ? parcelas1 : parcelas2;
-          const parcelaLeasing = hasLeasing ? pmtCalc(totalValue, leasingParcelas) : 0;
+          const leasingOpt = opts.find(o => o.forma === 'leasing');
+          const hasLeasing = !!leasingOpt;
+          const parcelaLeasing = hasLeasing ? pmtCalc(totalValue, leasingOpt!.parcelas || 36) : 0;
+          
+          // Grid columns based on number of options
+          const gridCols = opts.length <= 2 ? 'grid-cols-2' : opts.length === 3 ? 'grid-cols-3' : 'grid-cols-2';
 
           return (
           <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
@@ -938,13 +936,13 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               </div>
             </div>
 
-            {/* 2 Modalidades */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              {[{ forma: forma1, parcelas: parcelas1, entrada: entrada1, jurosCartao: jurosCartao1 }, { forma: forma2, parcelas: parcelas2, entrada: entrada2, jurosCartao: jurosCartao2 }].map((opt, idx) => {
+            {/* Modalidades */}
+            <div className={`grid ${gridCols} gap-4 mb-8`}>
+              {opts.map((opt, idx) => {
                 const isLeasing = opt.forma === 'leasing';
-                const valor = getValor(opt.forma, opt.parcelas, opt.entrada, opt.jurosCartao);
+                const valor = getValor(opt);
                 return (
-                  <div key={idx} className="rounded-lg p-5" style={{ backgroundColor: isLeasing ? '#f0fdf4' : '#fafafa', border: isLeasing ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
+                  <div key={opt.id || idx} className="rounded-lg p-5" style={{ backgroundColor: isLeasing ? '#f0fdf4' : '#fafafa', border: isLeasing ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
                     <p className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: '#9ca3af' }}>Opção {idx + 1}</p>
                     <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: isLeasing ? '#15803d' : '#6b7280' }}>{getLabel(opt.forma, opt.parcelas)}</p>
                     {opt.entrada > 0 && opt.forma !== 'leasing' && (
@@ -959,7 +957,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                     <p className="text-xs mt-1" style={{ color: isLeasing ? '#16a34a' : '#9ca3af' }}>
                       {descMap[opt.forma] || opt.forma}
                       {isLeasing && ` (${taxa.toFixed(3).replace('.', ',')}% a.m.)`}
-                      {opt.forma === 'cartao' && opt.jurosCartao > 0 && ` (${opt.jurosCartao.toFixed(2).replace('.', ',')}% a.m.)`}
+                      {opt.forma === 'cartao' && opt.juros > 0 && ` (${opt.juros.toFixed(2).replace('.', ',')}% a.m.)`}
                     </p>
                   </div>
                 );

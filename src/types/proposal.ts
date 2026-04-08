@@ -32,6 +32,14 @@ export interface ProposalImage {
   name: string;
 }
 
+export interface PaymentOption {
+  id: string;
+  forma: string; // boleto, cartao, leasing, financiamento
+  parcelas: number;
+  entrada: number; // percent
+  juros: number; // for cartao (% a.m.)
+}
+
 export interface Proposal {
   id: string;
   number: string;
@@ -50,12 +58,14 @@ export interface Proposal {
   companyEmail?: string;
   templateId?: string;
   // Payment fields
-  numParcelas?: number;
   taxaJuros?: number;
+  descontoAVista?: number;
+  opcoesPagamento?: PaymentOption[];
+  // Legacy fields (backward compat)
+  numParcelas?: number;
   formaPagamento?: string;
   formaPagamento2?: string;
   numParcelas2?: number;
-  descontoAVista?: number;
   entradaPercent?: number;
   entradaPercent2?: number;
   taxaJurosCartao?: number;
