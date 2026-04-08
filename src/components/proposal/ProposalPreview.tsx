@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, useState } from 'react';
 import { Proposal } from '@/types/proposal';
 import { CompanySettings } from '@/types/company';
 import { format } from 'date-fns';
@@ -26,7 +26,8 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
     };
 
     const totalValue = proposal.products?.reduce((sum, p) => sum + p.totalPrice, 0) || 0;
-    const companyLogo = company.logo || logoWedoDefault;
+    const [logoError, setLogoError] = useState(false);
+    const companyLogo = (!logoError && company.logo) ? company.logo : logoWedoDefault;
     
     // Check template type for conditional rendering
     const isPreventiva = proposal.templateId === 'preventiva' || !proposal.templateId;
@@ -65,7 +66,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             {/* Logo — top right */}
             <div className="flex justify-end" style={{ marginBottom: '60px' }}>
               <div className="bg-white rounded-lg p-3" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.25)' }}>
-                <img src={companyLogo} alt={company.name} className="h-12 w-auto object-contain" />
+                <img src={companyLogo} alt={company.name} className="h-12 w-auto object-contain" onError={() => setLogoError(true)} />
               </div>
             </div>
 

@@ -141,7 +141,13 @@ export async function deleteProposta(id: string) {
 }
 
 export async function registrarVisualizacao(id: string, proposta: PropostaRow) {
-  // Fetch visitor IP
+  // 1. Check if viewer is the proposal's own vendedor — skip if so
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.user?.id && session.user.id === proposta.vendedor_id) {
+    return; // Own vendedor — don't register
+  }
+
+  // 2. Fetch visitor IP
   let ip: string | null = null;
   try {
     const res = await fetch('https://api.ipify.org?format=json');
@@ -151,6 +157,15 @@ export async function registrarVisualizacao(id: string, proposta: PropostaRow) {
     ip = null;
   }
 
+  // 3. Same IP as before — just bump counter, don't change status
+  if (ip && proposta.aberto_por_ip === ip) {
+    await supabase.from('propostas').update({
+      aberto_contagem: (proposta.aberto_contagem ?? 0) + 1,
+    } as any).eq('id', id);
+    return;
+  }
+
+  // 4. New visitor — full registration
   await supabase.from('propostas').update({
     aberto_em: proposta.aberto_em || new Date().toISOString(),
     aberto_contagem: (proposta.aberto_contagem ?? 0) + 1,
