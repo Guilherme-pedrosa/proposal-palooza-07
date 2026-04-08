@@ -458,11 +458,11 @@ export default function PropostaEditor() {
         validade_dias: parseInt(validadeDias) || 10,
         validade_ate: validadeAte.toISOString(),
         observacoes_internas: observacoesInternas || null,
-        forma_pagamento: formaPagamento || null,
-        num_parcelas: numParcelas,
-        entrada_percent: entradaPercent,
+        forma_pagamento: opcoesPagamento[0]?.forma || null,
+        num_parcelas: opcoesPagamento[0]?.parcelas || 1,
+        entrada_percent: opcoesPagamento[0]?.entrada || 0,
         taxa_juros: 2.303,
-        condicoes_pagamento: JSON.stringify({ forma2: formaPagamento2, parcelas2: numParcelas2, texto: condicoesPagamento || '', descontoAVista, entradaPercent2, taxaJurosCartao, taxaJurosCartao2 }),
+        condicoes_pagamento: JSON.stringify({ opcoesPagamento, descontoAVista, texto: condicoesPagamento || '' }),
         prazo_entrega: prazoEntrega || null,
       };
 
