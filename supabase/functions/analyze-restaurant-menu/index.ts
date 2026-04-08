@@ -165,10 +165,12 @@ const callPerplexity = async (
   }
 
   if (isRefusal(content)) {
-    console.error(`Perplexity recusou acessar a URL na etapa ${stage}:`, content.substring(0, 300));
-    throw new Error(
-      `A IA não conseguiu acessar o cardápio online. Verifique se a URL está correta e acessível publicamente. Cardápios em apps como Goomer/iFood podem não ser acessíveis para análise automática.`,
-    );
+    console.log(`Perplexity recusou acessar a URL na etapa ${stage}:`, content.substring(0, 200));
+    return {
+      parsed: { pratos_detectados: [], restaurante: {} },
+      finishReason: "refusal",
+      content,
+    };
   }
 
   return {
@@ -483,8 +485,10 @@ serve(async (req) => {
       searchDomain = new URL(cardapio_url).hostname;
     } catch { /* ignore */ }
 
+    // Don't filter by SPA domains (Goomer, etc.) - they're not indexed
+    const isSPADomain = searchDomain && /goomer|ifood|rappi|aiqfome/i.test(searchDomain);
     const discoveryExtra: Record<string, unknown> = {};
-    if (searchDomain) {
+    if (searchDomain && !isSPADomain) {
       discoveryExtra.search_domain_filter = [searchDomain];
     }
 
@@ -517,21 +521,22 @@ Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
       console.log("Primeira tentativa falhou (possivelmente recusa de acesso). Seguindo para busca ampla...", (initialError as Error).message?.substring(0, 200));
     }
 
-    // If first attempt returned 0 dishes, try a broader web search approach
-    if (discoveredCount === 0) {
-      console.log("Primeira tentativa retornou 0 pratos. Tentando busca ampla pelo nome do restaurante...");
+    // If first attempt returned few dishes, try a broader web search approach
+    if (discoveredCount < 5) {
+      console.log(`Primeira tentativa retornou ${discoveredCount} pratos. Tentando busca ampla pelo nome do restaurante...`);
 
       // Extract restaurant name from URL or from partial result
       const restaurantName = discoveredMenu?.restaurante?.nome ||
         cardapio_url.replace(/https?:\/\//, "").split(/[./]/)[0].replace(/-/g, " ");
 
-      const broadSearchCall = await callPerplexity(
-        PERPLEXITY_API_KEY,
-        [
-          { role: "system", content: buildDiscoverySystemPrompt() },
-          {
-            role: "user",
-            content: `Pesquise o cardápio completo do restaurante "${restaurantName}".
+      try {
+        const broadSearchCall = await callPerplexity(
+          PERPLEXITY_API_KEY,
+          [
+            { role: "system", content: buildDiscoverySystemPrompt() },
+            {
+              role: "user",
+              content: `Pesquise o cardápio completo do restaurante "${restaurantName}".
 
 URL de referência: ${cardapio_url}
 
@@ -541,14 +546,17 @@ Liste TODOS os pratos com preparo em cozinha que encontrar, com preço quando di
 Se não encontrar preço exato, estime com base no tipo de restaurante e região.
 
 Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
-          },
-        ],
-        "descoberta ampla",
-      );
+            },
+          ],
+          "descoberta ampla",
+        );
 
-      discoveredMenu = chooseBestDiscovery(discoveredMenu, broadSearchCall.parsed);
-      discoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
-      declaredCount = getDeclaredCount(discoveredMenu);
+        discoveredMenu = chooseBestDiscovery(discoveredMenu, broadSearchCall.parsed);
+        discoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
+        declaredCount = getDeclaredCount(discoveredMenu);
+      } catch (broadError) {
+        console.log("Busca ampla também falhou:", (broadError as Error).message?.substring(0, 200));
+      }
     }
 
     if (
