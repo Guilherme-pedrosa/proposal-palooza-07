@@ -873,6 +873,8 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 { id: '2', forma: proposal.formaPagamento2 || 'leasing', parcelas: proposal.numParcelas2 || 36, entrada: proposal.entradaPercent2 || 0, juros: proposal.taxaJurosCartao2 || 0 },
               ];
           const descontoAV = proposal.descontoAVista || 0;
+          const descontoTipo = proposal.descontoAVistaTipo || 'percent';
+          const valorAVista = descontoTipo === 'percent' ? totalValue * (1 - descontoAV / 100) : totalValue - descontoAV;
           
           const labelMap: Record<string, string> = { avista: 'À Vista', boleto: 'Boleto', cartao: 'Cartão', leasing: 'Leasing', financiamento: 'Financiamento' };
           const descMap: Record<string, string> = { avista: 'PIX / Transferência', boleto: 'Boleto Bancário', cartao: 'Cartão de Crédito', leasing: 'Locação de equipamentos', financiamento: 'Financiamento' };
