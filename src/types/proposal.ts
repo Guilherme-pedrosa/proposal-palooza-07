@@ -55,6 +55,11 @@ export interface Proposal {
   formaPagamento?: string;
   formaPagamento2?: string;
   numParcelas2?: number;
+  descontoAVista?: number;
+  entradaPercent?: number;
+  entradaPercent2?: number;
+  taxaJurosCartao?: number;
+  taxaJurosCartao2?: number;
 }
 
 export interface SavedTermCondition {
