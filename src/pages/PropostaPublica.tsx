@@ -91,7 +91,8 @@ export default function PropostaPublica() {
   const isAprovada = aprovada || proposta.status === 'aprovada';
   const isCancelada = proposta.status === 'recusada';
   const diasRestantes = proposta.validade_ate ? differenceInDays(new Date(proposta.validade_ate), new Date()) : null;
-  const companyLogo = company.logo || logoWedoDefault;
+  const companyName = companyData?.name || 'WeDo Cozinhas';
+  const companyLogo = (!logoError && companyData?.logo_url) ? companyData.logo_url : logoWedoDefault;
 
   const subtotal = produtos.reduce((s: number, p: any) => s + (p.quantity || 0) * (p.unitPrice || 0), 0);
   const descontoTotal = produtos.reduce((s: number, p: any) => s + ((p.quantity || 0) * (p.unitPrice || 0) * ((p.discount || 0) / 100)), 0);
@@ -150,7 +151,7 @@ export default function PropostaPublica() {
         {/* Header */}
         <div className="text-center space-y-3">
           <div className="flex justify-center">
-            <img src={companyLogo} alt={`Logo ${company.name}`} className="h-14 w-auto object-contain" />
+            <img src={companyLogo} alt={`Logo ${companyName}`} className="h-14 w-auto object-contain" onError={() => setLogoError(true)} />
           </div>
           <p className="text-xs text-muted-foreground uppercase tracking-wider">Soluções para Cozinhas Profissionais</p>
           <Separator />
@@ -425,11 +426,11 @@ export default function PropostaPublica() {
 
         {/* Footer */}
         <div className="text-center text-xs text-muted-foreground space-y-1 pt-4 pb-8">
-          <p className="font-semibold">{company.name}</p>
-          <p>CNPJ: {company.cnpj}</p>
+          <p className="font-semibold">{companyName}</p>
+          <p>CNPJ: {companyData?.cnpj || ''}</p>
           <div className="flex items-center justify-center gap-3">
-            {company.phone && <span><Phone className="inline h-3 w-3 mr-1" />{company.phone}</span>}
-            {company.email && <span><Mail className="inline h-3 w-3 mr-1" />{company.email}</span>}
+            {companyData?.phone && <span><Phone className="inline h-3 w-3 mr-1" />{companyData.phone}</span>}
+            {companyData?.email && <span><Mail className="inline h-3 w-3 mr-1" />{companyData.email}</span>}
           </div>
           <p className="mt-2 opacity-50">Documento gerado pelo CRM WeDo</p>
         </div>
