@@ -521,9 +521,9 @@ Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
       console.log("Primeira tentativa falhou (possivelmente recusa de acesso). Seguindo para busca ampla...", (initialError as Error).message?.substring(0, 200));
     }
 
-    // If first attempt returned 0 dishes, try a broader web search approach
-    if (discoveredCount === 0) {
-      console.log("Primeira tentativa retornou 0 pratos. Tentando busca ampla pelo nome do restaurante...");
+    // If first attempt returned few dishes, try a broader web search approach
+    if (discoveredCount < 5) {
+      console.log(`Primeira tentativa retornou ${discoveredCount} pratos. Tentando busca ampla pelo nome do restaurante...`);
 
       // Extract restaurant name from URL or from partial result
       const restaurantName = discoveredMenu?.restaurante?.nome ||
