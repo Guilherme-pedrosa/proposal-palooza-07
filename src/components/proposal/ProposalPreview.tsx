@@ -688,34 +688,41 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
             {/* Products Table */}
             <div className="overflow-hidden rounded-lg" style={{ border: '1px solid #e5e7eb' }}>
-              <table className="w-full">
+              <table className="w-full" style={{ tableLayout: 'fixed' }}>
+                <colgroup>
+                  <col style={{ width: '42%' }} />
+                  <col style={{ width: '8%' }} />
+                  <col style={{ width: '8%' }} />
+                  <col style={{ width: '14%' }} />
+                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '16%' }} />
+                </colgroup>
                 <thead>
                   <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                    <th className="px-4 py-3 text-left text-sm font-semibold" style={{ color: '#374151' }}>Produto</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold" style={{ color: '#374151' }}>Unid.</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold" style={{ color: '#374151' }}>Qtde</th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold" style={{ color: '#374151' }}>Valor unitário</th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold" style={{ color: '#374151' }}>Desconto</th>
-                    <th className="px-4 py-3 text-right text-sm font-semibold" style={{ color: '#374151' }}>Valor total</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold" style={{ color: '#374151' }}>Produto</th>
+                    <th className="px-2 py-3 text-center text-xs font-semibold" style={{ color: '#374151' }}>Unid.</th>
+                    <th className="px-2 py-3 text-center text-xs font-semibold" style={{ color: '#374151' }}>Qtde</th>
+                    <th className="px-2 py-3 text-right text-xs font-semibold" style={{ color: '#374151' }}>Valor unit.</th>
+                    <th className="px-2 py-3 text-right text-xs font-semibold" style={{ color: '#374151' }}>Desconto</th>
+                    <th className="px-3 py-3 text-right text-xs font-semibold" style={{ color: '#374151' }}>Valor total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {proposal.products.map((product, index) => (
                     <tr key={product.id} style={{ backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9fafb' }}>
-                      <td className="px-4 py-4">
-                        <div className="flex items-start gap-3">
+                      <td className="px-3 py-3">
+                        <div className="flex items-start gap-2">
                           {product.photoUrl && (
                             <img
                               src={product.photoUrl}
                               alt={product.name}
-                              style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '6px', flexShrink: 0, border: '1px solid #e5e7eb' }}
+                              style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0, border: '1px solid #e5e7eb' }}
                             />
                           )}
-                          <div>
-                            <p className="font-medium" style={{ color: '#111827' }}>{product.name}</p>
-                            <p className="mt-1 text-sm" style={{ color: '#6b7280' }}>{product.description}</p>
+                          <div style={{ minWidth: 0 }}>
+                            <p className="font-medium text-xs leading-snug" style={{ color: '#111827', wordBreak: 'break-word' }}>{product.name}</p>
                             {product.discountNote && (
-                              <p className="mt-1 text-xs italic" style={{ color: '#9ca3af' }}>* {product.discountNote}</p>
+                              <p className="mt-0.5 text-xs italic" style={{ color: '#9ca3af' }}>* {product.discountNote}</p>
                             )}
                           </div>
                         </div>
