@@ -58,6 +58,13 @@ interface PropostaTermo {
   description: string;
 }
 
+// PMT formula (Price) for leasing with interest
+function calcPMT(pv: number, rate: number, n: number): number {
+  if (rate === 0) return pv / n;
+  const r = rate / 100; // monthly rate as decimal
+  return pv * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+}
+
 const validadeOptions = [
   { value: '7', label: '7 dias' },
   { value: '10', label: '10 dias' },
