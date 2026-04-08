@@ -137,6 +137,10 @@ export default function PropostaEditor() {
   const [numParcelas, setNumParcelas] = useState(1);
   const [numParcelas2, setNumParcelas2] = useState(36);
   const [entradaPercent, setEntradaPercent] = useState(0);
+  const [entradaPercent2, setEntradaPercent2] = useState(0);
+  const [descontoAVista, setDescontoAVista] = useState(0);
+  const [taxaJurosCartao, setTaxaJurosCartao] = useState(0);
+  const [taxaJurosCartao2, setTaxaJurosCartao2] = useState(0);
   const taxaJuros = 2.303;
   const [leasingDialogOpen, setLeasingDialogOpen] = useState(false);
   const [status, setStatus] = useState<string>('rascunho');
@@ -256,6 +260,10 @@ export default function PropostaEditor() {
         if (cond.parcelas2) setNumParcelas2(cond.parcelas2);
         if (cond.texto) setCondicoesPagamento(cond.texto);
         else setCondicoesPagamento('');
+        if (cond.descontoAVista) setDescontoAVista(cond.descontoAVista);
+        if (cond.entradaPercent2) setEntradaPercent2(cond.entradaPercent2);
+        if (cond.taxaJurosCartao) setTaxaJurosCartao(cond.taxaJurosCartao);
+        if (cond.taxaJurosCartao2) setTaxaJurosCartao2(cond.taxaJurosCartao2);
       } catch {
         setCondicoesPagamento(proposta.condicoes_pagamento ?? '');
       }
@@ -427,6 +435,11 @@ export default function PropostaEditor() {
     numParcelas,
     numParcelas2,
     taxaJuros,
+    descontoAVista,
+    entradaPercent,
+    entradaPercent2,
+    taxaJurosCartao,
+    taxaJurosCartao2,
   });
 
   const handleSave = async (newStatus?: string) => {
@@ -456,7 +469,7 @@ export default function PropostaEditor() {
         num_parcelas: numParcelas,
         entrada_percent: entradaPercent,
         taxa_juros: 2.303,
-        condicoes_pagamento: JSON.stringify({ forma2: formaPagamento2, parcelas2: numParcelas2, texto: condicoesPagamento || '' }),
+        condicoes_pagamento: JSON.stringify({ forma2: formaPagamento2, parcelas2: numParcelas2, texto: condicoesPagamento || '', descontoAVista, entradaPercent2, taxaJurosCartao, taxaJurosCartao2 }),
         prazo_entrega: prazoEntrega || null,
       };
 
@@ -954,17 +967,35 @@ export default function PropostaEditor() {
 
             <Separator />
 
+            {/* À Vista — sempre visível */}
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800 p-3 space-y-2">
+              <p className="text-sm font-semibold text-foreground flex items-center gap-2">💵 À Vista (PIX / Transferência)</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Desconto à vista (%)</Label>
+                  <Input type="number" min={0} max={100} step={0.5} value={descontoAVista || ''} onChange={(e) => setDescontoAVista(parseFloat(e.target.value) || 0)} className="h-8" placeholder="0" />
+                </div>
+                <div className="flex items-end">
+                  <p className="text-sm font-bold text-primary">
+                    {formatBRL(total * (1 - (descontoAVista || 0) / 100))}
+                    {descontoAVista > 0 && <span className="text-xs font-normal text-muted-foreground ml-1">(-{descontoAVista}%)</span>}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
             {/* Opção 1 de Pagamento */}
             <div className="space-y-3 rounded-lg border p-3">
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-xs">Opção 1</Badge>
                 <Select value={formaPagamento} onValueChange={(v) => {
                   setFormaPagamento(v);
-                  if (v === 'avista') { setNumParcelas(1); setEntradaPercent(0); }
+                  if (v === 'leasing' && numParcelas < 12) setNumParcelas(36);
                 }}>
                   <SelectTrigger className="h-8"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="avista">À Vista (PIX / Transferência)</SelectItem>
                     <SelectItem value="boleto">Boleto</SelectItem>
                     <SelectItem value="cartao">Cartão de Crédito</SelectItem>
                     <SelectItem value="leasing">Leasing / Locação</SelectItem>
@@ -972,7 +1003,7 @@ export default function PropostaEditor() {
                   </SelectContent>
                 </Select>
               </div>
-              {formaPagamento && formaPagamento !== 'avista' && formaPagamento !== 'leasing' && (
+              {formaPagamento && formaPagamento !== 'leasing' && (
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <Label className="text-xs">Entrada (%)</Label>
@@ -982,6 +1013,27 @@ export default function PropostaEditor() {
                     <Label className="text-xs">Nº Parcelas</Label>
                     <Input type="number" min={1} max={120} value={numParcelas} onChange={(e) => setNumParcelas(parseInt(e.target.value) || 1)} className="h-8" />
                   </div>
+                </div>
+              )}
+              {formaPagamento === 'cartao' && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs">Juros cartão (% a.m.)</Label>
+                    <Input type="number" min={0} max={10} step={0.01} value={taxaJurosCartao || ''} onChange={(e) => setTaxaJurosCartao(parseFloat(e.target.value) || 0)} className="h-8" placeholder="0" />
+                  </div>
+                  <div className="flex items-end">
+                    <p className="text-sm font-bold text-primary">
+                      {formatBRL(taxaJurosCartao > 0 ? calcPMT(total * (1 - (entradaPercent || 0) / 100), taxaJurosCartao, numParcelas || 1) : (total * (1 - (entradaPercent || 0) / 100)) / (numParcelas || 1))}/mês
+                    </p>
+                  </div>
+                </div>
+              )}
+              {formaPagamento && formaPagamento !== 'leasing' && formaPagamento !== 'cartao' && (
+                <div className="flex items-end">
+                  <p className="text-sm font-bold text-primary">
+                    {entradaPercent > 0 && <span className="text-xs font-normal text-muted-foreground mr-1">Entrada: {formatBRL(total * entradaPercent / 100)} + </span>}
+                    {formatBRL((total * (1 - (entradaPercent || 0) / 100)) / (numParcelas || 1))}/mês
+                  </p>
                 </div>
               )}
               {formaPagamento === 'leasing' && (
@@ -995,9 +1047,6 @@ export default function PropostaEditor() {
                   </div>
                 </div>
               )}
-              {formaPagamento === 'avista' && total > 0 && (
-                <p className="text-sm font-bold text-primary">{formatBRL(total)}</p>
-              )}
             </div>
 
             {/* Opção 2 de Pagamento */}
@@ -1006,12 +1055,10 @@ export default function PropostaEditor() {
                 <Badge variant="outline" className="text-xs">Opção 2</Badge>
                 <Select value={formaPagamento2} onValueChange={(v) => {
                   setFormaPagamento2(v);
-                  if (v === 'avista') setNumParcelas2(1);
                   if (v === 'leasing' && numParcelas2 < 12) setNumParcelas2(36);
                 }}>
                   <SelectTrigger className="h-8"><SelectValue placeholder="Selecione..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="avista">À Vista (PIX / Transferência)</SelectItem>
                     <SelectItem value="boleto">Boleto</SelectItem>
                     <SelectItem value="cartao">Cartão de Crédito</SelectItem>
                     <SelectItem value="leasing">Leasing / Locação</SelectItem>
@@ -1019,15 +1066,37 @@ export default function PropostaEditor() {
                   </SelectContent>
                 </Select>
               </div>
-              {formaPagamento2 && formaPagamento2 !== 'avista' && formaPagamento2 !== 'leasing' && (
+              {formaPagamento2 && formaPagamento2 !== 'leasing' && (
                 <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs">Entrada (%)</Label>
+                    <Input type="number" min={0} max={100} value={entradaPercent2 || ''} onChange={(e) => setEntradaPercent2(parseFloat(e.target.value) || 0)} className="h-8" />
+                  </div>
                   <div>
                     <Label className="text-xs">Nº Parcelas</Label>
                     <Input type="number" min={1} max={120} value={numParcelas2} onChange={(e) => setNumParcelas2(parseInt(e.target.value) || 1)} className="h-8" />
                   </div>
-                  <div className="flex items-end">
-                    <p className="text-sm font-bold text-primary">{formatBRL(total / (numParcelas2 || 1))}/mês</p>
+                </div>
+              )}
+              {formaPagamento2 === 'cartao' && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs">Juros cartão (% a.m.)</Label>
+                    <Input type="number" min={0} max={10} step={0.01} value={taxaJurosCartao2 || ''} onChange={(e) => setTaxaJurosCartao2(parseFloat(e.target.value) || 0)} className="h-8" placeholder="0" />
                   </div>
+                  <div className="flex items-end">
+                    <p className="text-sm font-bold text-primary">
+                      {formatBRL(taxaJurosCartao2 > 0 ? calcPMT(total * (1 - (entradaPercent2 || 0) / 100), taxaJurosCartao2, numParcelas2 || 1) : (total * (1 - (entradaPercent2 || 0) / 100)) / (numParcelas2 || 1))}/mês
+                    </p>
+                  </div>
+                </div>
+              )}
+              {formaPagamento2 && formaPagamento2 !== 'leasing' && formaPagamento2 !== 'cartao' && (
+                <div className="flex items-end">
+                  <p className="text-sm font-bold text-primary">
+                    {entradaPercent2 > 0 && <span className="text-xs font-normal text-muted-foreground mr-1">Entrada: {formatBRL(total * entradaPercent2 / 100)} + </span>}
+                    {formatBRL((total * (1 - (entradaPercent2 || 0) / 100)) / (numParcelas2 || 1))}/mês
+                  </p>
                 </div>
               )}
               {formaPagamento2 === 'leasing' && (
@@ -1040,9 +1109,6 @@ export default function PropostaEditor() {
                     <p className="text-sm font-bold text-primary">{formatBRL(calcPMT(total, taxaJuros, numParcelas2 || 36))}/mês</p>
                   </div>
                 </div>
-              )}
-              {formaPagamento2 === 'avista' && total > 0 && (
-                <p className="text-sm font-bold text-primary">{formatBRL(total)}</p>
               )}
             </div>
 
