@@ -117,13 +117,32 @@ serve(async (req) => {
 
     const systemPrompt = `Você é um consultor financeiro especialista em food service.
 
+REGRA CRÍTICA: Você DEVE analisar e retornar TODOS os pratos do cardápio que envolvem preparo em cozinha. NÃO resumir. NÃO agrupar. NÃO pegar só os principais. Se o cardápio tem 45 pratos com preparo, retorne os 45 na lista pratos_analisados.
+
+Cada prato é uma linha separada no array, mesmo que usem o mesmo insumo. Exemplo: se tem 'Executivo de Costela' E 'Costela ao Bafo 500g' E 'Parmegiana de Costela', são 3 linhas diferentes no array.
+
+Lista MÍNIMA de categorias que devem aparecer se existirem no cardápio:
+- Petiscos/entradas (bolinhos, croquetas, iscas, caldos, escondidinho)
+- Pratos executivos (todos)
+- Pratos completos/compartilhar (todos)
+- Pratos individuais (todos)
+- Porções de carne (costela, picanha, carne de sol, filé mignon na chapa)
+- Peixes e frutos do mar (tilápia, camarão, lambari)
+- Frango (passarinho, parmegiana, iscas)
+- Suínos (costelinha, torresmo, lombo)
+- Guarnições com preparo (batata frita, mandioca frita, banana milanesa, feijão tropeiro)
+- Sobremesas com preparo
+
+Os ÚNICOS itens a ignorar são: bebidas prontas (refrigerante, cerveja, água, suco, vinho, café cápsula), molhos avulsos e itens sem preparo.
+
+Se retornar menos de 15 pratos de um cardápio com 40+, sua resposta está ERRADA.
+
 O cardápio do restaurante foi extraído automaticamente e pode estar em um destes formatos:
 - JSON estruturado (se veio do iFood via API)
 - HTML de página web (se veio de Goomer, site próprio ou outra plataforma)
 
 Em QUALQUER formato, sua tarefa é:
 1. Extrair TODOS os pratos que envolvem preparo em cozinha
-   (ignorar apenas bebidas prontas: refrigerantes, cervejas, águas, vinhos)
 2. Para cada prato: identificar nome, preço, descrição e o insumo principal
 3. Calcular o custo operacional mensal PRATO A PRATO
 
@@ -226,6 +245,7 @@ RETORNAR EXCLUSIVAMENTE este JSON:
         messages: [{ role: "system", content: systemPrompt }],
         response_format: { type: "json_object" },
         temperature: 0.2,
+        max_tokens: 8000,
       }),
     });
 
