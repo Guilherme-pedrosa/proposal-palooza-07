@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, useState } from 'react';
 import { Proposal } from '@/types/proposal';
 import { CompanySettings } from '@/types/company';
 import { format } from 'date-fns';
@@ -26,7 +26,8 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
     };
 
     const totalValue = proposal.products?.reduce((sum, p) => sum + p.totalPrice, 0) || 0;
-    const companyLogo = company.logo || logoWedoDefault;
+    const [logoError, setLogoError] = useState(false);
+    const companyLogo = (!logoError && company.logo) ? company.logo : logoWedoDefault;
     
     // Check template type for conditional rendering
     const isPreventiva = proposal.templateId === 'preventiva' || !proposal.templateId;
