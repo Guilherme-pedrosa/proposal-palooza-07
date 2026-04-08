@@ -141,10 +141,10 @@ export async function deleteProposta(id: string) {
 }
 
 export async function registrarVisualizacao(id: string, proposta: PropostaRow) {
-  // 1. Check if viewer is the proposal's own vendedor — skip if so
+  // 1. ANY authenticated user = internal team → never register as client view
   const { data: { session } } = await supabase.auth.getSession();
-  if (session?.user?.id && session.user.id === proposta.vendedor_id) {
-    return; // Own vendedor — don't register
+  if (session?.user) {
+    return; // Logged-in user — skip entirely
   }
 
   // 2. Fetch visitor IP
