@@ -37,6 +37,7 @@ import VisitaAtiva from "./pages/VisitaAtiva";
 import Visitas from "./pages/Visitas";
 import Usuarios from "./pages/Usuarios";
 import Logs from "./pages/Logs";
+import Tarefas from "./pages/Tarefas";
 
 const queryClient = new QueryClient();
 
@@ -107,6 +108,7 @@ function AppRoutes() {
       <Route path="/mapa" element={<ProtectedRoute><Mapa /></ProtectedRoute>} />
       <Route path="/visita/:id" element={<ProtectedRoute><VisitaAtiva /></ProtectedRoute>} />
       <Route path="/visitas" element={<ProtectedRoute><Visitas /></ProtectedRoute>} />
+      <Route path="/tarefas" element={<ProtectedRoute><Tarefas /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/relatorios" element={<ProtectedRoute><Relatorios /></ProtectedRoute>} />
       <Route path="/sync" element={<ProtectedRoute><SyncGC /></ProtectedRoute>} />

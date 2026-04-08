@@ -54,6 +54,7 @@ const menuGroups: MenuGroup[] = [
     items: [
       { title: 'Dashboard', icon: PieChart, href: '/dashboard' },
       { title: 'Hoje', icon: CalendarDays, href: '/hoje' },
+      { title: 'Tarefas', icon: ClipboardList, href: '/tarefas' },
     ],
     defaultOpen: true,
   },
