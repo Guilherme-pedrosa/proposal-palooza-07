@@ -926,7 +926,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: '#047857' }}>💵 À Vista (PIX / Transferência)</p>
                   <p className="text-2xl font-bold" style={{ color: '#047857' }}>
-                    {formatCurrency(totalValue * (1 - descontoAV / 100))}
+                    {formatCurrency(valorAVista)}
                   </p>
                 </div>
                 {descontoAV > 0 && (
