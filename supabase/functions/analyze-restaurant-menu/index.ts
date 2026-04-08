@@ -193,9 +193,17 @@ const buildAnalysisSystemPrompt = (
 
 Você recebeu uma LISTA-FONTE EXAUSTIVA dos pratos do cardápio. Use essa lista como VERDADE ABSOLUTA.
 NÃO remova pratos. NÃO agrupe pratos. NÃO omita pratos.
+NÃO INVENTE pratos que não estão na lista-fonte.
 O array pratos_analisados DEVE ter EXATAMENTE ${
     getDishCount(discoveredMenu, "pratos_detectados")
   } linhas, uma para cada item listado em pratos_detectados.
+
+REGRA ABSOLUTA — FIDELIDADE AO CARDÁPIO:
+- Use o NOME EXATO de cada prato como aparece na lista-fonte.
+- Use o preco_cardapio EXATO da lista-fonte como preco_venda.
+- NÃO adicionar pratos que não estão na lista-fonte.
+- NÃO renomear pratos.
+- Se retornar QUALQUER prato que não existe na lista-fonte, a análise será descartada.
 
 LISTA-FONTE OBRIGATÓRIA:
 ${JSON.stringify(discoveredMenu)}
@@ -243,6 +251,7 @@ RETORNAR EXCLUSIVAMENTE JSON válido neste formato:
   "pratos_analisados": [
     {
       "prato": "Costela ao bafo 500g",
+      "preco_cardapio": 124.90,
       "preco_venda": 124.90,
       "insumo_match": "Costela bovina",
       "custo_porcao": 19.95,
