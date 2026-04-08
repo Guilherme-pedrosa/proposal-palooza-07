@@ -17,7 +17,7 @@ serve(async (req) => {
 
     if (!ifood_url || !refeicoes_dia) {
       return new Response(
-        JSON.stringify({ error: "ifood_url e refeicoes_dia são obrigatórios" }),
+        JSON.stringify({ error: "URL do cardápio e refeicoes_dia são obrigatórios" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -27,40 +27,83 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    if (!GECKO_API_KEY) throw new Error("GECKO_API_KEY não configurada");
     if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY não configurada");
 
-    // 1. Extrair cardápio do iFood via GeckoAPI
-    console.log("Extraindo cardápio do iFood...");
-    const geckoResponse = await fetch("https://api.geckoapi.com.br/v1/extract", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${GECKO_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        url: ifood_url,
-        target: "ifood.com.br",
-        type: "pdp",
-      }),
-    });
+    // ── 1. EXTRAIR CARDÁPIO — decide pela fonte ──
+    let cardapioData: unknown;
+    let fonte: string;
+    const url = ifood_url.trim();
 
-    if (!geckoResponse.ok) {
-      const errText = await geckoResponse.text();
-      console.error("GeckoAPI error:", geckoResponse.status, errText);
-      return new Response(
-        JSON.stringify({
-          error: "Erro ao extrair cardápio do iFood",
-          details: `GeckoAPI retornou ${geckoResponse.status}`,
+    if (url.includes("ifood.com.br")) {
+      // iFood → GeckoAPI (necessário pq iFood é client-side rendered)
+      if (!GECKO_API_KEY) throw new Error("GECKO_API_KEY não configurada");
+
+      console.log("Extraindo cardápio do iFood via GeckoAPI...");
+      const geckoResponse = await fetch("https://api.geckoapi.com.br/v1/extract", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${GECKO_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url,
+          target: "ifood.com.br",
+          type: "pdp",
         }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      });
+
+      if (!geckoResponse.ok) {
+        const errText = await geckoResponse.text();
+        console.error("GeckoAPI error:", geckoResponse.status, errText);
+        return new Response(
+          JSON.stringify({
+            error: "Erro ao extrair cardápio do iFood",
+            details: `GeckoAPI retornou ${geckoResponse.status}`,
+          }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      cardapioData = await geckoResponse.json();
+      fonte = "ifood_gecko";
+    } else {
+      // Qualquer outra URL → fetch direto do HTML (páginas públicas)
+      console.log("Extraindo cardápio via fetch direto:", url);
+      const htmlResponse = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; WeDo-ROI/1.0)",
+          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        },
+      });
+
+      if (!htmlResponse.ok) {
+        return new Response(
+          JSON.stringify({
+            error: "Erro ao acessar o site do restaurante",
+            details: `O site retornou status ${htmlResponse.status}`,
+          }),
+          { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const html = await htmlResponse.text();
+
+      // Limpar HTML pesado (tirar scripts, styles, imagens base64)
+      const cleanHtml = html
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+        .replace(/data:image[^"']*/gi, "")
+        .replace(/<img[^>]*>/gi, "")
+        .replace(/\s{2,}/g, " ")
+        .substring(0, 50000); // Limitar a 50k chars pro token da OpenAI
+
+      cardapioData = cleanHtml;
+      fonte = "html_direto";
     }
 
-    const cardapio = await geckoResponse.json();
-    console.log("Cardápio extraído com sucesso");
+    console.log(`Cardápio extraído com sucesso (fonte: ${fonte})`);
 
-    // 2. Buscar base de insumos do Supabase
+    // ── 2. Buscar base de insumos do Supabase ──
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const { data: insumos, error: insumosError } = await supabase
       .from("insumos_referencia")
@@ -69,11 +112,23 @@ serve(async (req) => {
 
     if (insumosError) throw new Error(`Erro ao buscar insumos: ${insumosError.message}`);
 
-    // 3. Enviar para OpenAI analisar prato a prato
-    const systemPrompt = `Você é um consultor financeiro especialista em food service. Analise o cardápio real do restaurante e calcule o custo operacional mensal PRATO A PRATO.
+    // ── 3. Enviar para OpenAI analisar prato a prato ──
+    const cardapioStr = typeof cardapioData === "string" ? cardapioData : JSON.stringify(cardapioData);
 
-CARDÁPIO DO RESTAURANTE (extraído do iFood):
-${JSON.stringify(cardapio)}
+    const systemPrompt = `Você é um consultor financeiro especialista em food service.
+
+O cardápio do restaurante foi extraído automaticamente e pode estar em um destes formatos:
+- JSON estruturado (se veio do iFood via API)
+- HTML de página web (se veio de Goomer, site próprio ou outra plataforma)
+
+Em QUALQUER formato, sua tarefa é:
+1. Extrair TODOS os pratos que envolvem preparo em cozinha
+   (ignorar apenas bebidas prontas: refrigerantes, cervejas, águas, vinhos)
+2. Para cada prato: identificar nome, preço, descrição e o insumo principal
+3. Calcular o custo operacional mensal PRATO A PRATO
+
+CARDÁPIO DO RESTAURANTE (extraído automaticamente, fonte: ${fonte}):
+${cardapioStr}
 
 VOLUME INFORMADO:
 - Refeições/dia: ${refeicoes_dia}
@@ -105,11 +160,13 @@ INSTRUÇÕES OBRIGATÓRIAS:
 
 6. IMPORTANTE: Ser CONSERVADOR. Na dúvida, projetar pra baixo. É melhor o cliente descobrir que economiza MAIS do que o projetado.
 
+7. Se o cardápio veio em HTML e não conseguiu identificar preços, use 0 para preco_venda e foque nos custos operacionais.
+
 RETORNAR EXCLUSIVAMENTE este JSON:
 {
   "restaurante": {
     "nome": "...",
-    "nota_ifood": 4.8,
+    "nota_ifood": 0,
     "qtd_pratos_cardapio": 45,
     "ticket_medio_ifood": 55.00,
     "tipo_operacao_inferido": "churrascaria",
@@ -213,7 +270,7 @@ RETORNAR EXCLUSIVAMENTE este JSON:
     console.log("Análise concluída com sucesso");
 
     return new Response(
-      JSON.stringify({ success: true, data: parsed }),
+      JSON.stringify({ success: true, data: parsed, fonte }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {

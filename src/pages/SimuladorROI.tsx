@@ -205,7 +205,7 @@ export default function SimuladorROI() {
   // ── ANÁLISE iFOOD ──
   const handleAnalisar = async () => {
     if (!ifoodUrl) {
-      toast.error('Cole o link do iFood do cliente');
+      toast.error('Cole o link do cardápio do cliente');
       return;
     }
     if (!refeicoesDia || refeicoesDia < 10) {
@@ -523,20 +523,20 @@ export default function SimuladorROI() {
               </CardContent>
             </Card>
 
-            {/* BLOCO B: Análise iFood */}
+            {/* BLOCO B: Análise Cardápio */}
             <Card className="border-[#87B537]/30">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <UtensilsCrossed className="h-4 w-4 text-[#87B537]" />
-                  Analisar Cardápio do Cliente (iFood)
+                  Analisar Cardápio do Cliente
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3 items-end">
                   <div className="space-y-2">
-                    <Label>Link iFood do restaurante</Label>
+                    <Label>Link do cardápio online</Label>
                     <Input
-                      placeholder="https://www.ifood.com.br/delivery/..."
+                      placeholder="Cole aqui o link do iFood, Goomer, site do restaurante ou qualquer plataforma de cardápio"
                       value={ifoodUrl}
                       onChange={(e) => setIfoodUrl(e.target.value)}
                     />
@@ -589,7 +589,7 @@ export default function SimuladorROI() {
                     <p className="text-sm text-muted-foreground">
                       Analisando cardápio{clienteSelecionado ? ` de ${clienteSelecionado.nome}` : ''}...
                     </p>
-                    <p className="text-xs text-muted-foreground">Extraindo pratos do iFood e calculando custos prato a prato</p>
+                    <p className="text-xs text-muted-foreground">Extraindo pratos do cardápio e calculando custos prato a prato</p>
                   </div>
                 )}
 
