@@ -9,6 +9,24 @@ const GC_BASE_URL = 'https://api.gestaoclick.com/api';
 const GC_LOJA_ID = '446246';
 const DELAY_MS = 350;
 
+function resolverDataTransacao(registro: Record<string, any>): string | null {
+  const candidatos = [
+    registro.data,
+    registro.data_saida,
+    registro.data_entrada,
+    registro.data_abertura,
+    registro.data_emissao,
+    registro.created_at,
+    registro.updated_at,
+  ];
+
+  for (const valor of candidatos) {
+    if (typeof valor === 'string' && valor.trim()) return valor;
+  }
+
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -107,7 +125,7 @@ Deno.serve(async (req) => {
       const sit = String(r.situacao || r.nome_situacao || '').toLowerCase();
       if (SITUACOES_IGNORAR.has(sit)) continue;
       total += parseFloat(r.valor_total || '0') || 0;
-      const d = r.data || null;
+      const d = resolverDataTransacao(r);
       if (d && (!ultimaData || d > ultimaData)) ultimaData = d;
     }
     return { total, ultimaData };
