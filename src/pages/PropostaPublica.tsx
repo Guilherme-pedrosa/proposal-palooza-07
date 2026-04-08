@@ -83,18 +83,53 @@ export default function PropostaPublica() {
   const subtotal = produtos.reduce((s: number, p: any) => s + (p.quantity || 0) * (p.unitPrice || 0), 0);
   const descontoTotal = produtos.reduce((s: number, p: any) => s + ((p.quantity || 0) * (p.unitPrice || 0) * ((p.discount || 0) / 100)), 0);
   const total = subtotal - descontoTotal;
-  const isLeasing = proposta.forma_pagamento === 'leasing';
-  const numParcelas = proposta.num_parcelas || 1;
-  const entradaPercent = proposta.entrada_percent || 0;
-  const taxaJuros = 2.303;
 
-  // PMT formula (Price) for leasing with interest
+  // Parse new flexible payment options from condicoes_pagamento JSON
+  let opcoesPagamento: { id: string; forma: string; parcelas: number; entrada: number; juros: number }[] = [];
+  let descontoAVista = 0;
+  let descontoAVistaTipo: 'percent' | 'value' = 'percent';
+  let textoCondicoes = '';
+
+  if (proposta.condicoes_pagamento) {
+    try {
+      const parsed = JSON.parse(proposta.condicoes_pagamento);
+      if (parsed.opcoesPagamento) {
+        opcoesPagamento = parsed.opcoesPagamento;
+        descontoAVista = parsed.descontoAVista || 0;
+        descontoAVistaTipo = parsed.descontoAVistaTipo || 'percent';
+        textoCondicoes = parsed.texto || '';
+      } else {
+        // Legacy format — treat condicoes_pagamento as plain text
+        textoCondicoes = proposta.condicoes_pagamento;
+      }
+    } catch {
+      textoCondicoes = proposta.condicoes_pagamento;
+    }
+  }
+
+  // Fallback to old single fields if no opcoesPagamento
+  if (opcoesPagamento.length === 0 && proposta.forma_pagamento) {
+    opcoesPagamento = [{
+      id: 'legacy',
+      forma: proposta.forma_pagamento,
+      parcelas: proposta.num_parcelas || 1,
+      entrada: proposta.entrada_percent || 0,
+      juros: proposta.forma_pagamento === 'leasing' ? 2.303 : 0,
+    }];
+  }
+
+  const hasLeasing = opcoesPagamento.some(o => o.forma === 'leasing');
+
   const calcPMT = (pv: number, rate: number, n: number): number => {
     if (rate === 0) return pv / n;
     const r = rate / 100;
     return pv * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
   };
-  const parcelaLeasing = calcPMT(total, taxaJuros, numParcelas);
+
+  const formaLabel = (f: string) => {
+    const map: Record<string, string> = { boleto: 'Boleto Bancário', cartao: 'Cartão de Crédito', leasing: 'Leasing / Locação', financiamento: 'Financiamento' };
+    return map[f] || f;
+  };
 
   return (
     <div className="min-h-screen bg-muted">
