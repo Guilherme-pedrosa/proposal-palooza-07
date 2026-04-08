@@ -326,9 +326,27 @@ export default function SimuladorROI() {
     }
   };
 
-  const clientesFiltrados = (clientes ?? []).filter(
-    (c: any) => c.nome?.toLowerCase().includes(clienteSearch.toLowerCase())
-  );
+  const clientesFiltrados = useMemo(() => {
+    const termo = clienteSearch.trim().toLowerCase();
+    if (!termo) return clientes ?? [];
+
+    return (clientes ?? []).filter((c: any) => {
+      const nome = c.nome?.toLowerCase() ?? '';
+      const razaoSocial = c.razao_social?.toLowerCase() ?? '';
+      const cidade = c.cidade?.toLowerCase() ?? '';
+      const estado = c.estado?.toLowerCase() ?? '';
+      const cnpj = c.cnpj?.replace(/\D/g, '') ?? '';
+      const termoNumerico = termo.replace(/\D/g, '');
+
+      return (
+        nome.includes(termo) ||
+        razaoSocial.includes(termo) ||
+        cidade.includes(termo) ||
+        estado.includes(termo) ||
+        (termoNumerico.length > 0 && cnpj.includes(termoNumerico))
+      );
+    });
+  }, [clientes, clienteSearch]);
 
   // ── TABELA ECONOMIA PARA PDF ──
   const tabelaEconomia = [
