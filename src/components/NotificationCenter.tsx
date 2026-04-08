@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,11 +20,19 @@ const TIPO_ICONS: Record<string, string> = {
   alerta_proposta: '⏰',
 };
 
+type ProposalRealtimeState = {
+  aberto_em: string | null;
+  aberto_contagem: number;
+  status: string | null;
+};
+
 export function NotificationCenter() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const proposalStateRef = useRef<Record<string, ProposalRealtimeState>>({});
+  const proposalStateReadyRef = useRef(false);
 
   const { data: notificacoes = [], refetch } = useQuery({
     queryKey: ['notificacoes', user?.id],
@@ -42,6 +50,41 @@ export function NotificationCenter() {
   });
 
   const naoLidas = notificacoes.filter((n: any) => !n.lida).length;
+
+  useEffect(() => {
+    if (!user) {
+      proposalStateRef.current = {};
+      proposalStateReadyRef.current = false;
+      return;
+    }
+
+    let cancelled = false;
+    proposalStateReadyRef.current = false;
+
+    supabase
+      .from('propostas')
+      .select('id, aberto_em, aberto_contagem, status')
+      .eq('vendedor_id', user.id)
+      .then(({ data }) => {
+        if (cancelled) return;
+
+        proposalStateRef.current = Object.fromEntries(
+          (data ?? []).map((proposta: any) => [
+            proposta.id,
+            {
+              aberto_em: proposta.aberto_em ?? null,
+              aberto_contagem: proposta.aberto_contagem ?? 0,
+              status: proposta.status ?? null,
+            },
+          ]),
+        );
+        proposalStateReadyRef.current = true;
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   // Realtime: listen for new notifications
   useEffect(() => {
@@ -81,10 +124,16 @@ export function NotificationCenter() {
         filter: `vendedor_id=eq.${user.id}`,
       }, (payload) => {
         const novo = payload.new as any;
-        const antigo = payload.old as any;
+        const anterior = proposalStateRef.current[novo.id];
+
+        proposalStateRef.current[novo.id] = {
+          aberto_em: novo.aberto_em ?? null,
+          aberto_contagem: novo.aberto_contagem ?? 0,
+          status: novo.status ?? null,
+        };
 
         // First view
-        if (!antigo.aberto_em && novo.aberto_em) {
+        if (proposalStateReadyRef.current && !anterior?.aberto_em && novo.aberto_em) {
           toast('👁️ Cliente abriu sua proposta agora!', {
             description: `${novo.numero} — Boa hora de ligar! 📞`,
             duration: 10000,
@@ -101,7 +150,7 @@ export function NotificationCenter() {
         }
 
         // Approved
-        if (antigo.status !== 'aprovada' && novo.status === 'aprovada') {
+        if (proposalStateReadyRef.current && anterior?.status !== 'aprovada' && novo.status === 'aprovada') {
           toast.success('🏆 PROPOSTA APROVADA!', {
             description: `${novo.numero} aprovada! Valor: R$ ${(novo.valor_total || 0).toLocaleString('pt-BR')}`,
             duration: 15000,
