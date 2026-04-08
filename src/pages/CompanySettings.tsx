@@ -605,3 +605,166 @@ function GCSection() {
     </Card>
   );
 }
+
+function InsumosSection() {
+  const queryClient = useQueryClient();
+  const [saving, setSaving] = useState(false);
+  const [editedRows, setEditedRows] = useState<Record<string, any>>({});
+
+  const { data: insumos, isLoading } = useQuery({
+    queryKey: ['insumos_admin'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('insumos_referencia')
+        .select('*')
+        .order('categoria, nome');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const handleEdit = (id: string, field: string, value: any) => {
+    setEditedRows((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], [field]: value },
+    }));
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const updates = Object.entries(editedRows);
+      for (const [id, fields] of updates) {
+        const { error } = await supabase
+          .from('insumos_referencia')
+          .update({ ...fields, atualizado_em: new Date().toISOString() })
+          .eq('id', id);
+        if (error) throw error;
+      }
+      setEditedRows({});
+      queryClient.invalidateQueries({ queryKey: ['insumos_admin'] });
+      toast.success(`${updates.length} insumo(s) atualizado(s)`);
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao salvar');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleToggleAtivo = async (id: string, ativo: boolean) => {
+    await supabase.from('insumos_referencia').update({ ativo: !ativo }).eq('id', id);
+    queryClient.invalidateQueries({ queryKey: ['insumos_admin'] });
+  };
+
+  const formatBRL = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+
+  return (
+    <Card className="shadow-card animate-fade-in lg:col-span-2">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <ChefHat className="h-5 w-5 text-primary" />
+            Base de Insumos (ROI)
+          </CardTitle>
+          {Object.keys(editedRows).length > 0 && (
+            <Button size="sm" onClick={handleSave} disabled={saving} className="gap-1.5">
+              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+              Salvar {Object.keys(editedRows).length} alteração(ões)
+            </Button>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Atualize preços e rendimentos para o simulador de ROI.
+          {insumos && ` Última atualização: ${new Date(Math.max(...insumos.map((i: any) => new Date(i.atualizado_em).getTime()))).toLocaleDateString('pt-BR')}`}
+        </p>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Insumo</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead className="text-right">R$/kg</TableHead>
+                  <TableHead className="text-right">Rend. Bruto</TableHead>
+                  <TableHead className="text-right">Rend. Cocção</TableHead>
+                  <TableHead className="text-right">Porção (g)</TableHead>
+                  <TableHead className="text-right">Custo/porção</TableHead>
+                  <TableHead className="text-center">Ativo</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(insumos ?? []).map((ins: any) => {
+                  const edited = editedRows[ins.id] || {};
+                  const precoKg = edited.preco_kg_referencia ?? ins.preco_kg_referencia;
+                  const rendBruto = edited.rendimento_bruto ?? ins.rendimento_bruto;
+                  const rendCoccao = edited.rendimento_coccao ?? ins.rendimento_coccao;
+                  const porcao = edited.porcao_padrao_g ?? ins.porcao_padrao_g;
+                  const custoCalc = (porcao / 1000 / (rendBruto * rendCoccao)) * precoKg;
+
+                  return (
+                    <TableRow key={ins.id} className={!ins.ativo ? 'opacity-50' : ''}>
+                      <TableCell className="font-medium text-sm">{ins.nome}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">{ins.categoria}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Input
+                          type="number"
+                          step="0.50"
+                          className="w-20 text-right text-sm h-8"
+                          value={precoKg}
+                          onChange={(e) => handleEdit(ins.id, 'preco_kg_referencia', Number(e.target.value))}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          className="w-16 text-right text-sm h-8"
+                          value={rendBruto}
+                          onChange={(e) => handleEdit(ins.id, 'rendimento_bruto', Number(e.target.value))}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          className="w-16 text-right text-sm h-8"
+                          value={rendCoccao}
+                          onChange={(e) => handleEdit(ins.id, 'rendimento_coccao', Number(e.target.value))}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Input
+                          type="number"
+                          className="w-16 text-right text-sm h-8"
+                          value={porcao}
+                          onChange={(e) => handleEdit(ins.id, 'porcao_padrao_g', Number(e.target.value))}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right text-sm font-medium text-primary">
+                        {formatBRL(custoCalc)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Switch
+                          checked={ins.ativo}
+                          onCheckedChange={() => handleToggleAtivo(ins.id, ins.ativo)}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
