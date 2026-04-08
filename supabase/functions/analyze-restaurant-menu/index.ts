@@ -488,25 +488,34 @@ serve(async (req) => {
       discoveryExtra.search_domain_filter = [searchDomain];
     }
 
-    let discoveryCall = await callPerplexity(
-      PERPLEXITY_API_KEY,
-      [
-        { role: "system", content: buildDiscoverySystemPrompt() },
-        {
-          role: "user",
-          content: `Pesquise e extraia o cardápio completo do restaurante nesta URL: ${cardapio_url}
+    let discoveryCall: { parsed: any; finishReason: string | null; content: string } | null = null;
+    let discoveredMenu: any = { pratos_detectados: [] };
+    let discoveredCount = 0;
+    let declaredCount = 0;
+
+    try {
+      discoveryCall = await callPerplexity(
+        PERPLEXITY_API_KEY,
+        [
+          { role: "system", content: buildDiscoverySystemPrompt() },
+          {
+            role: "user",
+            content: `Pesquise e extraia o cardápio completo do restaurante nesta URL: ${cardapio_url}
 
 Busque TODAS as informações disponíveis sobre o cardápio deste restaurante, incluindo pratos, preços e categorias.
 Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
-        },
-      ],
-      "descoberta inicial",
-      discoveryExtra,
-    );
+          },
+        ],
+        "descoberta inicial",
+        discoveryExtra,
+      );
 
-    let discoveredMenu = discoveryCall.parsed;
-    let discoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
-    let declaredCount = getDeclaredCount(discoveredMenu);
+      discoveredMenu = discoveryCall.parsed;
+      discoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
+      declaredCount = getDeclaredCount(discoveredMenu);
+    } catch (initialError) {
+      console.log("Primeira tentativa falhou (possivelmente recusa de acesso). Seguindo para busca ampla...", (initialError as Error).message?.substring(0, 200));
+    }
 
     // If first attempt returned 0 dishes, try a broader web search approach
     if (discoveredCount === 0) {
@@ -543,12 +552,14 @@ Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
     }
 
     if (
-      isTruncated(discoveryCall.finishReason) ||
-      (declaredCount > 0 && discoveredCount < declaredCount) ||
-      (discoveredCount > 0 && discoveredCount < 15)
+      discoveredCount > 0 && (
+        (discoveryCall && isTruncated(discoveryCall.finishReason)) ||
+        (declaredCount > 0 && discoveredCount < declaredCount) ||
+        discoveredCount < 15
+      )
     ) {
       console.log(
-        `Auditoria de descoberta acionada: listados=${discoveredCount}, declarados=${declaredCount}, finish_reason=${discoveryCall.finishReason}`,
+        `Auditoria de descoberta acionada: listados=${discoveredCount}, declarados=${declaredCount}, finish_reason=${discoveryCall?.finishReason}`,
       );
 
       const auditDiscoveryCall = await callPerplexity(
