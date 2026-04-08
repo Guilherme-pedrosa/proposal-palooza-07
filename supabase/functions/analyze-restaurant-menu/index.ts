@@ -162,7 +162,8 @@ RETORNAR EXCLUSIVAMENTE JSON válido neste formato:
       "categoria_menu": "Carnes"
     }
   ]
-}`;
+
+FORMATO DE RESPOSTA: Retorne APENAS o JSON, sem texto antes, sem texto depois, sem markdown, sem \`\`\`json\`\`\`, sem explicação. Comece a resposta com { e termine com }. NADA MAIS.`;
 
 const buildDiscoveryAuditPrompt = (
   cardapioUrl: string,
