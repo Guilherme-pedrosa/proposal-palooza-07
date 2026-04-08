@@ -207,7 +207,10 @@ export default function Catalogo() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold">Catálogo</h1>
-            <Badge variant="secondary" className="text-xs">{produtos.length} produtos</Badge>
+            <Badge variant="secondary" className="text-xs">{filtrados.length} produtos</Badge>
+            {totalPaginas > 1 && (
+              <Badge variant="outline" className="text-xs">Pág. {paginaAtual}/{totalPaginas}</Badge>
+            )}
           </div>
         </div>
 
