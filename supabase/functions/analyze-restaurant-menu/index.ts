@@ -469,8 +469,7 @@ serve(async (req) => {
         },
         {
           role: "user",
-          content:
-            `Analise financeiramente TODOS os pratos da lista-fonte acima sem omitir nenhum item. Inclua obrigatoriamente o objeto materias_primas com as 4 categorias separadas.`,
+          content: `Analise financeiramente TODOS os pratos da lista-fonte acima sem omitir nenhum item. Inclua obrigatoriamente o objeto materias_primas com as 4 categorias separadas. Retorne SOMENTE o JSON, nenhum texto fora do JSON.`,
         },
       ],
       "análise principal",
