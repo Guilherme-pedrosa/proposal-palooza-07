@@ -690,10 +690,13 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
         });
         if (error) throw error;
 
-        totalClientes = data.total_clientes || 0;
+        totalClientes = data.total_clientes || totalClientes;
         totalAtualizados += data.atualizados || 0;
         totalErros += data.erros || 0;
         totalSemCompra += data.sem_compra || 0;
+
+        const processados = data.proximo_offset || (offset + batchSize);
+        setSyncComprasProgress(`Processando ${Math.min(processados, totalClientes)}/${totalClientes} — ${totalAtualizados} atualizados`);
 
         if (!data.tem_mais) break;
         offset = data.proximo_offset;
