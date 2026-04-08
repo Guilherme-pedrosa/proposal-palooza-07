@@ -479,53 +479,119 @@ serve(async (req) => {
       `Analisando cardápio: ${cardapio_url} (${refeicoes_dia} ref/dia × ${dias_mes} dias)`,
     );
 
-    // Extract domain from URL for search filtering
-    let searchDomain: string | undefined;
+    // ── PASSO 1: Baixar o HTML da URL no servidor ──
+    let conteudoCardapio = '';
     try {
-      searchDomain = new URL(cardapio_url).hostname;
-    } catch { /* ignore */ }
+      console.log("Baixando HTML da URL...");
+      const htmlResponse = await fetch(cardapio_url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        },
+      });
+      const html = await htmlResponse.text();
+      console.log(`HTML baixado: ${html.length} chars, status ${htmlResponse.status}`);
 
-    // Don't filter by SPA domains (Goomer, etc.) - they're not indexed
-    const isSPADomain = searchDomain && /goomer|ifood|rappi|aiqfome/i.test(searchDomain);
-    const discoveryExtra: Record<string, unknown> = {};
-    if (searchDomain && !isSPADomain) {
-      discoveryExtra.search_domain_filter = [searchDomain];
+      conteudoCardapio = html
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+        .replace(/<img[^>]*>/gi, '')
+        .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, '')
+        .replace(/data:[^"'\s]*/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/&amp;/gi, '&')
+        .replace(/&lt;/gi, '<')
+        .replace(/&gt;/gi, '>')
+        .replace(/&quot;/gi, '"')
+        .replace(/&#[0-9]+;/gi, '')
+        .replace(/\s{2,}/g, '\n')
+        .trim()
+        .substring(0, 30000);
+
+      console.log(`Conteúdo limpo: ${conteudoCardapio.length} chars`);
+    } catch (fetchErr) {
+      console.error('Fetch HTML falhou:', fetchErr);
+      conteudoCardapio = '';
     }
 
-    let discoveryCall: { parsed: any; finishReason: string | null; content: string } | null = null;
+    const hasHtmlContent = conteudoCardapio.length > 500;
+
+    // ── PASSO 2: Descoberta de pratos ──
     let discoveredMenu: any = { pratos_detectados: [] };
     let discoveredCount = 0;
     let declaredCount = 0;
 
-    try {
-      discoveryCall = await callPerplexity(
-        PERPLEXITY_API_KEY,
-        [
-          { role: "system", content: buildDiscoverySystemPrompt() },
-          {
-            role: "user",
-            content: `Pesquise e extraia o cardápio completo do restaurante nesta URL: ${cardapio_url}
+    // Build discovery system prompt for text-based extraction
+    const textDiscoverySystemPrompt = `Você extrai cardápios de restaurantes a partir de texto.
+Receba o conteúdo de texto de uma página de cardápio e retorne
+SOMENTE um JSON com TODOS os pratos que envolvem preparo em cozinha.
 
-Busque TODAS as informações disponíveis sobre o cardápio deste restaurante, incluindo pratos, preços e categorias.
-Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
-          },
-        ],
-        "descoberta inicial",
-        discoveryExtra,
-      );
+REGRA ABSOLUTA — NÃO INVENTAR PRATOS:
+- Listar SOMENTE pratos que aparecem NO TEXTO fornecido.
+- NÃO completar com pratos "típicos" do segmento.
+- NÃO renomear pratos. Usar o nome EXATO.
+- Para CADA prato, incluir o preco_cardapio EXATO se disponível.
 
-      discoveredMenu = discoveryCall.parsed;
-      discoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
-      declaredCount = getDeclaredCount(discoveredMenu);
-    } catch (initialError) {
-      console.log("Primeira tentativa falhou (possivelmente recusa de acesso). Seguindo para busca ampla...", (initialError as Error).message?.substring(0, 200));
+REGRAS DE COBERTURA:
+- Percorrer TODAS as categorias e seções do texto.
+- NÃO resumir. NÃO agrupar. Cada tamanho/versão é uma linha separada.
+
+Incluir SE EXISTIREM:
+- Petiscos/entradas (bolinhos, croquetas, iscas, caldos)
+- Pratos executivos, completos, compartilhar, individuais
+- Porções de carne, peixes, frango, suínos
+- Guarnições com preparo (batata frita, mandioca, banana milanesa, feijão tropeiro)
+- Sobremesas com preparo
+
+Ignorar APENAS: bebidas prontas, molhos avulsos, itens sem preparo.
+
+RETORNAR EXCLUSIVAMENTE JSON:
+{
+  "restaurante": {
+    "nome": "...",
+    "qtd_pratos_cardapio": 45,
+    "categorias": ["Carnes", "Petiscos"],
+    "ticket_medio": 55,
+    "tipo_operacao_inferido": "churrascaria",
+    "metodo_coccao_predominante": "brasa"
+  },
+  "pratos_detectados": [
+    {"prato": "Costela ao bafo 500g", "preco_cardapio": 124.9, "descricao": "...", "categoria_menu": "Carnes"}
+  ]
+}
+Começar com { e terminar com }. NADA MAIS.`;
+
+    if (hasHtmlContent) {
+      // ── Estratégia A: Mandar o TEXTO extraído (não a URL) ──
+      console.log("Usando estratégia de texto extraído (HTML pre-fetched)");
+      try {
+        const textDiscoveryCall = await callPerplexity(
+          PERPLEXITY_API_KEY,
+          [
+            { role: "system", content: textDiscoverySystemPrompt },
+            {
+              role: "user",
+              content: `Extraia TODOS os pratos deste cardápio:\n\n${conteudoCardapio}`,
+            },
+          ],
+          "descoberta por texto",
+          { web_search: false } as any,
+        );
+
+        discoveredMenu = textDiscoveryCall.parsed;
+        discoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
+        declaredCount = getDeclaredCount(discoveredMenu);
+        console.log(`Descoberta por texto: ${discoveredCount} pratos`);
+      } catch (textErr) {
+        console.error("Descoberta por texto falhou:", (textErr as Error).message?.substring(0, 200));
+      }
     }
 
-    // If first attempt returned few dishes, try a broader web search approach
+    // ── Estratégia B: Fallback - Perplexity busca ampla na web ──
     if (discoveredCount < 5) {
-      console.log(`Primeira tentativa retornou ${discoveredCount} pratos. Tentando busca ampla pelo nome do restaurante...`);
+      console.log(`Poucos pratos (${discoveredCount}). Tentando busca ampla na web...`);
 
-      // Extract restaurant name from URL or from partial result
       const restaurantName = discoveredMenu?.restaurante?.nome ||
         cardapio_url.replace(/https?:\/\//, "").split(/[./]/)[0].replace(/-/g, " ");
 
@@ -540,10 +606,9 @@ Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
 
 URL de referência: ${cardapio_url}
 
-Busque em TODAS as fontes disponíveis na internet: site oficial, Google Maps, iFood, Rappi, TripAdvisor, redes sociais, blogs de gastronomia, avaliações de clientes que mencionam pratos.
+Busque em TODAS as fontes disponíveis: site oficial, Google Maps, iFood, Rappi, TripAdvisor, redes sociais, blogs de gastronomia.
 
 Liste TODOS os pratos com preparo em cozinha que encontrar, com preço quando disponível.
-Se não encontrar preço exato, estime com base no tipo de restaurante e região.
 
 Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
             },
@@ -554,8 +619,9 @@ Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
         discoveredMenu = chooseBestDiscovery(discoveredMenu, broadSearchCall.parsed);
         discoveredCount = getDishCount(discoveredMenu, "pratos_detectados");
         declaredCount = getDeclaredCount(discoveredMenu);
+        console.log(`Descoberta ampla: ${discoveredCount} pratos`);
       } catch (broadError) {
-        console.log("Busca ampla também falhou:", (broadError as Error).message?.substring(0, 200));
+        console.log("Busca ampla falhou:", (broadError as Error).message?.substring(0, 200));
       }
     }
 
