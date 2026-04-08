@@ -922,13 +922,27 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               </table>
             </div>
 
+            {/* Mensalidade após benefícios fiscais */}
+            <div className="rounded-lg p-5" style={{ backgroundColor: '#f0fdf4', border: '2px solid #86efac' }}>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: '#15803d' }}>
+                Mensalidade após benefícios fiscais
+              </p>
+              <p className="text-2xl font-bold" style={{ color: '#15803d' }}>
+                {formatCurrency((totalValue / 36) * (1 - 0.4325))}
+                <span className="text-sm font-normal" style={{ color: '#16a34a' }}>/mês</span>
+              </p>
+              <p className="text-xs mt-2" style={{ color: '#6b7280', lineHeight: '1.6' }}>
+                Parcela de {formatCurrency(totalValue / 36)} com aproveitamento de créditos de PIS e COFINS (9,25%) e deduções de IRPJ (25%) e CSLL (9%) sobre a despesa de locação.
+              </p>
+            </div>
+
             {/* Base legal e disclaimer */}
             <div className="space-y-2">
               <p className="text-xs" style={{ color: '#6b7280' }}>
                 <strong style={{ color: '#374151' }}>Base legal:</strong> Art. 249 e 250 do RIR — Decreto 3.000/1999 · Art. 3º, IV da Lei 10.833/2003 · Art. 15, IV da Lei 10.865/2002
               </p>
               <p className="text-xs italic" style={{ color: '#9ca3af' }}>
-                Valores estimados para fins de simulação. Cada empresa possui particularidades contábeis — consulte seu contador para confirmar os benefícios aplicáveis.
+                * O valor indicado é uma estimativa para empresas no regime de Lucro Real. Consulte seu contador para confirmar a aplicabilidade ao seu CNPJ.
               </p>
             </div>
 
