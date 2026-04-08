@@ -735,7 +735,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                         {formatCurrency(product.unitPrice)}
                       </td>
                       <td className="px-2 py-3 text-right text-xs" style={{ color: product.discount ? '#dc2626' : '#4b5563' }}>
-                        {product.discount ? `-${formatCurrency(product.discount)}` : '-'}
+                        {product.discount ? <span>-{product.discount}%</span> : '-'}
                       </td>
                       <td className="px-3 py-3 text-right text-xs font-semibold" style={{ color: '#111827' }}>
                         {formatCurrency(product.totalPrice)}
