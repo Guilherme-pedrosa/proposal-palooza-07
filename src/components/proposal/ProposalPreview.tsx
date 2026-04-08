@@ -731,13 +731,17 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                       <td className="px-4 py-4 text-center text-sm" style={{ color: '#4b5563' }}>
                         {product.quantity.toFixed(2).replace('.', ',')}
                       </td>
-                      <td className="px-4 py-4 text-right text-sm" style={{ color: '#4b5563' }}>
+                      <td className="px-2 py-3 text-center text-xs" style={{ color: '#4b5563' }}>{product.unit}</td>
+                      <td className="px-2 py-3 text-center text-xs" style={{ color: '#4b5563' }}>
+                        {product.quantity.toFixed(2).replace('.', ',')}
+                      </td>
+                      <td className="px-2 py-3 text-right text-xs" style={{ color: '#4b5563' }}>
                         {formatCurrency(product.unitPrice)}
                       </td>
-                      <td className="px-4 py-4 text-right text-sm" style={{ color: product.discount ? '#dc2626' : '#4b5563' }}>
+                      <td className="px-2 py-3 text-right text-xs" style={{ color: product.discount ? '#dc2626' : '#4b5563' }}>
                         {product.discount ? `-${formatCurrency(product.discount)}` : '-'}
                       </td>
-                      <td className="px-4 py-4 text-right text-sm font-medium" style={{ color: '#111827' }}>
+                      <td className="px-3 py-3 text-right text-xs font-semibold" style={{ color: '#111827' }}>
                         {formatCurrency(product.totalPrice)}
                       </td>
                     </tr>
