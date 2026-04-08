@@ -859,15 +859,33 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           </div>
         )}
 
-        {/* Condições Comerciais — Leasing */}
+        {/* Condições Comerciais */}
         {proposal.templateId && ['rational', 'equipamentos', 'ivario'].includes(proposal.templateId) && totalValue > 0 && (() => {
-          const parcelas = proposal.numParcelas || 36;
-          const taxa = proposal.taxaJuros || 2.303;
+          const taxa = 2.303;
           const taxaDecimal = taxa / 100;
-          const parcelaLeasing = taxaDecimal === 0
-            ? totalValue / parcelas
-            : totalValue * (taxaDecimal * Math.pow(1 + taxaDecimal, parcelas)) / (Math.pow(1 + taxaDecimal, parcelas) - 1);
-          const parcelaComBeneficio = parcelaLeasing * (1 - 0.4325);
+          const pmtCalc = (pv: number, n: number) => taxaDecimal === 0 ? pv / n : pv * (taxaDecimal * Math.pow(1 + taxaDecimal, n)) / (Math.pow(1 + taxaDecimal, n) - 1);
+          
+          const forma1 = proposal.formaPagamento || 'avista';
+          const forma2 = proposal.formaPagamento2 || 'leasing';
+          const parcelas1 = proposal.numParcelas || 1;
+          const parcelas2 = proposal.numParcelas2 || 36;
+          
+          const labelMap: Record<string, string> = { avista: 'À Vista', boleto: 'Boleto', cartao: 'Cartão', leasing: 'Leasing', financiamento: 'Financiamento' };
+          const descMap: Record<string, string> = { avista: 'PIX / Transferência', boleto: 'Boleto Bancário', cartao: 'Cartão de Crédito', leasing: 'Locação de equipamentos', financiamento: 'Financiamento' };
+          
+          const getValor = (forma: string, parcelas: number) => {
+            if (forma === 'avista') return totalValue;
+            if (forma === 'leasing') return pmtCalc(totalValue, parcelas);
+            return totalValue / parcelas;
+          };
+          const getLabel = (forma: string, parcelas: number) => {
+            if (forma === 'avista') return labelMap[forma];
+            return `${labelMap[forma] || forma} ${parcelas}x`;
+          };
+
+          const hasLeasing = forma1 === 'leasing' || forma2 === 'leasing';
+          const leasingParcelas = forma1 === 'leasing' ? parcelas1 : parcelas2;
+          const parcelaLeasing = hasLeasing ? pmtCalc(totalValue, leasingParcelas) : 0;
 
           return (
           <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
@@ -892,18 +910,24 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               <p className="text-4xl font-bold tracking-tight" style={{ color: '#111827' }}>{formatCurrency(totalValue)}</p>
             </div>
 
-            {/* 2 Modalidades — À Vista + Leasing */}
+            {/* 2 Modalidades */}
             <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="rounded-lg p-5" style={{ backgroundColor: '#fafafa', border: '1px solid #e5e7eb' }}>
-                <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: '#6b7280' }}>À Vista</p>
-                <p className="text-xl font-bold" style={{ color: '#111827' }}>{formatCurrency(totalValue)}</p>
-                <p className="text-xs mt-1" style={{ color: '#9ca3af' }}>PIX / Transferência</p>
-              </div>
-              <div className="rounded-lg p-5" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-                <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: '#15803d' }}>Leasing {parcelas}x</p>
-                <p className="text-xl font-bold" style={{ color: '#15803d' }}>{formatCurrency(parcelaLeasing)}<span className="text-sm font-normal">/mês</span></p>
-                <p className="text-xs mt-1" style={{ color: '#16a34a' }}>Locação de equipamentos ({taxa.toFixed(3).replace('.', ',')}% a.m.)</p>
-              </div>
+              {[{ forma: forma1, parcelas: parcelas1 }, { forma: forma2, parcelas: parcelas2 }].map((opt, idx) => {
+                const isLeasing = opt.forma === 'leasing';
+                return (
+                  <div key={idx} className="rounded-lg p-5" style={{ backgroundColor: isLeasing ? '#f0fdf4' : '#fafafa', border: isLeasing ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
+                    <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: isLeasing ? '#15803d' : '#6b7280' }}>{getLabel(opt.forma, opt.parcelas)}</p>
+                    <p className="text-xl font-bold" style={{ color: isLeasing ? '#15803d' : '#111827' }}>
+                      {formatCurrency(getValor(opt.forma, opt.parcelas))}
+                      {opt.forma !== 'avista' && <span className="text-sm font-normal">/mês</span>}
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: isLeasing ? '#16a34a' : '#9ca3af' }}>
+                      {descMap[opt.forma] || opt.forma}
+                      {isLeasing && ` (${taxa.toFixed(3).replace('.', ',')}% a.m.)`}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Separador */}
