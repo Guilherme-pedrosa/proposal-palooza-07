@@ -246,11 +246,19 @@ export default function PropostaEditor() {
       setAnexos((proposta as any).anexos ?? []);
       setValidadeDias(String(proposta.validade_dias ?? 10));
       setObservacoesInternas(proposta.observacoes_internas ?? '');
-      setFormaPagamento(proposta.forma_pagamento ?? '');
+      setFormaPagamento(proposta.forma_pagamento ?? 'avista');
       setNumParcelas(proposta.num_parcelas ?? 1);
       setEntradaPercent(proposta.entrada_percent ?? 0);
-      // taxaJuros is now fixed at 2.303%
-      setCondicoesPagamento(proposta.condicoes_pagamento ?? '');
+      // Load second payment option from condicoes_pagamento JSON
+      try {
+        const cond = JSON.parse(proposta.condicoes_pagamento || '{}');
+        if (cond.forma2) setFormaPagamento2(cond.forma2);
+        if (cond.parcelas2) setNumParcelas2(cond.parcelas2);
+        if (cond.texto) setCondicoesPagamento(cond.texto);
+        else setCondicoesPagamento('');
+      } catch {
+        setCondicoesPagamento(proposta.condicoes_pagamento ?? '');
+      }
       setPrazoEntrega(proposta.prazo_entrega ?? '');
       setStatus(proposta.status ?? 'rascunho');
       setVersao(proposta.versao);
