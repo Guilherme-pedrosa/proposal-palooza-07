@@ -18,7 +18,7 @@ import {
   fetchPropostaByUuid, registrarVisualizacao, aprovarProposta, formatBRL,
   STATUS_PROPOSTA, type PropostaRow, type StatusProposta,
 } from '@/lib/api/propostas';
-import { useCompany } from '@/contexts/CompanyContext';
+import { supabase } from '@/integrations/supabase/client';
 import logoWedoDefault from '@/assets/logo-wedo.png';
 
 export default function PropostaPublica() {
