@@ -19,24 +19,65 @@ const jsonResponse = (payload: unknown, status = 200) =>
   new Response(JSON.stringify(payload), { status, headers: jsonHeaders });
 
 const extractJsonObject = (content: string) => {
-  // 1. Try direct parse
-  try { return JSON.parse(content); } catch { /* continue */ }
+  const cleanedBase = String(content ?? "")
+    .replace(/```json\s*/gi, "")
+    .replace(/```\s*/g, "")
+    .replace(/[\u0000-\u001F\u007F]/g, "")
+    .trim();
 
-  // 2. Try extracting from ```json ... ``` code block
-  const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (codeBlockMatch) {
-    try { return JSON.parse(codeBlockMatch[1].trim()); } catch { /* continue */ }
+  const tryParse = (value: string) => {
+    const repaired = value
+      .replace(/,\s*}/g, "}")
+      .replace(/,\s*]/g, "]")
+      .trim();
+    return JSON.parse(repaired);
+  };
+
+  try {
+    return tryParse(cleanedBase);
+  } catch {
+    // continue
   }
 
-  // 3. Try finding the largest { ... } block
-  const jsonMatches = content.match(/\{[\s\S]*\}/g);
-  if (jsonMatches) {
-    const longest = jsonMatches.sort((a: string, b: string) => b.length - a.length)[0];
-    try { return JSON.parse(longest); } catch { /* continue */ }
+  const codeBlockMatch = cleanedBase.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (codeBlockMatch?.[1]) {
+    try {
+      return tryParse(codeBlockMatch[1]);
+    } catch {
+      // continue
+    }
   }
 
-  console.error("JSON parse falhou. Resposta raw:", content?.substring(0, 500));
-  throw new Error("Nenhum JSON válido encontrado na resposta da IA");
+  const objectStart = cleanedBase.search(/[\{\[]/);
+  if (objectStart !== -1) {
+    const opening = cleanedBase[objectStart];
+    const closing = opening === "[" ? "]" : "}";
+    const objectEnd = cleanedBase.lastIndexOf(closing);
+
+    if (objectEnd > objectStart) {
+      try {
+        return tryParse(cleanedBase.slice(objectStart, objectEnd + 1));
+      } catch {
+        // continue
+      }
+    }
+  }
+
+  const objectMatches = cleanedBase.match(/\{[\s\S]*\}/g) ?? [];
+  const arrayMatches = cleanedBase.match(/\[[\s\S]*\]/g) ?? [];
+  const candidates = [...objectMatches, ...arrayMatches].sort((a, b) => b.length - a.length);
+
+  for (const candidate of candidates) {
+    try {
+      return tryParse(candidate);
+    } catch {
+      // continue
+    }
+  }
+
+  const rawPreview = cleanedBase.substring(0, 300);
+  console.error("JSON parse falhou. Resposta raw:", rawPreview);
+  throw new Error(`Nenhum JSON válido encontrado na resposta da IA. Preview: ${rawPreview}`);
 };
 
 const normalizeText = (value: string) =>
