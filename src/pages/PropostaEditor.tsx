@@ -245,20 +245,25 @@ export default function PropostaEditor() {
       setAnexos((proposta as any).anexos ?? []);
       setValidadeDias(String(proposta.validade_dias ?? 10));
       setObservacoesInternas(proposta.observacoes_internas ?? '');
-      setFormaPagamento(proposta.forma_pagamento ?? 'avista');
-      setNumParcelas(proposta.num_parcelas ?? 1);
-      setEntradaPercent(proposta.entrada_percent ?? 0);
-      // Load second payment option from condicoes_pagamento JSON
+      // Load payment options from condicoes_pagamento JSON
       try {
         const cond = JSON.parse(proposta.condicoes_pagamento || '{}');
-        if (cond.forma2) setFormaPagamento2(cond.forma2);
-        if (cond.parcelas2) setNumParcelas2(cond.parcelas2);
+        if (cond.opcoesPagamento) {
+          setOpcoesPagamento(cond.opcoesPagamento);
+        } else {
+          // Legacy: migrate old format
+          const opts: PaymentOption[] = [];
+          if (proposta.forma_pagamento && proposta.forma_pagamento !== 'avista') {
+            opts.push({ id: crypto.randomUUID(), forma: proposta.forma_pagamento, parcelas: proposta.num_parcelas ?? 1, entrada: proposta.entrada_percent ?? 0, juros: cond.taxaJurosCartao ?? 0 });
+          }
+          if (cond.forma2 && cond.forma2 !== 'avista') {
+            opts.push({ id: crypto.randomUUID(), forma: cond.forma2, parcelas: cond.parcelas2 ?? 1, entrada: cond.entradaPercent2 ?? 0, juros: cond.taxaJurosCartao2 ?? 0 });
+          }
+          if (opts.length > 0) setOpcoesPagamento(opts);
+        }
+        if (cond.descontoAVista) setDescontoAVista(cond.descontoAVista);
         if (cond.texto) setCondicoesPagamento(cond.texto);
         else setCondicoesPagamento('');
-        if (cond.descontoAVista) setDescontoAVista(cond.descontoAVista);
-        if (cond.entradaPercent2) setEntradaPercent2(cond.entradaPercent2);
-        if (cond.taxaJurosCartao) setTaxaJurosCartao(cond.taxaJurosCartao);
-        if (cond.taxaJurosCartao2) setTaxaJurosCartao2(cond.taxaJurosCartao2);
       } catch {
         setCondicoesPagamento(proposta.condicoes_pagamento ?? '');
       }
