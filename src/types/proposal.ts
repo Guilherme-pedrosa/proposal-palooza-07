@@ -49,10 +49,12 @@ export interface Proposal {
   companyPhone: string;
   companyEmail?: string;
   templateId?: string;
-  // Payment / leasing fields
+  // Payment fields
   numParcelas?: number;
   taxaJuros?: number;
   formaPagamento?: string;
+  formaPagamento2?: string;
+  numParcelas2?: number;
 }
 
 export interface SavedTermCondition {
