@@ -19,14 +19,24 @@ const jsonResponse = (payload: unknown, status = 200) =>
   new Response(JSON.stringify(payload), { status, headers: jsonHeaders });
 
 const extractJsonObject = (content: string) => {
-  const start = content.indexOf("{");
-  const end = content.lastIndexOf("}");
+  // 1. Try direct parse
+  try { return JSON.parse(content); } catch { /* continue */ }
 
-  if (start === -1 || end === -1 || end <= start) {
-    throw new Error("Nenhum JSON encontrado na resposta da IA");
+  // 2. Try extracting from ```json ... ``` code block
+  const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (codeBlockMatch) {
+    try { return JSON.parse(codeBlockMatch[1].trim()); } catch { /* continue */ }
   }
 
-  return JSON.parse(content.slice(start, end + 1));
+  // 3. Try finding the largest { ... } block
+  const jsonMatches = content.match(/\{[\s\S]*\}/g);
+  if (jsonMatches) {
+    const longest = jsonMatches.sort((a: string, b: string) => b.length - a.length)[0];
+    try { return JSON.parse(longest); } catch { /* continue */ }
+  }
+
+  console.error("JSON parse falhou. Resposta raw:", content?.substring(0, 500));
+  throw new Error("Nenhum JSON válido encontrado na resposta da IA");
 };
 
 const normalizeText = (value: string) =>
@@ -159,7 +169,8 @@ RETORNAR EXCLUSIVAMENTE JSON válido neste formato:
       "categoria_menu": "Carnes"
     }
   ]
-}`;
+
+FORMATO DE RESPOSTA: Retorne APENAS o JSON, sem texto antes, sem texto depois, sem markdown, sem \`\`\`json\`\`\`, sem explicação. Comece a resposta com { e termine com }. NADA MAIS.`;
 
 const buildDiscoveryAuditPrompt = (
   cardapioUrl: string,
@@ -309,7 +320,9 @@ RETORNAR EXCLUSIVAMENTE JSON válido neste formato:
     "economia_mensal_total": 0,
     "economia_anual": 0
   }
-}`;
+}
+
+FORMATO DE RESPOSTA: Retorne APENAS o JSON, sem texto antes, sem texto depois, sem markdown, sem \`\`\`json\`\`\`, sem explicação. Comece a resposta com { e termine com }. NADA MAIS.`;
 
 const buildAnalysisAuditPrompt = (
   discoveredMenu: any,
@@ -406,8 +419,7 @@ serve(async (req) => {
         { role: "system", content: buildDiscoverySystemPrompt() },
         {
           role: "user",
-          content:
-            `Acesse esta URL e liste TODOS os pratos com preparo: ${cardapio_url}`,
+          content: `Acesse esta URL: ${cardapio_url}\nExtraia TODOS os pratos com preparo e retorne SOMENTE o JSON. Nenhum texto fora do JSON.`,
         },
       ],
       "descoberta inicial",
@@ -473,8 +485,7 @@ serve(async (req) => {
         },
         {
           role: "user",
-          content:
-            `Analise financeiramente TODOS os pratos da lista-fonte acima sem omitir nenhum item. Inclua obrigatoriamente o objeto materias_primas com as 4 categorias separadas.`,
+          content: `Analise financeiramente TODOS os pratos da lista-fonte acima sem omitir nenhum item. Inclua obrigatoriamente o objeto materias_primas com as 4 categorias separadas. Retorne SOMENTE o JSON, nenhum texto fora do JSON.`,
         },
       ],
       "análise principal",
