@@ -1010,8 +1010,14 @@ export default function PropostaEditor() {
                   </div>
                   <div className="flex items-end">
                     <div className="text-right w-full">
-                      <p className="text-xs text-muted-foreground">Parcela estimada ({taxaJuros.toFixed(3).replace('.', ',')}% a.m.)</p>
+                      <p className="text-xs text-muted-foreground">Parcela ({taxaJuros.toFixed(3).replace('.', ',')}% a.m.)</p>
                       <p className="text-lg font-bold text-primary">{formatBRL(calcPMT(total, taxaJuros, numParcelas || 36))}/mês</p>
+                    </div>
+                  </div>
+                  <div className="flex items-end">
+                    <div className="text-right w-full bg-emerald-100 dark:bg-emerald-900/40 rounded-lg p-2">
+                      <p className="text-xs text-emerald-700 dark:text-emerald-400 font-medium">Após benefícios fiscais</p>
+                      <p className="text-lg font-bold text-emerald-700 dark:text-emerald-400">{formatBRL(calcPMT(total, taxaJuros, numParcelas || 36) * (1 - 0.4325))}/mês</p>
                     </div>
                   </div>
                 </div>
