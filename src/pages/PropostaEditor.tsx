@@ -979,136 +979,95 @@ export default function PropostaEditor() {
 
             <Separator />
 
-            {/* Opção 1 de Pagamento */}
-            <div className="space-y-3 rounded-lg border p-3">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs">Opção 1</Badge>
-                <Select value={formaPagamento} onValueChange={(v) => {
-                  setFormaPagamento(v);
-                  if (v === 'leasing' && numParcelas < 12) setNumParcelas(36);
-                }}>
-                  <SelectTrigger className="h-8"><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="boleto">Boleto</SelectItem>
-                    <SelectItem value="cartao">Cartão de Crédito</SelectItem>
-                    <SelectItem value="leasing">Leasing / Locação</SelectItem>
-                    <SelectItem value="financiamento">Financiamento</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {formaPagamento && formaPagamento !== 'leasing' && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-xs">Entrada (%)</Label>
-                    <Input type="number" min={0} max={100} value={entradaPercent || ''} onChange={(e) => setEntradaPercent(parseFloat(e.target.value) || 0)} className="h-8" />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Nº Parcelas</Label>
-                    <Input type="number" min={1} max={120} value={numParcelas} onChange={(e) => setNumParcelas(parseInt(e.target.value) || 1)} className="h-8" />
-                  </div>
-                </div>
-              )}
-              {formaPagamento === 'cartao' && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-xs">Juros cartão (% a.m.)</Label>
-                    <Input type="number" min={0} max={10} step={0.01} value={taxaJurosCartao || ''} onChange={(e) => setTaxaJurosCartao(parseFloat(e.target.value) || 0)} className="h-8" placeholder="0" />
-                  </div>
-                  <div className="flex items-end">
-                    <p className="text-sm font-bold text-primary">
-                      {formatBRL(taxaJurosCartao > 0 ? calcPMT(total * (1 - (entradaPercent || 0) / 100), taxaJurosCartao, numParcelas || 1) : (total * (1 - (entradaPercent || 0) / 100)) / (numParcelas || 1))}/mês
-                    </p>
-                  </div>
-                </div>
-              )}
-              {formaPagamento && formaPagamento !== 'leasing' && formaPagamento !== 'cartao' && (
-                <div className="flex items-end">
-                  <p className="text-sm font-bold text-primary">
-                    {entradaPercent > 0 && <span className="text-xs font-normal text-muted-foreground mr-1">Entrada: {formatBRL(total * entradaPercent / 100)} + </span>}
-                    {formatBRL((total * (1 - (entradaPercent || 0) / 100)) / (numParcelas || 1))}/mês
-                  </p>
-                </div>
-              )}
-              {formaPagamento === 'leasing' && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-xs">Prazo (meses)</Label>
-                    <Input type="number" min={1} max={60} value={numParcelas || ''} onChange={(e) => setNumParcelas(e.target.value === '' ? 0 : parseInt(e.target.value) || 0)} className="h-8" />
-                  </div>
-                  <div className="flex items-end">
-                    <p className="text-sm font-bold text-primary">{formatBRL(calcPMT(total, taxaJuros, numParcelas || 36))}/mês</p>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Dynamic Payment Options */}
+            {opcoesPagamento.map((opt, idx) => {
+              const updateOpt = (field: keyof PaymentOption, value: any) => {
+                setOpcoesPagamento(prev => prev.map((o, i) => {
+                  if (i !== idx) return o;
+                  const updated = { ...o, [field]: value };
+                  if (field === 'forma') {
+                    if (value === 'leasing' && updated.parcelas < 12) updated.parcelas = 36;
+                    if (value !== 'cartao') updated.juros = 0;
+                  }
+                  return updated;
+                }));
+              };
 
-            {/* Opção 2 de Pagamento */}
-            <div className="space-y-3 rounded-lg border p-3">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs">Opção 2</Badge>
-                <Select value={formaPagamento2} onValueChange={(v) => {
-                  setFormaPagamento2(v);
-                  if (v === 'leasing' && numParcelas2 < 12) setNumParcelas2(36);
-                }}>
-                  <SelectTrigger className="h-8"><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="boleto">Boleto</SelectItem>
-                    <SelectItem value="cartao">Cartão de Crédito</SelectItem>
-                    <SelectItem value="leasing">Leasing / Locação</SelectItem>
-                    <SelectItem value="financiamento">Financiamento</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {formaPagamento2 && formaPagamento2 !== 'leasing' && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-xs">Entrada (%)</Label>
-                    <Input type="number" min={0} max={100} value={entradaPercent2 || ''} onChange={(e) => setEntradaPercent2(parseFloat(e.target.value) || 0)} className="h-8" />
+              return (
+                <div key={opt.id} className="space-y-3 rounded-lg border p-3">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs">Opção {idx + 1}</Badge>
+                    <Select value={opt.forma} onValueChange={(v) => updateOpt('forma', v)}>
+                      <SelectTrigger className="h-8 flex-1"><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="boleto">Boleto</SelectItem>
+                        <SelectItem value="cartao">Cartão de Crédito</SelectItem>
+                        <SelectItem value="leasing">Leasing / Locação</SelectItem>
+                        <SelectItem value="financiamento">Financiamento</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {opcoesPagamento.length > 1 && (
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setOpcoesPagamento(prev => prev.filter((_, i) => i !== idx))}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
-                  <div>
-                    <Label className="text-xs">Nº Parcelas</Label>
-                    <Input type="number" min={1} max={120} value={numParcelas2} onChange={(e) => setNumParcelas2(parseInt(e.target.value) || 1)} className="h-8" />
-                  </div>
+                  {opt.forma !== 'leasing' && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs">Entrada (%)</Label>
+                        <Input type="number" min={0} max={100} value={opt.entrada || ''} onChange={(e) => updateOpt('entrada', parseFloat(e.target.value) || 0)} className="h-8" />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Nº Parcelas</Label>
+                        <Input type="number" min={1} max={120} value={opt.parcelas} onChange={(e) => updateOpt('parcelas', parseInt(e.target.value) || 1)} className="h-8" />
+                      </div>
+                    </div>
+                  )}
+                  {opt.forma === 'cartao' && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs">Juros cartão (% a.m.)</Label>
+                        <Input type="number" min={0} max={10} step={0.01} value={opt.juros || ''} onChange={(e) => updateOpt('juros', parseFloat(e.target.value) || 0)} className="h-8" placeholder="0" />
+                      </div>
+                      <div className="flex items-end">
+                        <p className="text-sm font-bold text-primary">
+                          {formatBRL(opt.juros > 0 ? calcPMT(total * (1 - (opt.entrada || 0) / 100), opt.juros, opt.parcelas || 1) : (total * (1 - (opt.entrada || 0) / 100)) / (opt.parcelas || 1))}/mês
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {opt.forma !== 'leasing' && opt.forma !== 'cartao' && (
+                    <div className="flex items-end">
+                      <p className="text-sm font-bold text-primary">
+                        {opt.entrada > 0 && <span className="text-xs font-normal text-muted-foreground mr-1">Entrada: {formatBRL(total * opt.entrada / 100)} + </span>}
+                        {formatBRL((total * (1 - (opt.entrada || 0) / 100)) / (opt.parcelas || 1))}/mês
+                      </p>
+                    </div>
+                  )}
+                  {opt.forma === 'leasing' && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs">Prazo (meses)</Label>
+                        <Input type="number" min={1} max={60} value={opt.parcelas || ''} onChange={(e) => updateOpt('parcelas', e.target.value === '' ? 0 : parseInt(e.target.value) || 0)} className="h-8" />
+                      </div>
+                      <div className="flex items-end">
+                        <p className="text-sm font-bold text-primary">{formatBRL(calcPMT(total, taxaJuros, opt.parcelas || 36))}/mês</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-              {formaPagamento2 === 'cartao' && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-xs">Juros cartão (% a.m.)</Label>
-                    <Input type="number" min={0} max={10} step={0.01} value={taxaJurosCartao2 || ''} onChange={(e) => setTaxaJurosCartao2(parseFloat(e.target.value) || 0)} className="h-8" placeholder="0" />
-                  </div>
-                  <div className="flex items-end">
-                    <p className="text-sm font-bold text-primary">
-                      {formatBRL(taxaJurosCartao2 > 0 ? calcPMT(total * (1 - (entradaPercent2 || 0) / 100), taxaJurosCartao2, numParcelas2 || 1) : (total * (1 - (entradaPercent2 || 0) / 100)) / (numParcelas2 || 1))}/mês
-                    </p>
-                  </div>
-                </div>
-              )}
-              {formaPagamento2 && formaPagamento2 !== 'leasing' && formaPagamento2 !== 'cartao' && (
-                <div className="flex items-end">
-                  <p className="text-sm font-bold text-primary">
-                    {entradaPercent2 > 0 && <span className="text-xs font-normal text-muted-foreground mr-1">Entrada: {formatBRL(total * entradaPercent2 / 100)} + </span>}
-                    {formatBRL((total * (1 - (entradaPercent2 || 0) / 100)) / (numParcelas2 || 1))}/mês
-                  </p>
-                </div>
-              )}
-              {formaPagamento2 === 'leasing' && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-xs">Prazo (meses)</Label>
-                    <Input type="number" min={1} max={60} value={numParcelas2 || ''} onChange={(e) => setNumParcelas2(e.target.value === '' ? 0 : parseInt(e.target.value) || 0)} className="h-8" />
-                  </div>
-                  <div className="flex items-end">
-                    <p className="text-sm font-bold text-primary">{formatBRL(calcPMT(total, taxaJuros, numParcelas2 || 36))}/mês</p>
-                  </div>
-                </div>
-              )}
-            </div>
+              );
+            })}
 
-            {/* Leasing benefits summary (if either option is leasing) */}
-            {(formaPagamento === 'leasing' || formaPagamento2 === 'leasing') && total > 0 && (() => {
-              const leasingParcelas = formaPagamento === 'leasing' ? numParcelas : numParcelas2;
-              const parcelaLeasing = calcPMT(total, taxaJuros, leasingParcelas || 36);
+            <Button variant="outline" size="sm" className="gap-1.5 w-full" onClick={() => setOpcoesPagamento(prev => [...prev, { id: crypto.randomUUID(), forma: 'boleto', parcelas: 6, entrada: 0, juros: 0 }])}>
+              <Plus className="h-4 w-4" /> Adicionar opção de pagamento
+            </Button>
+
+            {/* Leasing benefits summary (if any option is leasing) */}
+            {opcoesPagamento.some(o => o.forma === 'leasing') && total > 0 && (() => {
+              const leasingOpt = opcoesPagamento.find(o => o.forma === 'leasing')!;
+              const parcelaLeasing = calcPMT(total, taxaJuros, leasingOpt.parcelas || 36);
               return (
                 <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 space-y-2 text-sm">
                   <p className="font-medium text-foreground flex items-center gap-1">🏦 Simulação Leasing</p>
@@ -1123,7 +1082,7 @@ export default function PropostaEditor() {
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Total financiado: {formatBRL(parcelaLeasing * (leasingParcelas || 36))} (juros: {formatBRL(parcelaLeasing * (leasingParcelas || 36) - total)})
+                    Total financiado: {formatBRL(parcelaLeasing * (leasingOpt.parcelas || 36))} (juros: {formatBRL(parcelaLeasing * (leasingOpt.parcelas || 36) - total)})
                   </p>
                   <Separator />
                   <div className="space-y-1">
