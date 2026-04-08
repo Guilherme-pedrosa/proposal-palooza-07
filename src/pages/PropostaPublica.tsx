@@ -83,18 +83,53 @@ export default function PropostaPublica() {
   const subtotal = produtos.reduce((s: number, p: any) => s + (p.quantity || 0) * (p.unitPrice || 0), 0);
   const descontoTotal = produtos.reduce((s: number, p: any) => s + ((p.quantity || 0) * (p.unitPrice || 0) * ((p.discount || 0) / 100)), 0);
   const total = subtotal - descontoTotal;
-  const isLeasing = proposta.forma_pagamento === 'leasing';
-  const numParcelas = proposta.num_parcelas || 1;
-  const entradaPercent = proposta.entrada_percent || 0;
-  const taxaJuros = 2.303;
 
-  // PMT formula (Price) for leasing with interest
+  // Parse new flexible payment options from condicoes_pagamento JSON
+  let opcoesPagamento: { id: string; forma: string; parcelas: number; entrada: number; juros: number }[] = [];
+  let descontoAVista = 0;
+  let descontoAVistaTipo: 'percent' | 'value' = 'percent';
+  let textoCondicoes = '';
+
+  if (proposta.condicoes_pagamento) {
+    try {
+      const parsed = JSON.parse(proposta.condicoes_pagamento);
+      if (parsed.opcoesPagamento) {
+        opcoesPagamento = parsed.opcoesPagamento;
+        descontoAVista = parsed.descontoAVista || 0;
+        descontoAVistaTipo = parsed.descontoAVistaTipo || 'percent';
+        textoCondicoes = parsed.texto || '';
+      } else {
+        // Legacy format — treat condicoes_pagamento as plain text
+        textoCondicoes = proposta.condicoes_pagamento;
+      }
+    } catch {
+      textoCondicoes = proposta.condicoes_pagamento;
+    }
+  }
+
+  // Fallback to old single fields if no opcoesPagamento
+  if (opcoesPagamento.length === 0 && proposta.forma_pagamento) {
+    opcoesPagamento = [{
+      id: 'legacy',
+      forma: proposta.forma_pagamento,
+      parcelas: proposta.num_parcelas || 1,
+      entrada: proposta.entrada_percent || 0,
+      juros: proposta.forma_pagamento === 'leasing' ? 2.303 : 0,
+    }];
+  }
+
+  const hasLeasing = opcoesPagamento.some(o => o.forma === 'leasing');
+
   const calcPMT = (pv: number, rate: number, n: number): number => {
     if (rate === 0) return pv / n;
     const r = rate / 100;
     return pv * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
   };
-  const parcelaLeasing = calcPMT(total, taxaJuros, numParcelas);
+
+  const formaLabel = (f: string) => {
+    const map: Record<string, string> = { boleto: 'Boleto Bancário', cartao: 'Cartão de Crédito', leasing: 'Leasing / Locação', financiamento: 'Financiamento' };
+    return map[f] || f;
+  };
 
   return (
     <div className="min-h-screen bg-muted">
@@ -218,51 +253,66 @@ export default function PropostaPublica() {
         )}
 
         {/* Payment Conditions */}
-        {proposta.forma_pagamento && total > 0 && (
+        {(opcoesPagamento.length > 0 || descontoAVista > 0) && total > 0 && (
           <Card>
             <CardHeader className="py-3 px-4">
               <CardTitle className="text-sm">Condições de Pagamento</CardTitle>
             </CardHeader>
-            <CardContent className="px-4 pb-4 space-y-3">
-              {proposta.forma_pagamento === 'avista' && (
-                <div className="text-center py-2">
-                  <p className="text-sm text-muted-foreground">Pagamento à vista</p>
-                  <p className="text-2xl font-bold text-primary">{formatBRL(total)}</p>
-                  <p className="text-xs text-muted-foreground mt-1">PIX / Transferência Bancária</p>
-                </div>
-              )}
-              {proposta.forma_pagamento !== 'avista' && proposta.forma_pagamento !== 'leasing' && (
-                <div className="space-y-2">
-                  {entradaPercent > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span>Entrada ({entradaPercent}%)</span>
-                      <span className="font-medium">{formatBRL(total * entradaPercent / 100)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-sm">
-                    <span>Saldo restante</span>
-                    <span className="font-medium">{formatBRL(total * (1 - entradaPercent / 100))}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>{numParcelas}x de</span>
-                    <span className="text-primary">{formatBRL((total * (1 - entradaPercent / 100)) / numParcelas)}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground capitalize">
-                    Forma: {proposta.forma_pagamento === 'boleto' ? 'Boleto Bancário' : proposta.forma_pagamento === 'cartao' ? 'Cartão de Crédito' : proposta.forma_pagamento === 'financiamento' ? 'Financiamento' : proposta.forma_pagamento}
+            <CardContent className="px-4 pb-4 space-y-4">
+              {/* À Vista */}
+              {descontoAVista > 0 && (
+                <div className="text-center py-3 rounded-lg bg-primary/5 border border-primary/20">
+                  <p className="text-xs text-muted-foreground uppercase font-medium mb-1">À Vista (PIX / Transferência)</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {formatBRL(descontoAVistaTipo === 'percent' ? total * (1 - descontoAVista / 100) : total - descontoAVista)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Desconto: {descontoAVistaTipo === 'percent' ? `${descontoAVista}%` : formatBRL(descontoAVista)}
                   </p>
                 </div>
               )}
-              {isLeasing && (
-                <div className="space-y-3">
-                  <div className="text-center py-2">
-                    <p className="text-sm text-muted-foreground">Leasing / Locação — {numParcelas} meses{taxaJuros > 0 ? ` (${taxaJuros.toFixed(2).replace('.', ',')}% a.m.)` : ''}</p>
-                    <p className="text-2xl font-bold text-primary">{formatBRL(parcelaLeasing)}/mês</p>
-                  </div>
+
+              {/* Dynamic payment options */}
+              {opcoesPagamento.length > 0 && (
+                <div className={`grid gap-3 ${opcoesPagamento.length === 1 ? 'grid-cols-1' : opcoesPagamento.length === 2 ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
+                  {opcoesPagamento.map((op, idx) => {
+                    const saldo = total * (1 - (op.entrada || 0) / 100);
+                    const juros = op.forma === 'leasing' ? 2.303 : (op.juros || 0);
+                    const parcela = juros > 0 ? calcPMT(saldo, juros, op.parcelas) : saldo / op.parcelas;
+
+                    return (
+                      <div key={op.id} className="rounded-lg border p-3 space-y-2">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase">Opção {idx + 1}</p>
+                        <p className="text-xs text-muted-foreground">{formaLabel(op.forma)}</p>
+                        {(op.entrada || 0) > 0 && (
+                          <>
+                            <div className="flex justify-between text-sm">
+                              <span>Entrada ({op.entrada}%)</span>
+                              <span className="font-medium">{formatBRL(total * op.entrada / 100)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span>Saldo</span>
+                              <span className="font-medium">{formatBRL(saldo)}</span>
+                            </div>
+                          </>
+                        )}
+                        <div className="flex justify-between font-bold text-lg">
+                          <span>{op.parcelas}x de</span>
+                          <span className="text-primary">{formatBRL(parcela)}</span>
+                        </div>
+                        {juros > 0 && (
+                          <p className="text-[10px] text-muted-foreground">
+                            Juros: {juros.toFixed(2).replace('.', ',')}% a.m.
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
-              {proposta.condicoes_pagamento && (
-                <p className="text-sm text-muted-foreground whitespace-pre-line border-t pt-2">{proposta.condicoes_pagamento}</p>
+
+              {textoCondicoes && (
+                <p className="text-sm text-muted-foreground whitespace-pre-line border-t pt-2">{textoCondicoes}</p>
               )}
               {proposta.prazo_entrega && (
                 <p className="text-sm text-muted-foreground">
@@ -274,59 +324,62 @@ export default function PropostaPublica() {
         )}
 
         {/* Leasing Fiscal Benefits */}
-        {isLeasing && total > 0 && (
-          <Card>
-            <CardHeader className="py-3 px-4">
-              <CardTitle className="text-sm">Benefício Fiscal — Leasing</CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 pb-4 space-y-3">
-              <p className="text-sm" style={{ color: '#374151' }}>
-                Empresas no regime de <strong>Lucro Real</strong> podem contabilizar as parcelas de locação como despesa operacional dedutível, com economia potencial de até <strong>43,25%</strong> do valor do contrato.
-              </p>
-              <div className="overflow-hidden rounded-lg border">
-                <table className="w-full text-sm">
-                  <tbody>
-                    {[
-                      { nome: 'IRPJ', aliq: '25%', val: total * 0.25 },
-                      { nome: 'CSLL', aliq: '9%', val: total * 0.09 },
-                      { nome: 'PIS', aliq: '1,65%', val: total * 0.0165 },
-                      { nome: 'COFINS', aliq: '7,6%', val: total * 0.076 },
-                    ].map((t, i) => (
-                      <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-muted/30'}>
-                        <td className="px-3 py-2 font-medium">{t.nome} ({t.aliq})</td>
-                        <td className="px-3 py-2 text-right font-semibold text-emerald-700">{formatBRL(t.val)}</td>
+        {hasLeasing && total > 0 && (() => {
+          const leasingOp = opcoesPagamento.find(o => o.forma === 'leasing')!;
+          const saldoL = total * (1 - (leasingOp.entrada || 0) / 100);
+          const parcelaL = calcPMT(saldoL, 2.303, leasingOp.parcelas);
+          return (
+            <Card>
+              <CardHeader className="py-3 px-4">
+                <CardTitle className="text-sm">Benefício Fiscal — Leasing</CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 pb-4 space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Empresas no regime de <strong>Lucro Real</strong> podem contabilizar as parcelas de locação como despesa operacional dedutível, com economia potencial de até <strong>43,25%</strong> do valor do contrato.
+                </p>
+                <div className="overflow-hidden rounded-lg border">
+                  <table className="w-full text-sm">
+                    <tbody>
+                      {[
+                        { nome: 'IRPJ', aliq: '25%', val: total * 0.25 },
+                        { nome: 'CSLL', aliq: '9%', val: total * 0.09 },
+                        { nome: 'PIS', aliq: '1,65%', val: total * 0.0165 },
+                        { nome: 'COFINS', aliq: '7,6%', val: total * 0.076 },
+                      ].map((t, i) => (
+                        <tr key={i} className={i % 2 === 0 ? 'bg-background' : 'bg-muted/30'}>
+                          <td className="px-3 py-2 font-medium">{t.nome} ({t.aliq})</td>
+                          <td className="px-3 py-2 text-right font-semibold text-emerald-700">{formatBRL(t.val)}</td>
+                        </tr>
+                      ))}
+                      <tr className="bg-emerald-50 border-t-2 border-emerald-200">
+                        <td className="px-3 py-2 font-bold">Economia potencial</td>
+                        <td className="px-3 py-2 text-right font-bold text-emerald-700">{formatBRL(total * 0.4325)}</td>
                       </tr>
-                    ))}
-                    <tr className="bg-emerald-50 border-t-2 border-emerald-200">
-                      <td className="px-3 py-2 font-bold">Economia potencial</td>
-                      <td className="px-3 py-2 text-right font-bold text-emerald-700">{formatBRL(total * 0.4325)}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              {/* Mensalidade após benefícios fiscais */}
-              <div className="rounded-lg p-4 bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-300 dark:border-emerald-700">
-                <p className="text-xs font-medium uppercase tracking-wide text-emerald-600 dark:text-emerald-400 mb-1">
-                  Mensalidade após benefícios fiscais
+                    </tbody>
+                  </table>
+                </div>
+                <div className="rounded-lg p-4 bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-300 dark:border-emerald-700">
+                  <p className="text-xs font-medium uppercase tracking-wide text-emerald-600 dark:text-emerald-400 mb-1">
+                    Mensalidade após benefícios fiscais
+                  </p>
+                  <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+                    {formatBRL(parcelaL * (1 - 0.4325))}
+                    <span className="text-sm font-normal text-emerald-600 dark:text-emerald-400">/mês</span>
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Parcela de {formatBRL(parcelaL)} com aproveitamento de créditos de PIS e COFINS (9,25%) e deduções de IRPJ (25%) e CSLL (9%) sobre a despesa de locação.
+                  </p>
+                </div>
+                <p className="text-[10px] text-muted-foreground italic">
+                  Estimativa de economia tributária potencial, sujeita ao regime tributário, existência de lucro tributável, enquadramento da operação, uso do bem na atividade e validação contábil/fiscal.
                 </p>
-                <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
-                  {formatBRL(parcelaLeasing * (1 - 0.4325))}
-                  <span className="text-sm font-normal text-emerald-600 dark:text-emerald-400">/mês</span>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Base legal: Decreto 3.000/99 · Lei 10.833/03 · Lei 10.865/02.
                 </p>
-                <p className="text-[11px] text-muted-foreground mt-1">
-                  Parcela de {formatBRL(parcelaLeasing)} com aproveitamento de créditos de PIS e COFINS (9,25%) e deduções de IRPJ (25%) e CSLL (9%) sobre a despesa de locação.
-                </p>
-              </div>
-
-              <p className="text-[10px] text-muted-foreground italic">
-                Estimativa de economia tributária potencial, sujeita ao regime tributário, existência de lucro tributável, enquadramento da operação, uso do bem na atividade e validação contábil/fiscal.
-              </p>
-              <p className="text-[10px] text-muted-foreground mt-1">
-                Base legal: Decreto 3.000/99 · Lei 10.833/03 · Lei 10.865/02.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Terms */}
         {termos.length > 0 && (
