@@ -430,16 +430,9 @@ export default function PropostaEditor() {
     companyPhone: company.phone,
     companyEmail: company.email || undefined,
     templateId: templateId || undefined,
-    formaPagamento,
-    formaPagamento2,
-    numParcelas,
-    numParcelas2,
+    opcoesPagamento,
     taxaJuros,
     descontoAVista,
-    entradaPercent,
-    entradaPercent2,
-    taxaJurosCartao,
-    taxaJurosCartao2,
   });
 
   const handleSave = async (newStatus?: string) => {
