@@ -137,6 +137,10 @@ export default function PropostaEditor() {
   const [numParcelas, setNumParcelas] = useState(1);
   const [numParcelas2, setNumParcelas2] = useState(36);
   const [entradaPercent, setEntradaPercent] = useState(0);
+  const [entradaPercent2, setEntradaPercent2] = useState(0);
+  const [descontoAVista, setDescontoAVista] = useState(0);
+  const [taxaJurosCartao, setTaxaJurosCartao] = useState(0);
+  const [taxaJurosCartao2, setTaxaJurosCartao2] = useState(0);
   const taxaJuros = 2.303;
   const [leasingDialogOpen, setLeasingDialogOpen] = useState(false);
   const [status, setStatus] = useState<string>('rascunho');
