@@ -440,7 +440,7 @@ export default function SimuladorROI() {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-[350px] p-0" align="start">
-                        <Command>
+                        <Command shouldFilter={false}>
                           <CommandInput placeholder="Buscar..." value={clienteSearch} onValueChange={setClienteSearch} />
                           <CommandList>
                             <CommandEmpty>Nenhum cliente encontrado</CommandEmpty>
@@ -448,6 +448,7 @@ export default function SimuladorROI() {
                               {clientesFiltrados.slice(0, 50).map((c: any) => (
                                 <CommandItem
                                   key={c.id}
+                                  value={`${c.nome} ${c.razao_social ?? ''} ${c.cidade ?? ''} ${c.estado ?? ''} ${c.cnpj ?? ''}`}
                                   onSelect={() => {
                                     setClienteSelecionado(c);
                                     setClienteOpen(false);
