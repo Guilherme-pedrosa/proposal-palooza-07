@@ -1,0 +1,1 @@
+ALTER TABLE public.clientes_gc ADD COLUMN valor_atrasado_gc numeric DEFAULT 0;

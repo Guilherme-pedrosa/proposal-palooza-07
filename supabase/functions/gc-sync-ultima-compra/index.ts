@@ -26,8 +26,7 @@ Deno.serve(async (req) => {
     });
   }
 
-  // Accept limit/offset from body for chunked processing
-  let limit = 50; // default: process 50 clients per call
+  let limit = 50;
   let offset = 0;
   try {
     const body = await req.json();
@@ -43,7 +42,6 @@ Deno.serve(async (req) => {
     'Content-Type': 'application/json',
   };
 
-  // Get clients in chunks using offset/limit
   const { data: clientes, error: dbError, count } = await supabase
     .from('clientes_gc')
     .select('id, gc_id, nome', { count: 'exact' })
@@ -63,130 +61,79 @@ Deno.serve(async (req) => {
   let erros = 0;
   let semCompra = 0;
 
-  // Fetch ONE page from GC (up to 100 records, sorted by date desc to get most recent first)
-  async function fetchGCPage(endpoint: string, clienteGcId: string, pagina = 1): Promise<{ records: any[]; hasMore: boolean }> {
-    const params = new URLSearchParams({
-      loja_id: GC_LOJA_ID,
-      cliente_id: clienteGcId,
-      limite: '100',
-      pagina: String(pagina),
-      ordenacao: 'data',
-      direcao: 'desc',
-    });
-
-    try {
-      const res = await fetch(`${GC_BASE_URL}/${endpoint}?${params}`, { headers: gcHeaders });
-      if (!res.ok) {
-        console.error(`${endpoint} HTTP ${res.status} for client ${clienteGcId}`);
-        return { records: [], hasMore: false };
-      }
-      const body = await res.json();
-      const records = body?.data || [];
-      if (!Array.isArray(records)) return { records: [], hasMore: false };
-      
-      const meta = body?.meta;
-      const hasMore = !!(meta?.proxima_pagina) && records.length >= 100;
-      return { records, hasMore };
-    } catch (e) {
-      console.error(`Erro ${endpoint} client ${clienteGcId}:`, e);
-      return { records: [], hasMore: false };
-    }
-  }
-
-  // Fetch ALL pages for total calculation
-  async function fetchAllGC(endpoint: string, clienteGcId: string): Promise<any[]> {
+  // Fetch ALL pages from a GC endpoint
+  async function fetchAllGC(endpoint: string, params: Record<string, string>): Promise<any[]> {
     const allRecords: any[] = [];
     let pagina = 1;
 
     while (true) {
-      const { records, hasMore } = await fetchGCPage(endpoint, clienteGcId, pagina);
-      allRecords.push(...records);
-      if (!hasMore || records.length === 0) break;
-      pagina++;
-      await new Promise(r => setTimeout(r, DELAY_MS));
+      const searchParams = new URLSearchParams({
+        loja_id: GC_LOJA_ID,
+        limite: '100',
+        pagina: String(pagina),
+        ...params,
+      });
+
+      try {
+        const res = await fetch(`${GC_BASE_URL}/${endpoint}?${searchParams}`, { headers: gcHeaders });
+        if (!res.ok) {
+          console.error(`${endpoint} HTTP ${res.status}`);
+          break;
+        }
+        const body = await res.json();
+        const records = body?.data || [];
+        if (!Array.isArray(records) || records.length === 0) break;
+        allRecords.push(...records);
+        if (!body?.meta?.proxima_pagina || records.length < 100) break;
+        pagina++;
+        await new Promise(r => setTimeout(r, DELAY_MS));
+      } catch (e) {
+        console.error(`Erro ${endpoint}:`, e);
+        break;
+      }
     }
     return allRecords;
   }
 
   for (const cliente of clientes) {
     try {
-      // Fetch ALL vendas
-      const vendas = await fetchAllGC('vendas', cliente.gc_id);
+      // 1) Buscar vendas e OS para calcular total_compras e ultima_compra
+      const vendas = await fetchAllGC('vendas', {
+        cliente_id: cliente.gc_id,
+        ordenacao: 'data',
+        direcao: 'desc',
+      });
       await new Promise(r => setTimeout(r, DELAY_MS));
 
-      // Fetch ALL ordens de serviço
-      const ordens = await fetchAllGC('ordens_servicos', cliente.gc_id);
+      const ordens = await fetchAllGC('ordens_servicos', {
+        cliente_id: cliente.gc_id,
+        ordenacao: 'data',
+        direcao: 'desc',
+      });
       await new Promise(r => setTimeout(r, DELAY_MS));
 
-      // Situações que efetivamente geram financeiro (excluem orçamento, pedido, etc.)
-      const situacoesComFinanceiro = new Set([
-        'aprovado', 'aprovada', 'faturado', 'faturada',
-        'concluido', 'concluída', 'concluida',
-        'entregue', 'finalizado', 'finalizada',
-      ]);
-
-      // Calculate totals from vendas
+      // Calcular totais (excluindo cancelados)
       let totalVendas = 0;
       let ultimaDataVenda: string | null = null;
-      let financeiroAtrasado = false;
-      const hoje = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-
       for (const v of vendas) {
-        const situacao = String(v.situacao || '').toLowerCase();
-        if (situacao === 'cancelado' || situacao === 'cancelada') continue;
-
+        const sit = String(v.situacao || '').toLowerCase();
+        if (sit === 'cancelado' || sit === 'cancelada') continue;
         totalVendas += parseFloat(v.valor_total || '0') || 0;
         const d = v.data || null;
-        if (d && (!ultimaDataVenda || d > ultimaDataVenda)) {
-          ultimaDataVenda = d;
-        }
-        // Só checa financeiro se a situação gera financeiro E financeiro não está quitado
-        if (situacoesComFinanceiro.has(situacao) &&
-            (v.situacao_financeiro === '0' || v.situacao_financeiro === 0)) {
-          const pagamentos = v.pagamentos || [];
-          for (const p of pagamentos) {
-            const pg = p.pagamento || p;
-            if (pg.data_vencimento && pg.data_vencimento < hoje) {
-              financeiroAtrasado = true;
-            }
-          }
-        }
+        if (d && (!ultimaDataVenda || d > ultimaDataVenda)) ultimaDataVenda = d;
       }
 
-      // Check OS financeiro too — mesma lógica
-      for (const o of ordens) {
-        const situacaoOS = String(o.situacao || '').toLowerCase();
-        if (situacaoOS === 'cancelado' || situacaoOS === 'cancelada') continue;
-
-        if (situacoesComFinanceiro.has(situacaoOS) &&
-            (o.situacao_financeiro === '0' || o.situacao_financeiro === 0)) {
-          const pagamentos = o.pagamentos || [];
-          for (const p of pagamentos) {
-            const pg = p.pagamento || p;
-            if (pg.data_vencimento && pg.data_vencimento < hoje) {
-              financeiroAtrasado = true;
-            }
-          }
-        }
-      }
-
-      // Calculate totals from OS
       let totalOS = 0;
       let ultimaDataOS: string | null = null;
       for (const o of ordens) {
-        const situacaoOS2 = String(o.situacao || '').toLowerCase();
-        if (situacaoOS2 === 'cancelado' || situacaoOS2 === 'cancelada') continue;
-
+        const sit = String(o.situacao || '').toLowerCase();
+        if (sit === 'cancelado' || sit === 'cancelada') continue;
         totalOS += parseFloat(o.valor_total || '0') || 0;
         const d = o.data || null;
-        if (d && (!ultimaDataOS || d > ultimaDataOS)) {
-          ultimaDataOS = d;
-        }
+        if (d && (!ultimaDataOS || d > ultimaDataOS)) ultimaDataOS = d;
       }
 
       const totalCompras = totalVendas + totalOS;
-
-      // Most recent date between vendas and OS
       let ultimaCompra: string | null = null;
       if (ultimaDataVenda && ultimaDataOS) {
         ultimaCompra = ultimaDataVenda > ultimaDataOS ? ultimaDataVenda : ultimaDataOS;
@@ -194,10 +141,24 @@ Deno.serve(async (req) => {
         ultimaCompra = ultimaDataVenda || ultimaDataOS;
       }
 
+      // 2) Buscar recebimentos em atraso diretamente do módulo financeiro
+      const recebimentosAtrasados = await fetchAllGC('recebimentos', {
+        cliente_id: cliente.gc_id,
+        liquidado: 'at', // "at" = em atraso
+      });
+      await new Promise(r => setTimeout(r, DELAY_MS));
+
+      const financeiroAtrasado = recebimentosAtrasados.length > 0;
+      let valorAtrasado = 0;
+      for (const r of recebimentosAtrasados) {
+        valorAtrasado += parseFloat(r.valor_total || r.valor || '0') || 0;
+      }
+
       if (ultimaCompra || totalCompras > 0 || financeiroAtrasado) {
         const updateData: Record<string, any> = {
           total_compras_gc: totalCompras,
           financeiro_atrasado: financeiroAtrasado,
+          valor_atrasado_gc: valorAtrasado,
         };
         if (ultimaCompra) {
           updateData.ultima_compra_gc = ultimaCompra;
@@ -213,12 +174,14 @@ Deno.serve(async (req) => {
           erros++;
         } else {
           atualizados++;
-          const flag = financeiroAtrasado ? ' ⚠️ ATRASADO' : '';
+          const flag = financeiroAtrasado ? ` ⚠️ ATRASADO R$${valorAtrasado.toFixed(2)}` : '';
           console.log(`✅ ${cliente.nome}: R$ ${totalCompras.toFixed(2)} (${vendas.length}V, ${ordens.length}OS) última: ${ultimaCompra}${flag}`);
         }
       } else {
-        // Reset flag if no overdue
-        await supabase.from('clientes_gc').update({ financeiro_atrasado: false }).eq('id', cliente.id);
+        await supabase.from('clientes_gc').update({
+          financeiro_atrasado: false,
+          valor_atrasado_gc: 0,
+        }).eq('id', cliente.id);
         semCompra++;
       }
     } catch (e) {
