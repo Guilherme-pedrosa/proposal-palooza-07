@@ -403,8 +403,7 @@ serve(async (req) => {
         { role: "system", content: buildDiscoverySystemPrompt() },
         {
           role: "user",
-          content:
-            `Acesse esta URL e liste TODOS os pratos com preparo: ${cardapio_url}`,
+          content: `Acesse esta URL: ${cardapio_url}\nExtraia TODOS os pratos com preparo e retorne SOMENTE o JSON. Nenhum texto fora do JSON.`,
         },
       ],
       "descoberta inicial",
