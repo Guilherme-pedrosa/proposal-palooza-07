@@ -141,9 +141,20 @@ export async function deleteProposta(id: string) {
 }
 
 export async function registrarVisualizacao(id: string, proposta: PropostaRow) {
+  // Fetch visitor IP
+  let ip: string | null = null;
+  try {
+    const res = await fetch('https://api.ipify.org?format=json');
+    const data = await res.json();
+    ip = data.ip || null;
+  } catch {
+    ip = null;
+  }
+
   await supabase.from('propostas').update({
     aberto_em: proposta.aberto_em || new Date().toISOString(),
     aberto_contagem: (proposta.aberto_contagem ?? 0) + 1,
+    aberto_por_ip: ip,
     status: proposta.status === 'enviada' ? 'visualizada' : proposta.status,
   } as any).eq('id', id);
 }
