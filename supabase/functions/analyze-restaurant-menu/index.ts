@@ -101,10 +101,25 @@ const getDeclaredCount = (payload: any) => {
 const isTruncated = (finishReason?: string | null) =>
   finishReason === "length" || finishReason === "max_tokens";
 
+const REFUSAL_PATTERNS = [
+  /n[aã]o consigo acessar/i,
+  /n[aã]o posso acessar/i,
+  /n[aã]o tenho acesso/i,
+  /cannot access/i,
+  /can'?t access/i,
+  /unable to access/i,
+  /n[aã]o consigo navegar/i,
+  /n[aã]o posso navegar/i,
+];
+
+const isRefusal = (text: string) =>
+  REFUSAL_PATTERNS.some((p) => p.test(text));
+
 const callPerplexity = async (
   apiKey: string,
   messages: Array<{ role: "system" | "user"; content: string }>,
   stage: string,
+  extraBody?: Record<string, unknown>,
 ) => {
   const response = await fetch(PERPLEXITY_URL, {
     method: "POST",
@@ -117,6 +132,7 @@ const callPerplexity = async (
       messages,
       max_tokens: PERPLEXITY_MAX_TOKENS,
       temperature: 0.1,
+      ...extraBody,
     }),
   });
 
@@ -146,6 +162,13 @@ const callPerplexity = async (
   const content = responseJson?.choices?.[0]?.message?.content;
   if (!content) {
     throw new Error(`A IA não retornou conteúdo na etapa ${stage}`);
+  }
+
+  if (isRefusal(content)) {
+    console.error(`Perplexity recusou acessar a URL na etapa ${stage}:`, content.substring(0, 300));
+    throw new Error(
+      `A IA não conseguiu acessar o cardápio online. Verifique se a URL está correta e acessível publicamente. Cardápios em apps como Goomer/iFood podem não ser acessíveis para análise automática.`,
+    );
   }
 
   return {
