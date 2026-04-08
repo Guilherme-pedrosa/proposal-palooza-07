@@ -531,6 +531,9 @@ export default function CompanySettings() {
 
         {/* GestãoClick Integration */}
         <GCSection />
+
+        {/* Insumos Admin */}
+        <InsumosSection />
       </div>
     </MainLayout>
   );
