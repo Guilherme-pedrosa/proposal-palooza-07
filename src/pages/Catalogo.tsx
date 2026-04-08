@@ -182,6 +182,22 @@ export default function Catalogo() {
       });
   }, [produtos, categoriaAtiva, busca, filtroTipo, filtroDisponivel, filtroGrupo, apenasDestaques]);
 
+  // Reset page when filters change
+  useEffect(() => {
+    setPaginaAtual(1);
+  }, [categoriaAtiva, busca, filtroTipo, filtroDisponivel, filtroGrupo, apenasDestaques]);
+
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / ITENS_POR_PAGINA));
+  const paginados = useMemo(() => {
+    const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
+    return filtrados.slice(inicio, inicio + ITENS_POR_PAGINA);
+  }, [filtrados, paginaAtual, ITENS_POR_PAGINA]);
+
+  const irParaPagina = useCallback((p: number) => {
+    setPaginaAtual(Math.max(1, Math.min(p, totalPaginas)));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [totalPaginas]);
+
   const cacheTime = getCacheTimestamp();
 
   return (
