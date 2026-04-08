@@ -237,8 +237,8 @@ export default function PropostaPublica() {
               {isLeasing && (
                 <div className="space-y-3">
                   <div className="text-center py-2">
-                    <p className="text-sm text-muted-foreground">Leasing / Locação — {numParcelas} meses</p>
-                    <p className="text-2xl font-bold text-primary">{formatBRL(total / numParcelas)}/mês</p>
+                    <p className="text-sm text-muted-foreground">Leasing / Locação — {numParcelas} meses{taxaJuros > 0 ? ` (${taxaJuros.toFixed(2).replace('.', ',')}% a.m.)` : ''}</p>
+                    <p className="text-2xl font-bold text-primary">{formatBRL(parcelaLeasing)}/mês</p>
                   </div>
                 </div>
               )}
