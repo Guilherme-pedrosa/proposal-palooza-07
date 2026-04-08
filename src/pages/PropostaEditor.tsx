@@ -36,7 +36,7 @@ import { useGC } from '@/contexts/GCContext';
 import { useCompany } from '@/contexts/CompanyContext';
 import { tabelasPrecoApi } from '@/lib/api/tabelasPreco';
 import type { ProdutoGCRow } from '@/lib/api/produtosGC';
-import type { Proposal as ProposalPrintType } from '@/types/proposal';
+import type { Proposal as ProposalPrintType, PaymentOption } from '@/types/proposal';
 
 interface PropostaProduct {
   id: string;
