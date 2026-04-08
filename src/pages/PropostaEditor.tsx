@@ -451,7 +451,7 @@ export default function PropostaEditor() {
         num_parcelas: numParcelas,
         entrada_percent: entradaPercent,
         taxa_juros: 2.303,
-        condicoes_pagamento: condicoesPagamento || null,
+        condicoes_pagamento: JSON.stringify({ forma2: formaPagamento2, parcelas2: numParcelas2, texto: condicoesPagamento || '' }),
         prazo_entrega: prazoEntrega || null,
       };
 
