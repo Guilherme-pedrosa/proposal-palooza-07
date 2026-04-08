@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BarChart3, Users, UtensilsCrossed, FileText, MapPin } from 'lucide-react';
+import { Home, BarChart3, Users, UtensilsCrossed, FileText, MapPin, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,10 +8,10 @@ import { isBefore, isToday, startOfDay } from 'date-fns';
 
 const items = [
   { icon: Home, label: 'Hoje', href: '/hoje' },
+  { icon: CheckSquare, label: 'Tarefas', href: '/tarefas' },
   { icon: BarChart3, label: 'Pipeline', href: '/pipeline' },
   { icon: MapPin, label: 'Mapa', href: '/mapa' },
   { icon: Users, label: 'Clientes', href: '/clientes' },
-  { icon: UtensilsCrossed, label: 'Catálogo', href: '/catalogo' },
   { icon: FileText, label: 'Propostas', href: '/propostas' },
 ];
 
