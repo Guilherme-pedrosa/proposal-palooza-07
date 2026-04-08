@@ -132,15 +132,10 @@ export default function PropostaEditor() {
   const [condicoesPagamento, setCondicoesPagamento] = useState('');
   const [prazoEntrega, setPrazoEntrega] = useState('');
   const [observacoesInternas, setObservacoesInternas] = useState('');
-  const [formaPagamento, setFormaPagamento] = useState('');
-  const [formaPagamento2, setFormaPagamento2] = useState('leasing');
-  const [numParcelas, setNumParcelas] = useState(1);
-  const [numParcelas2, setNumParcelas2] = useState(36);
-  const [entradaPercent, setEntradaPercent] = useState(0);
-  const [entradaPercent2, setEntradaPercent2] = useState(0);
+  const [opcoesPagamento, setOpcoesPagamento] = useState<PaymentOption[]>([
+    { id: crypto.randomUUID(), forma: 'leasing', parcelas: 36, entrada: 0, juros: 0 },
+  ]);
   const [descontoAVista, setDescontoAVista] = useState(0);
-  const [taxaJurosCartao, setTaxaJurosCartao] = useState(0);
-  const [taxaJurosCartao2, setTaxaJurosCartao2] = useState(0);
   const taxaJuros = 2.303;
   const [leasingDialogOpen, setLeasingDialogOpen] = useState(false);
   const [status, setStatus] = useState<string>('rascunho');
