@@ -318,8 +318,11 @@ export default function PropostaPublica() {
                 </p>
               </div>
 
-              <p className="text-[10px] text-muted-foreground">
-                * O valor indicado é uma estimativa para empresas no regime de Lucro Real. Consulte seu contador para confirmar a aplicabilidade ao seu CNPJ. Base legal: Decreto 3.000/99 · Lei 10.833/03 · Lei 10.865/02.
+              <p className="text-[10px] text-muted-foreground italic">
+                Estimativa de economia tributária potencial, sujeita ao regime tributário, existência de lucro tributável, enquadramento da operação, uso do bem na atividade e validação contábil/fiscal.
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Base legal: Decreto 3.000/99 · Lei 10.833/03 · Lei 10.865/02.
               </p>
             </CardContent>
           </Card>
