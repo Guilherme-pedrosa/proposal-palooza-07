@@ -99,6 +99,7 @@ interface ClienteGeo {
   segmento: string | null; latitude: number; longitude: number;
   total_compras_gc: number | null; ultima_compra_gc: string | null;
   gc_id: string; financeiro_atrasado: boolean | null;
+  valor_atrasado_gc: number | null;
 }
 
 interface OportunidadeGeo {
@@ -304,7 +305,7 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('clientes_gc')
-        .select('id, gc_id, nome, razao_social, cnpj, telefone, celular, email, cidade, estado, endereco, segmento, latitude, longitude, total_compras_gc, ultima_compra_gc, financeiro_atrasado')
+        .select('id, gc_id, nome, razao_social, cnpj, telefone, celular, email, cidade, estado, endereco, segmento, latitude, longitude, total_compras_gc, ultima_compra_gc, financeiro_atrasado, valor_atrasado_gc')
         .eq('geocodificado', true)
         .not('latitude', 'is', null)
         .not('longitude', 'is', null);
@@ -1197,6 +1198,9 @@ function MapaInner({ mapsKey }: { mapsKey: string }) {
                     <div className="text-xs" style={{ color: '#374151' }}>
                       {selectedClient.segmento && <p>🏷️ {selectedClient.segmento}</p>}
                       <p>📊 {getClientStatusLabel(selectedClient.ultima_compra_gc, !!selectedClient.financeiro_atrasado)}</p>
+                      {selectedClient.financeiro_atrasado && selectedClient.valor_atrasado_gc && selectedClient.valor_atrasado_gc > 0 && (
+                        <p style={{ color: '#EA580C' }}>⚠️ Em atraso: {formatBRL(selectedClient.valor_atrasado_gc)}</p>
+                      )}
                       {selectedClient.total_compras_gc && selectedClient.total_compras_gc > 0 && <p>💰 Total: {formatBRL(selectedClient.total_compras_gc)}</p>}
                     </div>
                     {/* Histórico resumido */}
