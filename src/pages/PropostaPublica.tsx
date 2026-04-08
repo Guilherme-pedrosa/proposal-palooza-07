@@ -285,8 +285,22 @@ export default function PropostaPublica() {
                   </tbody>
                 </table>
               </div>
+              {/* Mensalidade após benefícios fiscais */}
+              <div className="rounded-lg p-4 bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-300 dark:border-emerald-700">
+                <p className="text-xs font-medium uppercase tracking-wide text-emerald-600 dark:text-emerald-400 mb-1">
+                  Mensalidade após benefícios fiscais
+                </p>
+                <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+                  {formatBRL(parcelaLeasing * (1 - 0.4325))}
+                  <span className="text-sm font-normal text-emerald-600 dark:text-emerald-400">/mês</span>
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Parcela de {formatBRL(parcelaLeasing)} com aproveitamento de créditos de PIS e COFINS (9,25%) e deduções de IRPJ (25%) e CSLL (9%) sobre a despesa de locação.
+                </p>
+              </div>
+
               <p className="text-[10px] text-muted-foreground">
-                Base: Art. 249/250 Decreto 3.000/99 · Lei 10.833/03 · Lei 10.865/02. Valores estimados — consulte seu contador.
+                * O valor indicado é uma estimativa para empresas no regime de Lucro Real. Consulte seu contador para confirmar a aplicabilidade ao seu CNPJ. Base legal: Decreto 3.000/99 · Lei 10.833/03 · Lei 10.865/02.
               </p>
             </CardContent>
           </Card>
