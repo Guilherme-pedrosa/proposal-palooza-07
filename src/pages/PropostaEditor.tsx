@@ -260,6 +260,10 @@ export default function PropostaEditor() {
         if (cond.parcelas2) setNumParcelas2(cond.parcelas2);
         if (cond.texto) setCondicoesPagamento(cond.texto);
         else setCondicoesPagamento('');
+        if (cond.descontoAVista) setDescontoAVista(cond.descontoAVista);
+        if (cond.entradaPercent2) setEntradaPercent2(cond.entradaPercent2);
+        if (cond.taxaJurosCartao) setTaxaJurosCartao(cond.taxaJurosCartao);
+        if (cond.taxaJurosCartao2) setTaxaJurosCartao2(cond.taxaJurosCartao2);
       } catch {
         setCondicoesPagamento(proposta.condicoes_pagamento ?? '');
       }
@@ -431,6 +435,11 @@ export default function PropostaEditor() {
     numParcelas,
     numParcelas2,
     taxaJuros,
+    descontoAVista,
+    entradaPercent,
+    entradaPercent2,
+    taxaJurosCartao,
+    taxaJurosCartao2,
   });
 
   const handleSave = async (newStatus?: string) => {
@@ -460,7 +469,7 @@ export default function PropostaEditor() {
         num_parcelas: numParcelas,
         entrada_percent: entradaPercent,
         taxa_juros: 2.303,
-        condicoes_pagamento: JSON.stringify({ forma2: formaPagamento2, parcelas2: numParcelas2, texto: condicoesPagamento || '' }),
+        condicoes_pagamento: JSON.stringify({ forma2: formaPagamento2, parcelas2: numParcelas2, texto: condicoesPagamento || '', descontoAVista, entradaPercent2, taxaJurosCartao, taxaJurosCartao2 }),
         prazo_entrega: prazoEntrega || null,
       };
 
