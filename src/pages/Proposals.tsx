@@ -141,7 +141,8 @@ export default function Proposals() {
 
                   {(p.aberto_contagem ?? 0) > 0 && (
                     <p className="text-xs text-purple-600 mb-1">
-                      👁️ Visualizada {p.aberto_contagem}x{p.aberto_em ? ` em ${format(new Date(p.aberto_em), 'dd/MM', { locale: ptBR })}` : ''}
+                      👁️ Visualizada {p.aberto_contagem}x{p.aberto_em ? ` em ${format(new Date(p.aberto_em), 'dd/MM HH:mm', { locale: ptBR })}` : ''}
+                      {p.aberto_por_ip && <span className="ml-1 text-muted-foreground">• IP: {p.aberto_por_ip}</span>}
                     </p>
                   )}
 
