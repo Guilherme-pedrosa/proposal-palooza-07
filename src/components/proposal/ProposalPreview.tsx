@@ -971,13 +971,15 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               </p>
             </div>
 
-            {/* Base legal e disclaimer */}
-            <div className="space-y-2 mt-3">
-              <p className="text-xs" style={{ color: '#6b7280' }}>
-                <strong style={{ color: '#374151' }}>Base legal:</strong> Art. 249 e 250 do RIR — Decreto 3.000/1999 · Art. 3º, IV da Lei 10.833/2003 · Art. 15, IV da Lei 10.865/2002
-              </p>
-              <p className="text-xs italic" style={{ color: '#9ca3af' }}>
-                * O valor indicado é uma estimativa para empresas no regime de Lucro Real. Consulte seu contador para confirmar a aplicabilidade ao seu CNPJ.
+            {/* Disclaimer após benefícios */}
+            <p className="text-xs italic mt-3" style={{ color: '#6b7280', lineHeight: '1.6' }}>
+              Estimativa de economia tributária potencial, sujeita ao regime tributário, existência de lucro tributável, enquadramento da operação, uso do bem na atividade e validação contábil/fiscal.
+            </p>
+
+            {/* Base legal */}
+            <div className="space-y-1 mt-2">
+              <p className="text-xs" style={{ color: '#9ca3af' }}>
+                <strong style={{ color: '#6b7280' }}>Base legal:</strong> Art. 249 e 250 do RIR — Decreto 3.000/1999 · Art. 3º, IV da Lei 10.833/2003 · Art. 15, IV da Lei 10.865/2002
               </p>
             </div>
 
