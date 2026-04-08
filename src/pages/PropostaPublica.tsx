@@ -86,7 +86,7 @@ export default function PropostaPublica() {
   const isLeasing = proposta.forma_pagamento === 'leasing';
   const numParcelas = proposta.num_parcelas || 1;
   const entradaPercent = proposta.entrada_percent || 0;
-  const taxaJuros = (proposta as any).taxa_juros || 0;
+  const taxaJuros = 2.303;
 
   // PMT formula (Price) for leasing with interest
   const calcPMT = (pv: number, rate: number, n: number): number => {
