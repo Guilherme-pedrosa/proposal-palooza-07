@@ -930,70 +930,75 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               })}
             </div>
 
-            {/* Separador */}
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex-1 h-px" style={{ backgroundColor: '#e5e7eb' }}></div>
-              <span className="text-xs font-medium uppercase tracking-widest" style={{ color: '#9ca3af' }}>Benefício fiscal — Leasing</span>
-              <div className="flex-1 h-px" style={{ backgroundColor: '#e5e7eb' }}></div>
-            </div>
+            {/* Leasing section — only if one option is leasing */}
+            {hasLeasing && (
+              <>
+                {/* Separador */}
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="flex-1 h-px" style={{ backgroundColor: '#e5e7eb' }}></div>
+                  <span className="text-xs font-medium uppercase tracking-widest" style={{ color: '#9ca3af' }}>Benefício fiscal — Leasing</span>
+                  <div className="flex-1 h-px" style={{ backgroundColor: '#e5e7eb' }}></div>
+                </div>
 
-            {/* Texto explicativo */}
-            <div className="mb-5 pl-4" style={{ borderLeft: '2px solid #bbf7d0' }}>
-              <p className="text-sm leading-relaxed" style={{ color: '#374151', lineHeight: '1.7' }}>
-                Empresas enquadradas no regime de <strong style={{ color: '#111827' }}>Lucro Real</strong> podem contabilizar 
-                as parcelas de locação como <strong style={{ color: '#111827' }}>despesa operacional dedutível</strong>, 
-                reduzindo a base de cálculo de tributos federais. A economia potencial pode chegar a 
-                <strong style={{ color: '#111827' }}> 43,25%</strong> do valor do contrato.
-              </p>
-            </div>
+                {/* Texto explicativo */}
+                <div className="mb-5 pl-4" style={{ borderLeft: '2px solid #bbf7d0' }}>
+                  <p className="text-sm leading-relaxed" style={{ color: '#374151', lineHeight: '1.7' }}>
+                    Empresas enquadradas no regime de <strong style={{ color: '#111827' }}>Lucro Real</strong> podem contabilizar 
+                    as parcelas de locação como <strong style={{ color: '#111827' }}>despesa operacional dedutível</strong>, 
+                    reduzindo a base de cálculo de tributos federais. A economia potencial pode chegar a 
+                    <strong style={{ color: '#111827' }}> 43,25%</strong> do valor do contrato.
+                  </p>
+                </div>
 
-            {/* Tabela de tributos */}
-            <div className="overflow-hidden rounded-lg mb-5" style={{ border: '1px solid #e5e7eb' }}>
-              <table className="w-full">
-                <thead>
-                  <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>Tributo</th>
-                    <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>Alíquota</th>
-                    <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>Economia estimada</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { nome: 'IRPJ — Imposto de Renda Pessoa Jurídica', aliquota: '25%', valor: totalValue * 0.25 },
-                    { nome: 'CSLL — Contribuição Social sobre Lucro Líquido', aliquota: '9%', valor: totalValue * 0.09 },
-                    { nome: 'PIS — Crédito sobre despesas de locação', aliquota: '1,65%', valor: totalValue * 0.0165 },
-                    { nome: 'COFINS — Crédito sobre despesas de locação', aliquota: '7,6%', valor: totalValue * 0.076 },
-                  ].map((item, i) => (
-                    <tr key={i} style={{ backgroundColor: i % 2 === 0 ? '#ffffff' : '#f9fafb', borderBottom: '1px solid #f3f4f6' }}>
-                      <td className="px-5 py-3 text-sm" style={{ color: '#374151' }}>{item.nome}</td>
-                      <td className="px-5 py-3 text-sm text-center font-medium" style={{ color: '#111827' }}>{item.aliquota}</td>
-                      <td className="px-5 py-3 text-sm text-right font-semibold" style={{ color: '#15803d' }}>{formatCurrency(item.valor)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr style={{ backgroundColor: '#f0fdf4', borderTop: '2px solid #bbf7d0' }}>
-                    <td className="px-5 py-3 text-sm font-bold" style={{ color: '#111827' }}>Economia potencial total</td>
-                    <td className="px-5 py-3 text-sm text-center font-bold" style={{ color: '#111827' }}>43,25%</td>
-                    <td className="px-5 py-3 text-sm text-right font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue * 0.4325)}</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
+                {/* Tabela de tributos */}
+                <div className="overflow-hidden rounded-lg mb-5" style={{ border: '1px solid #e5e7eb' }}>
+                  <table className="w-full">
+                    <thead>
+                      <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>Tributo</th>
+                        <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>Alíquota</th>
+                        <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>Economia estimada</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { nome: 'IRPJ — Imposto de Renda Pessoa Jurídica', aliquota: '25%', valor: totalValue * 0.25 },
+                        { nome: 'CSLL — Contribuição Social sobre Lucro Líquido', aliquota: '9%', valor: totalValue * 0.09 },
+                        { nome: 'PIS — Crédito sobre despesas de locação', aliquota: '1,65%', valor: totalValue * 0.0165 },
+                        { nome: 'COFINS — Crédito sobre despesas de locação', aliquota: '7,6%', valor: totalValue * 0.076 },
+                      ].map((item, i) => (
+                        <tr key={i} style={{ backgroundColor: i % 2 === 0 ? '#ffffff' : '#f9fafb', borderBottom: '1px solid #f3f4f6' }}>
+                          <td className="px-5 py-3 text-sm" style={{ color: '#374151' }}>{item.nome}</td>
+                          <td className="px-5 py-3 text-sm text-center font-medium" style={{ color: '#111827' }}>{item.aliquota}</td>
+                          <td className="px-5 py-3 text-sm text-right font-semibold" style={{ color: '#15803d' }}>{formatCurrency(item.valor)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr style={{ backgroundColor: '#f0fdf4', borderTop: '2px solid #bbf7d0' }}>
+                        <td className="px-5 py-3 text-sm font-bold" style={{ color: '#111827' }}>Economia potencial total</td>
+                        <td className="px-5 py-3 text-sm text-center font-bold" style={{ color: '#111827' }}>43,25%</td>
+                        <td className="px-5 py-3 text-sm text-right font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue * 0.4325)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
 
-            {/* Mensalidade após benefícios fiscais */}
-            <div className="rounded-lg p-5" style={{ backgroundColor: '#f0fdf4', border: '2px solid #86efac' }}>
-              <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: '#15803d' }}>
-                Mensalidade após benefícios fiscais
-              </p>
-              <p className="text-2xl font-bold" style={{ color: '#15803d' }}>
-                {formatCurrency(parcelaComBeneficio)}
-                <span className="text-sm font-normal" style={{ color: '#16a34a' }}>/mês</span>
-              </p>
-              <p className="text-xs mt-2" style={{ color: '#6b7280', lineHeight: '1.6' }}>
-                Parcela de {formatCurrency(parcelaLeasing)} com aproveitamento de créditos de PIS e COFINS (9,25%) e deduções de IRPJ (25%) e CSLL (9%) sobre a despesa de locação.
-              </p>
-            </div>
+                {/* Mensalidade após benefícios fiscais */}
+                <div className="rounded-lg p-5" style={{ backgroundColor: '#f0fdf4', border: '2px solid #86efac' }}>
+                  <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: '#15803d' }}>
+                    Mensalidade após benefícios fiscais
+                  </p>
+                  <p className="text-2xl font-bold" style={{ color: '#15803d' }}>
+                    {formatCurrency(parcelaLeasing * (1 - 0.4325))}
+                    <span className="text-sm font-normal" style={{ color: '#16a34a' }}>/mês</span>
+                  </p>
+                  <p className="text-xs mt-2" style={{ color: '#6b7280', lineHeight: '1.6' }}>
+                    Parcela de {formatCurrency(parcelaLeasing)} com aproveitamento de créditos de PIS e COFINS (9,25%) e deduções de IRPJ (25%) e CSLL (9%) sobre a despesa de locação.
+                  </p>
+                </div>
+              </>
+            )}
 
             {/* Disclaimer após benefícios */}
             <p className="text-xs italic mt-3" style={{ color: '#6b7280', lineHeight: '1.6' }}>
