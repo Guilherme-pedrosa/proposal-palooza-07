@@ -435,6 +435,7 @@ export default function PropostaEditor() {
     opcoesPagamento,
     taxaJuros,
     descontoAVista,
+    descontoAVistaTipo,
   });
 
   const handleSave = async (newStatus?: string) => {
