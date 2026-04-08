@@ -860,7 +860,16 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         )}
 
         {/* Condições Comerciais — Leasing */}
-        {proposal.templateId && ['rational', 'equipamentos', 'ivario'].includes(proposal.templateId) && totalValue > 0 && (
+        {proposal.templateId && ['rational', 'equipamentos', 'ivario'].includes(proposal.templateId) && totalValue > 0 && (() => {
+          const parcelas = proposal.numParcelas || 36;
+          const taxa = proposal.taxaJuros || 2.303;
+          const taxaDecimal = taxa / 100;
+          const parcelaLeasing = taxaDecimal === 0
+            ? totalValue / parcelas
+            : totalValue * (taxaDecimal * Math.pow(1 + taxaDecimal, parcelas)) / (Math.pow(1 + taxaDecimal, parcelas) - 1);
+          const parcelaComBeneficio = parcelaLeasing * (1 - 0.4325);
+
+          return (
           <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
             <div className="absolute top-8 right-12">
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -883,22 +892,17 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               <p className="text-4xl font-bold tracking-tight" style={{ color: '#111827' }}>{formatCurrency(totalValue)}</p>
             </div>
 
-            {/* Modalidades */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
+            {/* 2 Modalidades — À Vista + Leasing */}
+            <div className="grid grid-cols-2 gap-4 mb-8">
               <div className="rounded-lg p-5" style={{ backgroundColor: '#fafafa', border: '1px solid #e5e7eb' }}>
                 <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: '#6b7280' }}>À Vista</p>
                 <p className="text-xl font-bold" style={{ color: '#111827' }}>{formatCurrency(totalValue)}</p>
                 <p className="text-xs mt-1" style={{ color: '#9ca3af' }}>PIX / Transferência</p>
               </div>
-              <div className="rounded-lg p-5" style={{ backgroundColor: '#fafafa', border: '1px solid #e5e7eb' }}>
-                <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: '#6b7280' }}>Parcelado 12x</p>
-                <p className="text-xl font-bold" style={{ color: '#111827' }}>{formatCurrency(totalValue / 12)}<span className="text-sm font-normal">/mês</span></p>
-                <p className="text-xs mt-1" style={{ color: '#9ca3af' }}>Boleto Bancário</p>
-              </div>
               <div className="rounded-lg p-5" style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-                <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: '#15803d' }}>Leasing 36x</p>
-                <p className="text-xl font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue / 36)}<span className="text-sm font-normal">/mês</span></p>
-                <p className="text-xs mt-1" style={{ color: '#16a34a' }}>Locação de equipamentos</p>
+                <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: '#15803d' }}>Leasing {parcelas}x</p>
+                <p className="text-xl font-bold" style={{ color: '#15803d' }}>{formatCurrency(parcelaLeasing)}<span className="text-sm font-normal">/mês</span></p>
+                <p className="text-xs mt-1" style={{ color: '#16a34a' }}>Locação de equipamentos ({taxa.toFixed(3).replace('.', ',')}% a.m.)</p>
               </div>
             </div>
 
@@ -919,7 +923,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               </p>
             </div>
 
-            {/* Tabela de tributos — limpa, sem emojis */}
+            {/* Tabela de tributos */}
             <div className="overflow-hidden rounded-lg mb-5" style={{ border: '1px solid #e5e7eb' }}>
               <table className="w-full">
                 <thead>
@@ -959,16 +963,16 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 Mensalidade após benefícios fiscais
               </p>
               <p className="text-2xl font-bold" style={{ color: '#15803d' }}>
-                {formatCurrency((totalValue / 36) * (1 - 0.4325))}
+                {formatCurrency(parcelaComBeneficio)}
                 <span className="text-sm font-normal" style={{ color: '#16a34a' }}>/mês</span>
               </p>
               <p className="text-xs mt-2" style={{ color: '#6b7280', lineHeight: '1.6' }}>
-                Parcela de {formatCurrency(totalValue / 36)} com aproveitamento de créditos de PIS e COFINS (9,25%) e deduções de IRPJ (25%) e CSLL (9%) sobre a despesa de locação.
+                Parcela de {formatCurrency(parcelaLeasing)} com aproveitamento de créditos de PIS e COFINS (9,25%) e deduções de IRPJ (25%) e CSLL (9%) sobre a despesa de locação.
               </p>
             </div>
 
             {/* Base legal e disclaimer */}
-            <div className="space-y-2">
+            <div className="space-y-2 mt-3">
               <p className="text-xs" style={{ color: '#6b7280' }}>
                 <strong style={{ color: '#374151' }}>Base legal:</strong> Art. 249 e 250 do RIR — Decreto 3.000/1999 · Art. 3º, IV da Lei 10.833/2003 · Art. 15, IV da Lei 10.865/2002
               </p>
@@ -983,7 +987,8 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
             <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
           </div>
-        )}
+          );
+        })()}
 
         {/* Signature Page */}
         <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakInside: 'avoid' }}>
