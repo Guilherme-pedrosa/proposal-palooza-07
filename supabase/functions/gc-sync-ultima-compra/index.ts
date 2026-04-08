@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
         } else {
           atualizados++;
           const flag = financeiroAtrasado ? ` ⚠️ ATRASADO R$${valorAtrasado.toFixed(2)}` : '';
-          console.log(`✅ ${cliente.nome}: R$ ${totalCompras.toFixed(2)} (${vendas.length}V, ${ordens.length}OS) última: ${ultimaCompra}${flag}`);
+          console.log(`✅ ${cliente.nome}: R$ ${totalCompras.toFixed(2)} (${vendas.length}V, ${ordens.length}OS, ${orcamentos.length}Orç) última: ${ultimaCompra}${flag}`);
         }
       } else {
         await supabase.from('clientes_gc').update({
