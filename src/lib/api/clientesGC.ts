@@ -80,16 +80,16 @@ export function calcularSaude(ultimaCompra: string | null): 'ativo' | 'morno' | 
   if (!ultimaCompra) return 'inativo';
   const dias = Math.floor((Date.now() - new Date(ultimaCompra).getTime()) / (1000 * 60 * 60 * 24));
   if (dias <= 30) return 'ativo';
-  if (dias <= 60) return 'morno';
-  if (dias <= 90) return 'risco';
+  if (dias <= 90) return 'morno';
+  if (dias <= 180) return 'risco';
   return 'inativo';
 }
 
 export const saudeConfig = {
   ativo: { label: 'Ativo', color: 'bg-green-100 text-green-700', dot: '🟢', motivo: 'Comprou nos últimos 30 dias' },
-  morno: { label: 'Morno', color: 'bg-yellow-100 text-yellow-700', dot: '🟡', motivo: 'Sem compras há 31-60 dias' },
-  risco: { label: 'Em Risco', color: 'bg-red-100 text-red-700', dot: '🔴', motivo: 'Sem compras há 61-90 dias' },
-  inativo: { label: 'Inativo', color: 'bg-gray-100 text-gray-600', dot: '⚫', motivo: 'Sem compras há mais de 90 dias ou nunca comprou' },
+  morno: { label: 'Morno', color: 'bg-yellow-100 text-yellow-700', dot: '🟡', motivo: 'Sem compras há 31-90 dias' },
+  risco: { label: 'Em Risco', color: 'bg-red-100 text-red-700', dot: '🔴', motivo: 'Sem compras há 91-180 dias' },
+  inativo: { label: 'Inativo', color: 'bg-gray-100 text-gray-600', dot: '⚫', motivo: 'Sem compras há mais de 180 dias ou nunca comprou' },
 };
 
 export const segmentoConfig: Record<string, { label: string; icon: string }> = {
