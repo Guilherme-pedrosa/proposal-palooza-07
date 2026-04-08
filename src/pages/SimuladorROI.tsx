@@ -155,12 +155,22 @@ export default function SimuladorROI() {
   const { data: clientes } = useQuery({
     queryKey: ['clientes_roi'],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('clientes_gc')
-        .select('id, nome, razao_social, cidade, estado, cnpj')
-        .eq('ativo', true)
-        .order('nome');
-      return data ?? [];
+      const all: any[] = [];
+      let from = 0;
+      const PAGE = 1000;
+      while (true) {
+        const { data } = await supabase
+          .from('clientes_gc')
+          .select('id, nome, razao_social, cidade, estado, cnpj')
+          .eq('ativo', true)
+          .order('nome')
+          .range(from, from + PAGE - 1);
+        if (!data || data.length === 0) break;
+        all.push(...data);
+        if (data.length < PAGE) break;
+        from += PAGE;
+      }
+      return all;
     },
   });
 
