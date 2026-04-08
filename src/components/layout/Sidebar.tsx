@@ -68,6 +68,7 @@ const menuGroups: MenuGroup[] = [
       { title: 'Clientes', icon: Building2, href: '/clientes' },
       { title: 'Catálogo', icon: UtensilsCrossed, href: '/catalogo' },
       { title: 'Propostas', icon: FileText, href: '/propostas' },
+      { title: 'Simulador ROI', icon: Calculator, href: '/simulador-roi' },
     ],
     defaultOpen: true,
   },
