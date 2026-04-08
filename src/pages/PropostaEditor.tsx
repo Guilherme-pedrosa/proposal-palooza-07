@@ -263,6 +263,7 @@ export default function PropostaEditor() {
           if (opts.length > 0) setOpcoesPagamento(opts);
         }
         if (cond.descontoAVista) setDescontoAVista(cond.descontoAVista);
+        if (cond.descontoAVistaTipo) setDescontoAVistaTipo(cond.descontoAVistaTipo);
         if (cond.texto) setCondicoesPagamento(cond.texto);
         else setCondicoesPagamento('');
       } catch {
@@ -463,7 +464,7 @@ export default function PropostaEditor() {
         num_parcelas: opcoesPagamento[0]?.parcelas || 1,
         entrada_percent: opcoesPagamento[0]?.entrada || 0,
         taxa_juros: 2.303,
-        condicoes_pagamento: JSON.stringify({ opcoesPagamento, descontoAVista, texto: condicoesPagamento || '' }),
+        condicoes_pagamento: JSON.stringify({ opcoesPagamento, descontoAVista, descontoAVistaTipo, texto: condicoesPagamento || '' }),
         prazo_entrega: prazoEntrega || null,
       };
 
