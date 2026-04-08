@@ -552,9 +552,11 @@ Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
     }
 
     if (
-      isTruncated(discoveryCall.finishReason) ||
-      (declaredCount > 0 && discoveredCount < declaredCount) ||
-      (discoveredCount > 0 && discoveredCount < 15)
+      discoveredCount > 0 && (
+        (discoveryCall && isTruncated(discoveryCall.finishReason)) ||
+        (declaredCount > 0 && discoveredCount < declaredCount) ||
+        discoveredCount < 15
+      )
     ) {
       console.log(
         `Auditoria de descoberta acionada: listados=${discoveredCount}, declarados=${declaredCount}, finish_reason=${discoveryCall.finishReason}`,
