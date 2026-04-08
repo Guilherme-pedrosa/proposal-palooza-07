@@ -625,18 +625,42 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
             </div>
 
-            <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Detalhes da proposta</h2>
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-1 h-8 rounded-full" style={{ backgroundColor: '#22c55e' }}></div>
+              <h2 className="text-2xl font-semibold tracking-tight" style={{ color: '#111827' }}>Proposta Comercial</h2>
+            </div>
             
-            <div className="mt-8 rounded-lg p-8" style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}>
-              <h3 className="text-2xl font-bold mb-4" style={{ color: '#15803d' }}>{proposal.title}</h3>
-              {proposal.description && (
-                <p className="text-lg leading-relaxed" style={{ color: '#374151' }}>
-                  {proposal.description}
-                </p>
-              )}
+            <div className="mt-6 rounded-lg p-8" style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}>
+              <h3 className="text-xl font-bold mb-4" style={{ color: '#15803d' }}>{proposal.title}</h3>
+              {proposal.description && (() => {
+                const parts = proposal.description.split('•').map(s => s.trim()).filter(Boolean);
+                const intro = parts[0];
+                const bullets = parts.slice(1);
+                
+                return (
+                  <>
+                    <p className="text-sm leading-relaxed mb-4" style={{ color: '#374151', lineHeight: '1.8' }}>
+                      {intro}
+                    </p>
+                    {bullets.length > 0 && (
+                      <>
+                        <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: '#15803d' }}>Principais diferenciais:</p>
+                        <ul className="space-y-2 mb-4">
+                          {bullets.map((bullet, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm" style={{ color: '#374151', lineHeight: '1.6' }}>
+                              <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: '#22c55e' }} />
+                              <span>{bullet}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                  </>
+                );
+              })()}
               
-              <div className="mt-6 pt-6" style={{ borderTop: '1px solid #e5e7eb' }}>
-                <p className="text-sm" style={{ color: '#6b7280' }}>
+              <div className="pt-4" style={{ borderTop: '1px solid #e5e7eb' }}>
+                <p className="text-xs" style={{ color: '#6b7280' }}>
                   Incluso gestão via plataforma própria, atendimento emergencial com SLA, fornecimento de EPIs e software.
                 </p>
               </div>
