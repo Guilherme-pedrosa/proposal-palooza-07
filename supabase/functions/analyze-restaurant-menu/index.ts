@@ -477,16 +477,31 @@ serve(async (req) => {
       `Analisando cardápio: ${cardapio_url} (${refeicoes_dia} ref/dia × ${dias_mes} dias)`,
     );
 
+    // Extract domain from URL for search filtering
+    let searchDomain: string | undefined;
+    try {
+      searchDomain = new URL(cardapio_url).hostname;
+    } catch { /* ignore */ }
+
+    const discoveryExtra: Record<string, unknown> = {};
+    if (searchDomain) {
+      discoveryExtra.search_domain_filter = [searchDomain];
+    }
+
     let discoveryCall = await callPerplexity(
       PERPLEXITY_API_KEY,
       [
         { role: "system", content: buildDiscoverySystemPrompt() },
         {
           role: "user",
-          content: `Acesse esta URL: ${cardapio_url}\nExtraia TODOS os pratos com preparo e retorne SOMENTE o JSON. Nenhum texto fora do JSON.`,
+          content: `Pesquise e extraia o cardápio completo do restaurante nesta URL: ${cardapio_url}
+
+Busque TODAS as informações disponíveis sobre o cardápio deste restaurante, incluindo pratos, preços e categorias.
+Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
         },
       ],
       "descoberta inicial",
+      discoveryExtra,
     );
 
     let discoveredMenu = discoveryCall.parsed;
