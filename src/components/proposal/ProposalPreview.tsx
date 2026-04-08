@@ -873,6 +873,8 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 { id: '2', forma: proposal.formaPagamento2 || 'leasing', parcelas: proposal.numParcelas2 || 36, entrada: proposal.entradaPercent2 || 0, juros: proposal.taxaJurosCartao2 || 0 },
               ];
           const descontoAV = proposal.descontoAVista || 0;
+          const descontoTipo = proposal.descontoAVistaTipo || 'percent';
+          const valorAVista = descontoTipo === 'percent' ? totalValue * (1 - descontoAV / 100) : totalValue - descontoAV;
           
           const labelMap: Record<string, string> = { avista: 'À Vista', boleto: 'Boleto', cartao: 'Cartão', leasing: 'Leasing', financiamento: 'Financiamento' };
           const descMap: Record<string, string> = { avista: 'PIX / Transferência', boleto: 'Boleto Bancário', cartao: 'Cartão de Crédito', leasing: 'Locação de equipamentos', financiamento: 'Financiamento' };
@@ -924,13 +926,13 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: '#047857' }}>💵 À Vista (PIX / Transferência)</p>
                   <p className="text-2xl font-bold" style={{ color: '#047857' }}>
-                    {formatCurrency(totalValue * (1 - descontoAV / 100))}
+                    {formatCurrency(valorAVista)}
                   </p>
                 </div>
                 {descontoAV > 0 && (
                   <div className="text-right">
                     <p className="text-xs" style={{ color: '#6b7280' }}>Desconto</p>
-                    <p className="text-lg font-bold" style={{ color: '#047857' }}>-{descontoAV}%</p>
+                    <p className="text-lg font-bold" style={{ color: '#047857' }}>{descontoTipo === 'percent' ? `-${descontoAV}%` : `-${formatCurrency(descontoAV)}`}</p>
                   </div>
                 )}
               </div>

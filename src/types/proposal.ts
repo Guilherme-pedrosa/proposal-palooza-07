@@ -60,6 +60,7 @@ export interface Proposal {
   // Payment fields
   taxaJuros?: number;
   descontoAVista?: number;
+  descontoAVistaTipo?: 'percent' | 'value';
   opcoesPagamento?: PaymentOption[];
   // Legacy fields (backward compat)
   numParcelas?: number;

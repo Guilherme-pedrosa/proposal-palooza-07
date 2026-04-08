@@ -136,6 +136,7 @@ export default function PropostaEditor() {
     { id: crypto.randomUUID(), forma: 'leasing', parcelas: 36, entrada: 0, juros: 0 },
   ]);
   const [descontoAVista, setDescontoAVista] = useState(0);
+  const [descontoAVistaTipo, setDescontoAVistaTipo] = useState<'percent' | 'value'>('percent');
   const taxaJuros = 2.303;
   const [leasingDialogOpen, setLeasingDialogOpen] = useState(false);
   const [status, setStatus] = useState<string>('rascunho');
@@ -262,6 +263,7 @@ export default function PropostaEditor() {
           if (opts.length > 0) setOpcoesPagamento(opts);
         }
         if (cond.descontoAVista) setDescontoAVista(cond.descontoAVista);
+        if (cond.descontoAVistaTipo) setDescontoAVistaTipo(cond.descontoAVistaTipo);
         if (cond.texto) setCondicoesPagamento(cond.texto);
         else setCondicoesPagamento('');
       } catch {
@@ -433,6 +435,7 @@ export default function PropostaEditor() {
     opcoesPagamento,
     taxaJuros,
     descontoAVista,
+    descontoAVistaTipo,
   });
 
   const handleSave = async (newStatus?: string) => {
@@ -462,7 +465,7 @@ export default function PropostaEditor() {
         num_parcelas: opcoesPagamento[0]?.parcelas || 1,
         entrada_percent: opcoesPagamento[0]?.entrada || 0,
         taxa_juros: 2.303,
-        condicoes_pagamento: JSON.stringify({ opcoesPagamento, descontoAVista, texto: condicoesPagamento || '' }),
+        condicoes_pagamento: JSON.stringify({ opcoesPagamento, descontoAVista, descontoAVistaTipo, texto: condicoesPagamento || '' }),
         prazo_entrega: prazoEntrega || null,
       };
 
@@ -963,15 +966,25 @@ export default function PropostaEditor() {
             {/* À Vista — sempre visível */}
             <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800 p-3 space-y-2">
               <p className="text-sm font-semibold text-foreground flex items-center gap-2">💵 À Vista (PIX / Transferência)</p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <Label className="text-xs">Desconto à vista (%)</Label>
-                  <Input type="number" min={0} max={100} step={0.5} value={descontoAVista || ''} onChange={(e) => setDescontoAVista(parseFloat(e.target.value) || 0)} className="h-8" placeholder="0" />
+                  <Label className="text-xs">Tipo desconto</Label>
+                  <Select value={descontoAVistaTipo} onValueChange={(v: 'percent' | 'value') => setDescontoAVistaTipo(v)}>
+                    <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="percent">% Percentual</SelectItem>
+                      <SelectItem value="value">R$ Valor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Desconto {descontoAVistaTipo === 'percent' ? '(%)' : '(R$)'}</Label>
+                  <Input type="number" min={0} max={descontoAVistaTipo === 'percent' ? 100 : total} step={descontoAVistaTipo === 'percent' ? 0.5 : 1} value={descontoAVista || ''} onChange={(e) => setDescontoAVista(parseFloat(e.target.value) || 0)} className="h-8" placeholder="0" />
                 </div>
                 <div className="flex items-end">
                   <p className="text-sm font-bold text-primary">
-                    {formatBRL(total * (1 - (descontoAVista || 0) / 100))}
-                    {descontoAVista > 0 && <span className="text-xs font-normal text-muted-foreground ml-1">(-{descontoAVista}%)</span>}
+                    {formatBRL(descontoAVistaTipo === 'percent' ? total * (1 - (descontoAVista || 0) / 100) : total - (descontoAVista || 0))}
+                    {descontoAVista > 0 && <span className="text-xs font-normal text-muted-foreground ml-1">(-{descontoAVistaTipo === 'percent' ? `${descontoAVista}%` : formatBRL(descontoAVista)})</span>}
                   </p>
                 </div>
               </div>
