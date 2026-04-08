@@ -363,10 +363,13 @@ export default function SimuladorROI() {
         mes: i,
         economiaAcumulada: economia.mensal * i,
         investimento: valorInvestimento,
+        isPayback: economia.paybackMeses > 0 && i === economia.paybackMeses,
+        beforePayback: i <= economia.paybackMeses ? economia.mensal * i : undefined,
+        afterPayback: i >= economia.paybackMeses ? economia.mensal * i : undefined,
       });
     }
     return meses;
-  }, [economia.mensal, valorInvestimento]);
+  }, [economia.mensal, economia.paybackMeses, valorInvestimento]);
 
   // ── PDF ──
   const handleGerarPdf = async () => {
@@ -1129,8 +1132,7 @@ export default function SimuladorROI() {
               overflow: 'hidden',
             }}
           >
-            {/* Barra verde topo */}
-            <div style={{ background: '#87B537', height: '8px', width: '100%' }} />
+            <div style={{ background: 'linear-gradient(90deg, #87B537, #6f9a2c)', height: '8px', width: '100%' }} />
             <div style={{ padding: '28px 40px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <span style={{ fontSize: '13px', color: '#87B537', fontWeight: 600 }}>
@@ -1138,7 +1140,7 @@ export default function SimuladorROI() {
                 </span>
               </div>
 
-              <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#1A1A2E', margin: '16px 0 4px' }}>
+              <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#0A1628', margin: '16px 0 4px' }}>
                 ANÁLISE DE RETORNO DO INVESTIMENTO
               </h2>
               <p style={{ fontSize: '13px', color: '#666', margin: '0 0 20px' }}>
@@ -1149,78 +1151,79 @@ export default function SimuladorROI() {
 
               {/* Card investimento */}
               <div style={{
-                background: '#1A1A2E',
+                background: '#0A1628',
                 borderRadius: '12px',
                 padding: '20px 28px',
                 marginBottom: '24px',
                 color: '#fff',
+                boxShadow: '0 4px 16px rgba(10,22,40,0.3)',
               }}>
                 <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.7 }}>INVESTIMENTO</div>
-                <div style={{ fontSize: '14px', margin: '4px 0' }}>{equipamento} × {quantidade}</div>
+                <div style={{ fontSize: '16px', margin: '4px 0', fontWeight: 600 }}>{equipamento} × {quantidade}</div>
                 <div style={{ fontSize: '28px', fontWeight: 700, color: '#87B537' }}>{formatBRL(valorInvestimento)}</div>
               </div>
 
               {/* Tabela economia */}
-              <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#1A1A2E', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#0A1628', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Economia Operacional Projetada
               </h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', marginBottom: '24px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', marginBottom: '20px' }}>
                 <thead>
-                  <tr style={{ background: '#f4f4f5', borderBottom: '2px solid #e4e4e7' }}>
-                    <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600, color: '#444' }}>Categoria</th>
-                    <th style={{ textAlign: 'right', padding: '10px 12px', fontWeight: 600, color: '#444' }}>Custo Atual</th>
-                    <th style={{ textAlign: 'right', padding: '10px 12px', fontWeight: 600, color: '#444' }}>Com Rational</th>
-                    <th style={{ textAlign: 'right', padding: '10px 12px', fontWeight: 600, color: '#87B537' }}>Economia</th>
+                  <tr style={{ background: '#2E4A1A', color: '#fff' }}>
+                    <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600 }}>Categoria</th>
+                    <th style={{ textAlign: 'right', padding: '10px 12px', fontWeight: 600 }}>Custo Atual</th>
+                    <th style={{ textAlign: 'right', padding: '10px 12px', fontWeight: 600 }}>Com Rational</th>
+                    <th style={{ textAlign: 'right', padding: '10px 12px', fontWeight: 600 }}>Economia/Mês</th>
                   </tr>
                 </thead>
                 <tbody>
                   {tabelaEconomia.map((item, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid #e4e4e7' }}>
+                    <tr key={i} style={{ background: i % 2 === 0 ? '#f9fafb' : '#fff', borderBottom: '1px solid #e4e4e7' }}>
                       <td style={{ padding: '10px 12px' }}>{item.icon} {item.categoria}</td>
                       <td style={{ textAlign: 'right', padding: '10px 12px' }}>{formatBRL(item.atual)}</td>
                       <td style={{ textAlign: 'right', padding: '10px 12px' }}>{formatBRL(item.comRational)}</td>
-                      <td style={{ textAlign: 'right', padding: '10px 12px', color: '#87B537', fontWeight: 600 }}>{formatBRL(item.economia)}</td>
+                      <td style={{ textAlign: 'right', padding: '10px 12px', color: '#2E7D32', fontWeight: 700 }}>{formatBRL(item.economia)}</td>
                     </tr>
                   ))}
-                  <tr style={{ borderTop: '2px solid #1A1A2E', fontWeight: 700 }}>
+                  <tr style={{ borderTop: '3px solid #0A1628', fontWeight: 700, background: '#f0f7e6' }}>
                     <td style={{ padding: '12px' }}>ECONOMIA MENSAL</td>
                     <td colSpan={2}></td>
-                    <td style={{ textAlign: 'right', padding: '12px', color: '#87B537', fontSize: '16px' }}>{formatBRL(economia.mensal)}</td>
+                    <td style={{ textAlign: 'right', padding: '12px', color: '#2E7D32', fontSize: '16px' }}>{formatBRL(economia.mensal)}</td>
                   </tr>
-                  <tr style={{ fontWeight: 700 }}>
-                    <td style={{ padding: '8px 12px' }}>ECONOMIA ANUAL</td>
+                  <tr style={{ fontWeight: 700, background: '#e8f5e9' }}>
+                    <td style={{ padding: '10px 12px' }}>ECONOMIA ANUAL</td>
                     <td colSpan={2}></td>
-                    <td style={{ textAlign: 'right', padding: '8px 12px', color: '#87B537', fontSize: '16px' }}>{formatBRL(economia.anual)}</td>
+                    <td style={{ textAlign: 'right', padding: '10px 12px', color: '#1B5E20', fontSize: '16px' }}>{formatBRL(economia.anual)}</td>
                   </tr>
                 </tbody>
               </table>
 
-              {/* 3 Cards */}
-              <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
-                <div style={{ flex: 1, background: '#f0fdf4', borderRadius: '12px', padding: '20px', textAlign: 'center', border: '1px solid #bbf7d0' }}>
-                  <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#666' }}>📅 Payback</div>
-                  <div style={{ fontSize: '32px', fontWeight: 800, color: '#87B537', margin: '8px 0' }}>{economia.paybackMeses}</div>
-                  <div style={{ fontSize: '11px', color: '#666' }}>meses</div>
-                  <div style={{ fontSize: '10px', color: '#888', marginTop: '4px' }}>O forno se paga em {economia.paybackMeses} meses</div>
+              {/* 3 Cards de destaque */}
+              <div style={{ display: 'flex', gap: '14px', marginBottom: '20px' }}>
+                <div style={{ flex: 1, background: '#E8F5E9', borderRadius: '12px', padding: '18px', textAlign: 'center', border: '1px solid #A5D6A7', boxShadow: '0 2px 8px rgba(46,125,50,0.1)' }}>
+                  <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', color: '#555' }}>📅 Payback</div>
+                  <div style={{ fontSize: '36px', fontWeight: 800, color: '#2E7D32', margin: '6px 0' }}>{economia.paybackMeses}</div>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#2E7D32' }}>meses</div>
+                  <div style={{ fontSize: '9px', color: '#666', marginTop: '4px' }}>O forno se paga em {economia.paybackMeses} meses</div>
                 </div>
-                <div style={{ flex: 1, background: '#f0fdf4', borderRadius: '12px', padding: '20px', textAlign: 'center', border: '1px solid #bbf7d0' }}>
-                  <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#666' }}>💰 Economia Anual</div>
-                  <div style={{ fontSize: '24px', fontWeight: 800, color: '#87B537', margin: '8px 0' }}>{formatBRL(economia.anual)}</div>
+                <div style={{ flex: 1, background: '#C8E6C9', borderRadius: '12px', padding: '18px', textAlign: 'center', border: '1px solid #81C784', boxShadow: '0 2px 8px rgba(27,94,32,0.1)' }}>
+                  <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', color: '#555' }}>💰 Economia Anual</div>
+                  <div style={{ fontSize: '26px', fontWeight: 800, color: '#1B5E20', margin: '6px 0' }}>{formatBRL(economia.anual)}</div>
                 </div>
-                <div style={{ flex: 1, background: '#f0fdf4', borderRadius: '12px', padding: '20px', textAlign: 'center', border: '1px solid #bbf7d0' }}>
-                  <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#666' }}>📈 Em 5 anos</div>
-                  <div style={{ fontSize: '24px', fontWeight: 800, color: '#87B537', margin: '8px 0' }}>{formatBRL(economia.em5anos)}</div>
+                <div style={{ flex: 1, background: '#A5D6A7', borderRadius: '12px', padding: '18px', textAlign: 'center', border: '1px solid #66BB6A', boxShadow: '0 2px 8px rgba(27,94,32,0.15)' }}>
+                  <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', color: '#444' }}>📈 Em 5 anos</div>
+                  <div style={{ fontSize: '26px', fontWeight: 800, color: '#1B5E20', margin: '6px 0' }}>{formatBRL(economia.em5anos)}</div>
                 </div>
               </div>
 
               {/* Footer P1 */}
               {analiseResult && (
-                <div style={{ fontSize: '11px', color: '#888', borderTop: '1px solid #e4e4e7', paddingTop: '12px' }}>
+                <div style={{ fontSize: '10px', color: '#888', borderTop: '1px solid #e4e4e7', paddingTop: '10px' }}>
                   📊 Baseado no cardápio real de <strong>{analiseResult.restaurante.nome}</strong>
                   {analiseResult.restaurante.nota_ifood ? ` (⭐ ${analiseResult.restaurante.nota_ifood})` : ''}
                   {' • '}{analiseResult.restaurante.qtd_pratos_cardapio} pratos analisados
                   {' • '}Cocção predominante: {analiseResult.restaurante.metodo_coccao_predominante}
-                  {' • '}Volume: {refeicoesDia} refeições/dia | Percentuais conservadores
+                  {' • '}Volume: {refeicoesDia} refeições/dia
                 </div>
               )}
             </div>
@@ -1237,29 +1240,36 @@ export default function SimuladorROI() {
               padding: '0',
               position: 'relative',
               overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
-            <div style={{ background: '#87B537', height: '8px', width: '100%' }} />
-            <div style={{ padding: '28px 40px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#1A1A2E', marginBottom: '20px' }}>
+            <div style={{ background: 'linear-gradient(90deg, #87B537, #6f9a2c)', height: '8px', width: '100%' }} />
+            <div style={{ padding: '28px 40px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#0A1628', marginBottom: '16px' }}>
                 QUANDO SEU INVESTIMENTO SE PAGA
               </h2>
 
               {/* Gráfico */}
-              <div style={{ width: '714px', height: '360px', marginBottom: '24px' }}>
+              <div style={{ width: '714px', height: '420px', marginBottom: '20px' }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 20, bottom: 10 }}>
+                  <AreaChart data={chartData} margin={{ top: 10, right: 60, left: 20, bottom: 20 }}>
                     <defs>
-                      <linearGradient id="greenArea" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#87B537" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#87B537" stopOpacity={0.05} />
+                      <linearGradient id="redArea" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#FFCDD2" stopOpacity={0.8} />
+                        <stop offset="100%" stopColor="#FFCDD2" stopOpacity={0.1} />
+                      </linearGradient>
+                      <linearGradient id="greenAreaPdf" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#C8E6C9" stopOpacity={0.8} />
+                        <stop offset="100%" stopColor="#C8E6C9" stopOpacity={0.1} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
                     <XAxis
                       dataKey="mes"
-                      label={{ value: 'Meses', position: 'bottom', offset: -5, fontSize: 11 }}
                       tick={{ fontSize: 10 }}
+                      interval={2}
+                      label={{ value: 'Meses', position: 'bottom', offset: 0, fontSize: 11 }}
                     />
                     <YAxis
                       tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`}
@@ -1268,37 +1278,62 @@ export default function SimuladorROI() {
                     <Tooltip formatter={(v: number) => formatBRL(v)} labelFormatter={(l) => `Mês ${l}`} />
                     <Area
                       type="monotone"
-                      dataKey="economiaAcumulada"
-                      stroke="#87B537"
-                      fill="url(#greenArea)"
+                      dataKey="beforePayback"
+                      stroke="#E53935"
+                      fill="url(#redArea)"
+                      strokeWidth={2}
+                      name="Antes do payback"
+                      connectNulls={false}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="afterPayback"
+                      stroke="#2E7D32"
+                      fill="url(#greenAreaPdf)"
                       strokeWidth={2.5}
-                      name="Economia acumulada"
+                      name="Após payback"
+                      connectNulls={false}
+                      dot={(props: any) => {
+                        if (props.payload?.isPayback) {
+                          return (
+                            <g key={`payback-dot-${props.cx}`}>
+                              <circle cx={props.cx} cy={props.cy} r={8} fill="#2E7D32" stroke="#fff" strokeWidth={3} />
+                              <text x={props.cx} y={props.cy - 16} textAnchor="middle" fill="#2E7D32" fontSize={11} fontWeight={700}>
+                                PAYBACK: mês {props.payload.mes}
+                              </text>
+                            </g>
+                          );
+                        }
+                        return <circle key={`dot-${props.cx}`} cx={0} cy={0} r={0} fill="none" />;
+                      }}
                     />
                     <ReferenceLine
                       y={valorInvestimento}
-                      stroke="#e74c3c"
+                      stroke="#E53935"
                       strokeDasharray="8 4"
                       strokeWidth={2}
                       label={{
                         value: `Investimento: ${formatBRL(valorInvestimento)}`,
-                        position: 'right',
-                        fontSize: 10,
-                        fill: '#e74c3c',
+                        position: 'left',
+                        fontSize: 11,
+                        fill: '#E53935',
+                        fontWeight: 'bold',
                       }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
 
-              {/* Destaque */}
+              {/* Destaque verde */}
               <div style={{
-                background: '#87B537',
+                background: 'linear-gradient(135deg, #87B537, #6f9a2c)',
                 borderRadius: '12px',
                 padding: '20px 28px',
                 color: '#fff',
-                marginBottom: '24px',
+                marginBottom: '20px',
                 fontSize: '14px',
                 lineHeight: '1.6',
+                boxShadow: '0 4px 16px rgba(135,181,55,0.3)',
               }}>
                 Com base na operação de <strong>{refeicoesDia} refeições/dia</strong>,
                 o investimento de <strong>{formatBRL(valorInvestimento)}</strong> se paga em apenas{' '}
@@ -1307,12 +1342,12 @@ export default function SimuladorROI() {
               </div>
 
               {/* Argumentos */}
-              <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#1A1A2E', marginBottom: '16px', textTransform: 'uppercase' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#0A1628', marginBottom: '12px', textTransform: 'uppercase' }}>
                 Por que investir em Rational:
               </h3>
-              <div style={{ fontSize: '13px', lineHeight: '2', color: '#333' }}>
+              <div style={{ fontSize: '13px', lineHeight: '2.2', color: '#333', flex: 1 }}>
                 {categoriasMP.some(c => c.kgMes > 0) && (
-                  <div>✅ Até 25% menos perda de peso na cocção — mais porções por kg de carne, ave, legume e pescado</div>
+                  <div>✅ Até {Math.max(...categoriasMP.filter(c => c.kgMes > 0).map(c => c.pctEconomia))}% menos perda de peso na cocção — mais porções por kg</div>
                 )}
                 <div>✅ {pctEnergia}% menos energia — economia na conta de luz</div>
                 <div>✅ {pctGordura}% menos gordura — redução de compra e descarte</div>
@@ -1322,9 +1357,8 @@ export default function SimuladorROI() {
 
               {/* Disclaimers */}
               <div style={{
-                marginTop: '40px',
                 borderTop: '1px solid #e4e4e7',
-                paddingTop: '16px',
+                paddingTop: '12px',
                 fontSize: '9px',
                 color: '#aaa',
                 lineHeight: '1.6',
