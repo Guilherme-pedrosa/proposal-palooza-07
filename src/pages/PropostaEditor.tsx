@@ -208,7 +208,29 @@ export default function PropostaEditor() {
       setClienteId(proposta.cliente_id ?? '');
       setTemplateId(proposta.template_id ?? '');
       setOportunidadeId(proposta.oportunidade_id ?? '');
-      setProdutos((proposta.produtos as PropostaProduct[]) ?? []);
+      const loadedProdutos = (proposta.produtos as PropostaProduct[]) ?? [];
+      // Enrich products that have gcProdutoId but missing photoUrl
+      const gcIds = loadedProdutos
+        .filter(p => p.gcProdutoId && !p.photoUrl)
+        .map(p => p.gcProdutoId!);
+      if (gcIds.length > 0) {
+        supabase
+          .from('produtos_gc')
+          .select('gc_id, foto_url')
+          .in('gc_id', gcIds)
+          .then(({ data }) => {
+            if (data && data.length > 0) {
+              const fotoMap = new Map(data.map(d => [d.gc_id, d.foto_url]));
+              setProdutos(prev => prev.map(p => {
+                if (p.gcProdutoId && !p.photoUrl && fotoMap.has(p.gcProdutoId)) {
+                  return { ...p, photoUrl: fotoMap.get(p.gcProdutoId) || undefined };
+                }
+                return p;
+              }));
+            }
+          });
+      }
+      setProdutos(loadedProdutos);
       setTermos((proposta.termos_condicoes as PropostaTermo[]) ?? []);
       setImagens(proposta.imagens ?? []);
       setAnexos((proposta as any).anexos ?? []);
