@@ -195,9 +195,14 @@ const callPerplexity = async (
     );
   }
 
+  const finishReason = responseJson?.choices?.[0]?.finish_reason ?? null;
   const content = responseJson?.choices?.[0]?.message?.content;
   if (!content) {
     throw new Error(`A IA não retornou conteúdo na etapa ${stage}`);
+  }
+
+  if (isTruncated(finishReason)) {
+    console.warn(`⚠️ Resposta truncada na etapa ${stage} (finish_reason=${finishReason}). Tentando reparar JSON...`);
   }
 
   if (isRefusal(content)) {
