@@ -437,6 +437,151 @@ const getMissingDishNames = (discoveredMenu: any, analysis: any) => {
     .filter((dishName: string) => !analyzed.has(normalizeText(dishName)));
 };
 
+// ── Post-processing: corrigir participação e médias ponderadas ──
+const classificarPrato = (nome: string) => {
+  const n = nome.toLowerCase();
+  if (
+    /arroz|feij[aã]o|batata|mandioca|macaxeira|aipim|banana|salada|farofa|vinagrete|queijo coalho|p[aã]o|couve|pir[aã]o|angu|pur[eê]|legume|vegetal|milho/.test(n)
+  ) return 'guarnicao';
+  if (/executivo/.test(n)) return 'executivo';
+  if (/bolinho|croqueta|isca|caldinho|dadinho|pastel|quibe|disco|petisco|coxinha|empada|tor[rr]esmo|provolone|linguica aperitivo/.test(n)) return 'petisco';
+  if (/mousse|sorvete|sobremesa|pudim|brownie|bolo|torta doce|petit gateau|churros|bombom/.test(n)) return 'sobremesa';
+  return 'principal';
+};
+
+const CATEGORIA_PESOS: Record<string, number> = {
+  principal: 0.55,
+  executivo: 0.20,
+  petisco: 0.12,
+  guarnicao: 0.10,
+  sobremesa: 0.03,
+};
+
+const recalcularParticipacao = (pratos: any[]) => {
+  if (!pratos?.length) return pratos;
+
+  const grupos: Record<string, any[]> = { principal: [], executivo: [], petisco: [], guarnicao: [], sobremesa: [] };
+  for (const p of pratos) {
+    const tipo = classificarPrato(p.prato || '');
+    grupos[tipo].push(p);
+  }
+
+  // Redistribuir pesos se algum grupo está vazio
+  let pesoTotal = 0;
+  const pesosAtivos: Record<string, number> = {};
+  for (const [tipo, lista] of Object.entries(grupos)) {
+    if (lista.length > 0) {
+      pesosAtivos[tipo] = CATEGORIA_PESOS[tipo];
+      pesoTotal += CATEGORIA_PESOS[tipo];
+    }
+  }
+  // Normalizar para somar 1.0
+  for (const tipo of Object.keys(pesosAtivos)) {
+    pesosAtivos[tipo] = pesosAtivos[tipo] / pesoTotal;
+  }
+
+  // Dentro de cada grupo, pratos mais baratos vendem mais
+  for (const [tipo, lista] of Object.entries(grupos)) {
+    if (lista.length === 0) continue;
+    const totalPct = pesosAtivos[tipo] || 0;
+    const sorted = [...lista].sort((a, b) => (a.preco_venda || a.preco_cardapio || 50) - (b.preco_venda || b.preco_cardapio || 50));
+    const pesos = sorted.map((_: any, i: number) => sorted.length - i);
+    const somaPesos = pesos.reduce((a: number, b: number) => a + b, 0);
+    sorted.forEach((p: any, i: number) => {
+      p.participacao_vendas = Number(((pesos[i] / somaPesos) * totalPct).toFixed(4));
+      p._tipo_grupo = tipo;
+    });
+  }
+
+  return pratos;
+};
+
+const recalcularMateriasPrimas = (pratos: any[], insumos: any[], refeicoesDia: number, diasMes: number) => {
+  if (!pratos?.length) return null;
+
+  const refeicoesMes = refeicoesDia * diasMes;
+
+  // Map insumo names to their data
+  const insumoMap = new Map<string, any>();
+  for (const ins of insumos) {
+    insumoMap.set(normalizeText(ins.nome), ins);
+    if (ins.aliases) {
+      for (const alias of ins.aliases) {
+        insumoMap.set(normalizeText(alias), ins);
+      }
+    }
+  }
+
+  const findInsumo = (matchName: string) => {
+    const norm = normalizeText(matchName || '');
+    for (const [key, ins] of insumoMap.entries()) {
+      if (norm.includes(key) || key.includes(norm)) return ins;
+    }
+    return null;
+  };
+
+  // Categorizar insumos dos pratos
+  const categorias: Record<string, { kgTotal: number; custoTotal: number; itens: Set<string>; entries: Array<{kg: number; precoKg: number}> }> = {
+    carnes: { kgTotal: 0, custoTotal: 0, itens: new Set(), entries: [] },
+    aves: { kgTotal: 0, custoTotal: 0, itens: new Set(), entries: [] },
+    legumes_guarnicoes: { kgTotal: 0, custoTotal: 0, itens: new Set(), entries: [] },
+    pescados: { kgTotal: 0, custoTotal: 0, itens: new Set(), entries: [] },
+  };
+
+  const categorizarInsumo = (insumoNome: string, insumoData: any): string => {
+    const n = normalizeText(insumoNome);
+    const cat = (insumoData?.categoria || '').toLowerCase();
+    if (/frango|peru|chester|ave|galinha|pato/.test(n) || cat === 'aves') return 'aves';
+    if (/tilapia|camar[aã]o|salm[aã]o|lambari|peixe|bacalhau|atum|sardinha|lula|polvo|pescado/.test(n) || cat === 'pescados') return 'pescados';
+    if (/batata|mandioca|aipim|macaxeira|legume|cenoura|abobrinha|berinjela|chuchu|brocoli|couve|arroz|feij[aã]o|banana|farofa|milho|pur[eê]/.test(n) || cat === 'legumes' || cat === 'guarnicoes' || cat === 'legumes_guarnicoes') return 'legumes_guarnicoes';
+    // Default: carnes (bovina, suina, etc)
+    return 'carnes';
+  };
+
+  for (const prato of pratos) {
+    const participacao = prato.participacao_vendas || 0;
+    if (participacao <= 0) continue;
+
+    const porcoesMes = refeicoesMes * participacao;
+    const insumoMatch = findInsumo(prato.insumo_match || prato.prato || '');
+    const insumoNome = prato.insumo_match || prato.prato || '';
+
+    const porcaoKg = ((insumoMatch?.porcao_padrao_g || 300) / 1000);
+    const rendimento = (insumoMatch?.rendimento_bruto || 0.75) * (insumoMatch?.rendimento_coccao || 0.80);
+    const kgBrutoMes = (porcoesMes * porcaoKg) / (rendimento || 0.6);
+    const precoKg = insumoMatch?.preco_kg_referencia || 30;
+
+    const catKey = categorizarInsumo(insumoNome, insumoMatch);
+    categorias[catKey].kgTotal += kgBrutoMes;
+    categorias[catKey].custoTotal += kgBrutoMes * precoKg;
+    categorias[catKey].itens.add(insumoMatch?.nome || insumoNome);
+    categorias[catKey].entries.push({ kg: kgBrutoMes, precoKg });
+  }
+
+  // Build final materias_primas with weighted average
+  const result: Record<string, any> = {};
+  for (const [key, data] of Object.entries(categorias)) {
+    const kgMes = Math.round(data.kgTotal);
+    const precoMedioKg = data.kgTotal > 0
+      ? Number((data.custoTotal / data.kgTotal).toFixed(2))
+      : 0;
+    result[key] = {
+      kg_mes: kgMes,
+      preco_medio_kg: precoMedioKg,
+      custo_mensal: Math.round(kgMes * precoMedioKg),
+      itens: Array.from(data.itens),
+    };
+  }
+
+  return result;
+};
+
+const recalcularPorcoesDia = (pratos: any[], refeicoesDia: number) => {
+  for (const p of pratos) {
+    p.porcoes_dia = Math.round(refeicoesDia * (p.participacao_vendas || 0));
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
