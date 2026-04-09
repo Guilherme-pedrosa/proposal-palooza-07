@@ -917,6 +917,35 @@ Retorne SOMENTE o JSON no formato especificado. Nenhum texto fora do JSON.`,
       analyzedCount,
     );
 
+    // ── PASSO PÓS-PROCESSAMENTO: Recalcular participação e matérias-primas no servidor ──
+    if (analysis?.pratos_analisados?.length > 0) {
+      console.log("Pós-processamento: recalculando participação e matérias-primas...");
+      
+      // 1. Recalcular participação com lógica de grupos e peso por preço
+      recalcularParticipacao(analysis.pratos_analisados);
+      
+      // 2. Recalcular porções/dia com base na participação corrigida
+      recalcularPorcoesDia(analysis.pratos_analisados, Number(refeicoes_dia));
+      
+      // 3. Recalcular matérias-primas com média ponderada real
+      const mpRecalc = recalcularMateriasPrimas(
+        analysis.pratos_analisados,
+        insumos ?? [],
+        Number(refeicoes_dia),
+        Number(dias_mes),
+      );
+      if (mpRecalc) {
+        console.log("Matérias-primas recalculadas:", JSON.stringify(mpRecalc));
+        analysis.materias_primas = mpRecalc;
+      }
+      
+      // 4. Recalcular custo_mensal de cada prato
+      const refeicoesMes = Number(refeicoes_dia) * Number(dias_mes);
+      for (const p of analysis.pratos_analisados) {
+        p.custo_mensal = Math.round((p.custo_porcao || 0) * refeicoesMes * (p.participacao_vendas || 0));
+      }
+    }
+
     analysis.restaurante = {
       ...(discoveredMenu?.restaurante ?? {}),
       ...(analysis?.restaurante ?? {}),
