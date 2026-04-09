@@ -514,8 +514,19 @@ const calcularPerCapita = (
       const perCapitaG = PER_CAPITA[sub] || 200;
       perCapitaMedio += perCapitaG * proporcao;
 
-      // Find matching insumo for price
-      const insumo = findInsumo(sub.replace(/_/g, ' '));
+      // Find matching insumo for price — use category-aware search terms
+      const searchTerms: Record<string, string> = {
+        carne_bovina_sem_osso: 'carne bovina',
+        carne_bovina_com_osso: 'costela bovina',
+        frango_sem_osso: 'peito de frango',
+        frango_com_osso: 'frango inteiro',
+        peixe_file: 'tilapia',
+        peixe_posta: 'peixe',
+        carne_suina: 'carne suina',
+        linguica: 'linguica',
+        camarao: 'camarao',
+      };
+      const insumo = findInsumo(searchTerms[sub] || sub.replace(/_/g, ' '));
       const precoKg = insumo?.preco_kg_referencia || 30;
 
       const kgSub = (refeicoesCat * proporcao * perCapitaG) / 1000;
