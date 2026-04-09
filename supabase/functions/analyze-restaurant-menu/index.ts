@@ -280,7 +280,6 @@ REGRA ABSOLUTA — FIDELIDADE AO CARDÁPIO:
 - Use o preco_cardapio EXATO da lista-fonte como preco_venda.
 - NÃO adicionar pratos que não estão na lista-fonte.
 - NÃO renomear pratos.
-- Se retornar QUALQUER prato que não existe na lista-fonte, a análise será descartada.
 
 LISTA-FONTE OBRIGATÓRIA:
 ${JSON.stringify(discoveredMenu)}
@@ -290,29 +289,16 @@ ${JSON.stringify(insumos)}
 
 VOLUME INFORMADO: ${refeicoesDia} refeições/dia × ${diasMes} dias/mês
 
+IMPORTANTE: NÃO calcule participação, kg_mes ou matérias_primas. Isso será calculado no servidor.
+Apenas identifique o insumo principal e custo por porção de cada prato.
+
 REGRAS:
 1. Para CADA prato da lista-fonte:
    - identificar insumo principal da base (match por nome/aliases)
    - se não encontrar match exato, usar o insumo mais próximo
    - usar custo_por_porcao da base
-   - estimar participação nas vendas
-   - calcular custo_mensal = custo_porcao × ${refeicoesDia} × participacao × ${diasMes}
+   - identificar tipo_coccao e se usa_oleo
 2. Cada prato da lista-fonte vira UMA linha separada em pratos_analisados
-3. A soma de todas as participações deve dar 100%
-4. Ser conservador nas estimativas
-5. Não inventar pratos fora da lista-fonte
-
-SEPARAR MATÉRIAS-PRIMAS EM 4 CATEGORIAS (igual calculadora Rational):
-1. CARNES: toda carne bovina e suína (costela, picanha, filé, carne de sol, calabresa, costelinha, torresmo, linguiça etc)
-2. AVES: frango, peru, chester (peito, coxa, passarinho, milanesa de frango)
-3. LEGUMES/GUARNIÇÕES: batata, mandioca, banana, legumes, arroz, feijão, farofa e vegetais em geral
-4. PESCADOS: tilápia, camarão, salmão, lambari, peixe em geral
-
-Para cada categoria retornar:
-- kg_mes: total de kg consumidos no mês (baseado no volume e participação dos pratos que usam esse insumo)
-- preco_medio_kg: média ponderada do preço/kg dos insumos da categoria
-- custo_mensal: kg_mes × preco_medio_kg
-- itens: lista dos insumos incluídos
 
 RETORNAR EXCLUSIVAMENTE JSON válido neste formato:
 {
@@ -332,60 +318,10 @@ RETORNAR EXCLUSIVAMENTE JSON válido neste formato:
       "preco_venda": 124.90,
       "insumo_match": "Costela bovina",
       "custo_porcao": 19.95,
-      "participacao_vendas": 0.15,
-      "porcoes_dia": 30,
-      "custo_mensal": 15561.00,
       "tipo_coccao": "brasa",
       "usa_oleo": false
     }
-  ],
-  "materias_primas": {
-    "carnes": {
-      "kg_mes": 1200,
-      "preco_medio_kg": 35.00,
-      "custo_mensal": 42000,
-      "itens": ["Costela bovina", "Carne de sol", "Picanha"]
-    },
-    "aves": {
-      "kg_mes": 300,
-      "preco_medio_kg": 18.00,
-      "custo_mensal": 5400,
-      "itens": ["Peito de frango"]
-    },
-    "legumes_guarnicoes": {
-      "kg_mes": 500,
-      "preco_medio_kg": 6.00,
-      "custo_mensal": 3000,
-      "itens": ["Batata", "Mandioca"]
-    },
-    "pescados": {
-      "kg_mes": 200,
-      "preco_medio_kg": 45.00,
-      "custo_mensal": 9000,
-      "itens": ["Tilápia", "Camarão"]
-    }
-  },
-  "totais_mensais": {
-    "energia_kwh": 0,
-    "custo_kwh_usado": 0.80,
-    "energia_reais": 0,
-    "gordura_litros": 0,
-    "gordura_reais": 0,
-    "horas_cozinha": 0,
-    "custo_hora": 23,
-    "mao_obra_reais": 0,
-    "agua_descalcificacao_reais": 0,
-    "custo_total_operacional": 0
-  },
-  "resumo_economia_rational": {
-    "economia_proteina_20pct": 0,
-    "economia_energia_50pct": 0,
-    "economia_gordura_80pct": 0,
-    "economia_mao_obra_40pct": 0,
-    "economia_agua_100pct": 0,
-    "economia_mensal_total": 0,
-    "economia_anual": 0
-  }
+  ]
 }
 
 FORMATO DE RESPOSTA: Retorne APENAS o JSON, sem texto antes, sem texto depois, sem markdown, sem \`\`\`json\`\`\`, sem explicação. Comece a resposta com { e termine com }. NADA MAIS.`;
@@ -437,71 +373,78 @@ const getMissingDishNames = (discoveredMenu: any, analysis: any) => {
     .filter((dishName: string) => !analyzed.has(normalizeText(dishName)));
 };
 
-// ── Post-processing: corrigir participação e médias ponderadas ──
-const classificarPrato = (nome: string) => {
-  const n = nome.toLowerCase();
-  if (
-    /arroz|feij[aã]o|batata|mandioca|macaxeira|aipim|banana|salada|farofa|vinagrete|queijo coalho|p[aã]o|couve|pir[aã]o|angu|pur[eê]|legume|vegetal|milho/.test(n)
-  ) return 'guarnicao';
-  if (/executivo/.test(n)) return 'executivo';
-  if (/bolinho|croqueta|isca|caldinho|dadinho|pastel|quibe|disco|petisco|coxinha|empada|tor[rr]esmo|provolone|linguica aperitivo/.test(n)) return 'petisco';
-  if (/mousse|sorvete|sobremesa|pudim|brownie|bolo|torta doce|petit gateau|churros|bombom/.test(n)) return 'sobremesa';
-  return 'principal';
+// ══════════════════════════════════════════════════════════════
+// PER CAPITA OFICIAL (SEBRAE/CRD, Sec. Educação SP) — gramas brutas
+// ══════════════════════════════════════════════════════════════
+const PER_CAPITA: Record<string, number> = {
+  // Proteína principal (pessoa come UMA por refeição) — gramas brutas
+  carne_bovina_sem_osso: 200,
+  carne_bovina_com_osso: 300,
+  frango_sem_osso: 180,
+  frango_com_osso: 300,
+  peixe_file: 150,
+  peixe_posta: 200,
+  carne_suina: 200,
+  linguica: 150,
+  camarao: 200,
+  // Acompanhamentos (todos comem junto)
+  arroz_cru: 80,
+  feijao_cru: 40,
+  batata_frita: 180,
+  mandioca: 190,
+  salada: 60,
+  farofa: 40,
+  legumes_cozidos: 120,
+  banana_milanesa: 100,
 };
 
-const CATEGORIA_PESOS: Record<string, number> = {
-  principal: 0.55,
-  executivo: 0.20,
-  petisco: 0.12,
-  guarnicao: 0.10,
-  sobremesa: 0.03,
+type ClassResult = { tipo: 'proteina' | 'guarnicao' | 'petisco' | 'sobremesa'; sub: string; categoria: 'carnes' | 'aves' | 'pescados' | 'legumes_guarnicoes' } | null;
+
+const classificarPratoPerCapita = (nome: string, descricao?: string): ClassResult => {
+  const texto = ((nome || '') + ' ' + (descricao || '')).toLowerCase();
+
+  // Proteínas
+  if (/costela(?!.*su[ií]n)|caranha/.test(texto)) return { tipo: 'proteina', sub: 'carne_bovina_com_osso', categoria: 'carnes' };
+  if (/picanha|fil[ée]\s*mignon|alcatra|fraldinha|maminha|contrafil[ée]|chuleta|carne de sol|carne seca|ac[ée]m|m[úu]sculo|estrogonofe(?!.*frango)|bife|carne mo[ií]da|picadinho/.test(texto)) return { tipo: 'proteina', sub: 'carne_bovina_sem_osso', categoria: 'carnes' };
+  if (/hamb[úu]rguer|burger|smash|blend/.test(texto)) return { tipo: 'proteina', sub: 'carne_bovina_sem_osso', categoria: 'carnes' };
+  if (/calabresa|lingui[çc]a|toscana/.test(texto)) return { tipo: 'proteina', sub: 'linguica', categoria: 'carnes' };
+  if (/costelinha.*su[ií]n|costelinha.*porco|pernil|lombo.*su[ií]n|torresmo|panceta|pururuca/.test(texto)) return { tipo: 'proteina', sub: 'carne_suina', categoria: 'carnes' };
+  if (/frango.*passarinho|frango.*assado|coxa|sobrecoxa/.test(texto)) return { tipo: 'proteina', sub: 'frango_com_osso', categoria: 'aves' };
+  if (/frango|fil[ée]\s*de\s*frango|estrogonofe.*frango|parmegiana.*frango|milanesa.*frango/.test(texto)) return { tipo: 'proteina', sub: 'frango_sem_osso', categoria: 'aves' };
+  if (/til[aá]pia|peixe|lambari/.test(texto)) return { tipo: 'proteina', sub: 'peixe_file', categoria: 'pescados' };
+  if (/camar[aã]o/.test(texto)) return { tipo: 'proteina', sub: 'camarao', categoria: 'pescados' };
+  if (/salm[aã]o/.test(texto)) return { tipo: 'proteina', sub: 'peixe_file', categoria: 'pescados' };
+
+  // Guarnições
+  if (/arroz/.test(texto)) return { tipo: 'guarnicao', sub: 'arroz_cru', categoria: 'legumes_guarnicoes' };
+  if (/feij[aã]o|tropeiro|feijoada/.test(texto)) return { tipo: 'guarnicao', sub: 'feijao_cru', categoria: 'legumes_guarnicoes' };
+  if (/batata.*frita|fritas/.test(texto)) return { tipo: 'guarnicao', sub: 'batata_frita', categoria: 'legumes_guarnicoes' };
+  if (/mandioca|macaxeira|aipim/.test(texto)) return { tipo: 'guarnicao', sub: 'mandioca', categoria: 'legumes_guarnicoes' };
+  if (/salada/.test(texto)) return { tipo: 'guarnicao', sub: 'salada', categoria: 'legumes_guarnicoes' };
+  if (/farofa|farinha/.test(texto)) return { tipo: 'guarnicao', sub: 'farofa', categoria: 'legumes_guarnicoes' };
+  if (/banana.*milanesa/.test(texto)) return { tipo: 'guarnicao', sub: 'banana_milanesa', categoria: 'legumes_guarnicoes' };
+
+  // Petiscos (proteína em porção menor)
+  if (/bolinho|croqueta|quibe|pastel|disco|isca|moela|dadinho|escondidinho|coxinha|empada/.test(texto)) return { tipo: 'petisco', sub: 'carne_bovina_sem_osso', categoria: 'carnes' };
+
+  // Sobremesas
+  if (/mousse|sorvete|sobremesa|pudim|brownie|bolo|torta.*doce|petit gateau|churros|bombom/.test(texto)) return { tipo: 'sobremesa', sub: 'carne_bovina_sem_osso', categoria: 'carnes' };
+
+  // Default: proteína bovina sem osso
+  return { tipo: 'proteina', sub: 'carne_bovina_sem_osso', categoria: 'carnes' };
 };
 
-const recalcularParticipacao = (pratos: any[]) => {
-  if (!pratos?.length) return pratos;
+const calcularPerCapita = (
+  pratos: any[],
+  insumos: any[],
+  refeicoesDia: number,
+  diasMes: number,
+) => {
+  if (!pratos?.length) return { materias_primas: null, pratosAnotados: pratos };
 
-  const grupos: Record<string, any[]> = { principal: [], executivo: [], petisco: [], guarnicao: [], sobremesa: [] };
-  for (const p of pratos) {
-    const tipo = classificarPrato(p.prato || '');
-    grupos[tipo].push(p);
-  }
+  const totalRefeicoesMes = refeicoesDia * diasMes;
 
-  // Redistribuir pesos se algum grupo está vazio
-  let pesoTotal = 0;
-  const pesosAtivos: Record<string, number> = {};
-  for (const [tipo, lista] of Object.entries(grupos)) {
-    if (lista.length > 0) {
-      pesosAtivos[tipo] = CATEGORIA_PESOS[tipo];
-      pesoTotal += CATEGORIA_PESOS[tipo];
-    }
-  }
-  // Normalizar para somar 1.0
-  for (const tipo of Object.keys(pesosAtivos)) {
-    pesosAtivos[tipo] = pesosAtivos[tipo] / pesoTotal;
-  }
-
-  // Dentro de cada grupo, pratos mais baratos vendem mais
-  for (const [tipo, lista] of Object.entries(grupos)) {
-    if (lista.length === 0) continue;
-    const totalPct = pesosAtivos[tipo] || 0;
-    const sorted = [...lista].sort((a, b) => (a.preco_venda || a.preco_cardapio || 50) - (b.preco_venda || b.preco_cardapio || 50));
-    const pesos = sorted.map((_: any, i: number) => sorted.length - i);
-    const somaPesos = pesos.reduce((a: number, b: number) => a + b, 0);
-    sorted.forEach((p: any, i: number) => {
-      p.participacao_vendas = Number(((pesos[i] / somaPesos) * totalPct).toFixed(4));
-      p._tipo_grupo = tipo;
-    });
-  }
-
-  return pratos;
-};
-
-const recalcularMateriasPrimas = (pratos: any[], insumos: any[], refeicoesDia: number, diasMes: number) => {
-  if (!pratos?.length) return null;
-
-  const refeicoesMes = refeicoesDia * diasMes;
-
-  // Map insumo names to their data
+  // Map insumo names
   const insumoMap = new Map<string, any>();
   for (const ins of insumos) {
     insumoMap.set(normalizeText(ins.nome), ins);
@@ -511,75 +454,157 @@ const recalcularMateriasPrimas = (pratos: any[], insumos: any[], refeicoesDia: n
       }
     }
   }
-
-  const findInsumo = (matchName: string) => {
-    const norm = normalizeText(matchName || '');
+  const findInsumo = (name: string) => {
+    const norm = normalizeText(name || '');
     for (const [key, ins] of insumoMap.entries()) {
       if (norm.includes(key) || key.includes(norm)) return ins;
     }
     return null;
   };
 
-  // Categorizar insumos dos pratos
-  const categorias: Record<string, { kgTotal: number; custoTotal: number; itens: Set<string>; entries: Array<{kg: number; precoKg: number}> }> = {
-    carnes: { kgTotal: 0, custoTotal: 0, itens: new Set(), entries: [] },
-    aves: { kgTotal: 0, custoTotal: 0, itens: new Set(), entries: [] },
-    legumes_guarnicoes: { kgTotal: 0, custoTotal: 0, itens: new Set(), entries: [] },
-    pescados: { kgTotal: 0, custoTotal: 0, itens: new Set(), entries: [] },
-  };
-
-  const categorizarInsumo = (insumoNome: string, insumoData: any): string => {
-    const n = normalizeText(insumoNome);
-    const cat = (insumoData?.categoria || '').toLowerCase();
-    if (/frango|peru|chester|ave|galinha|pato/.test(n) || cat === 'aves') return 'aves';
-    if (/tilapia|camar[aã]o|salm[aã]o|lambari|peixe|bacalhau|atum|sardinha|lula|polvo|pescado/.test(n) || cat === 'pescados') return 'pescados';
-    if (/batata|mandioca|aipim|macaxeira|legume|cenoura|abobrinha|berinjela|chuchu|brocoli|couve|arroz|feij[aã]o|banana|farofa|milho|pur[eê]/.test(n) || cat === 'legumes' || cat === 'guarnicoes' || cat === 'legumes_guarnicoes') return 'legumes_guarnicoes';
-    // Default: carnes (bovina, suina, etc)
-    return 'carnes';
-  };
-
-  for (const prato of pratos) {
-    const participacao = prato.participacao_vendas || 0;
-    if (participacao <= 0) continue;
-
-    const porcoesMes = refeicoesMes * participacao;
-    const insumoMatch = findInsumo(prato.insumo_match || prato.prato || '');
-    const insumoNome = prato.insumo_match || prato.prato || '';
-
-    const porcaoKg = ((insumoMatch?.porcao_padrao_g || 300) / 1000);
-    const rendimento = (insumoMatch?.rendimento_bruto || 0.75) * (insumoMatch?.rendimento_coccao || 0.80);
-    const kgBrutoMes = (porcoesMes * porcaoKg) / (rendimento || 0.6);
-    const precoKg = insumoMatch?.preco_kg_referencia || 30;
-
-    const catKey = categorizarInsumo(insumoNome, insumoMatch);
-    categorias[catKey].kgTotal += kgBrutoMes;
-    categorias[catKey].custoTotal += kgBrutoMes * precoKg;
-    categorias[catKey].itens.add(insumoMatch?.nome || insumoNome);
-    categorias[catKey].entries.push({ kg: kgBrutoMes, precoKg });
+  // 1. Classify every dish
+  const classificados: Array<{ prato: any; class: ClassResult }> = [];
+  for (const p of pratos) {
+    const c = classificarPratoPerCapita(p.prato || '', p.descricao || '');
+    classificados.push({ prato: p, class: c });
   }
 
-  // Build final materias_primas with weighted average
-  const result: Record<string, any> = {};
-  for (const [key, data] of Object.entries(categorias)) {
-    const kgMes = Math.round(data.kgTotal);
-    const precoMedioKg = data.kgTotal > 0
-      ? Number((data.custoTotal / data.kgTotal).toFixed(2))
+  // 2. Count protein dishes per category to determine distribution
+  const proteinasCount: Record<string, number> = {};
+  const proteinasSubCount: Record<string, Record<string, number>> = {};
+  for (const { class: c } of classificados) {
+    if (c && c.tipo === 'proteina') {
+      proteinasCount[c.categoria] = (proteinasCount[c.categoria] || 0) + 1;
+      if (!proteinasSubCount[c.categoria]) proteinasSubCount[c.categoria] = {};
+      proteinasSubCount[c.categoria][c.sub] = (proteinasSubCount[c.categoria]?.[c.sub] || 0) + 1;
+    }
+  }
+  const totalProteinas = Object.values(proteinasCount).reduce((a, b) => a + b, 0) || 1;
+
+  // Distribution = proportion of protein dishes in each category
+  const distribuicao: Record<string, number> = {};
+  for (const [cat, qtd] of Object.entries(proteinasCount)) {
+    distribuicao[cat] = qtd / totalProteinas;
+  }
+
+  console.log("Distribuição proteínas:", JSON.stringify(distribuicao));
+  console.log("Contagem sub-tipos:", JSON.stringify(proteinasSubCount));
+
+  // 3. Calculate kg/month per protein category using per capita
+  const resultado: Record<string, { kg: number; custo: number; preco_medio_kg: number; itens: Set<string>; kgEntries: Array<{kg: number; precoKg: number}> }> = {
+    carnes: { kg: 0, custo: 0, preco_medio_kg: 0, itens: new Set(), kgEntries: [] },
+    aves: { kg: 0, custo: 0, preco_medio_kg: 0, itens: new Set(), kgEntries: [] },
+    pescados: { kg: 0, custo: 0, preco_medio_kg: 0, itens: new Set(), kgEntries: [] },
+    legumes_guarnicoes: { kg: 0, custo: 0, preco_medio_kg: 0, itens: new Set(), kgEntries: [] },
+  };
+
+  // For each protein category, calculate weighted per capita and kg
+  for (const [categoria, percentual] of Object.entries(distribuicao)) {
+    const refeicoesCat = totalRefeicoesMes * percentual;
+    const subCounts = proteinasSubCount[categoria] || {};
+    const totalSubPratos = Object.values(subCounts).reduce((a, b) => a + b, 0) || 1;
+
+    // Weighted per capita by sub-type proportion within category
+    let perCapitaMedio = 0;
+    let custoKgPonderado = 0;
+    let pesoTotal = 0;
+
+    for (const [sub, count] of Object.entries(subCounts)) {
+      const proporcao = count / totalSubPratos;
+      const perCapitaG = PER_CAPITA[sub] || 200;
+      perCapitaMedio += perCapitaG * proporcao;
+
+      // Find matching insumo for price
+      const insumo = findInsumo(sub.replace(/_/g, ' '));
+      const precoKg = insumo?.preco_kg_referencia || 30;
+
+      const kgSub = (refeicoesCat * proporcao * perCapitaG) / 1000;
+      custoKgPonderado += kgSub * precoKg;
+      pesoTotal += kgSub;
+
+      if (insumo) resultado[categoria].itens.add(insumo.nome);
+      resultado[categoria].kgEntries.push({ kg: kgSub, precoKg });
+    }
+
+    resultado[categoria].kg = Math.round(pesoTotal);
+    resultado[categoria].custo = Math.round(custoKgPonderado);
+    resultado[categoria].preco_medio_kg = pesoTotal > 0
+      ? Number((custoKgPonderado / pesoTotal).toFixed(2))
       : 0;
-    result[key] = {
-      kg_mes: kgMes,
-      preco_medio_kg: precoMedioKg,
-      custo_mensal: Math.round(kgMes * precoMedioKg),
+  }
+
+  // 4. Garnish: EVERYONE eats these with every meal
+  // Check which garnishes appear on the menu
+  const guarnicoesPresentes = new Set<string>();
+  for (const { class: c } of classificados) {
+    if (c && c.tipo === 'guarnicao') guarnicoesPresentes.add(c.sub);
+  }
+
+  // Default garnishes always present (arroz + feijão)
+  const guarnicaoCalc: Array<{ sub: string; fator: number }> = [
+    { sub: 'arroz_cru', fator: 1.0 },    // 100% comem
+    { sub: 'feijao_cru', fator: 1.0 },   // 100% comem
+  ];
+  // Conditional garnishes (only if on menu)
+  if (guarnicoesPresentes.has('batata_frita')) guarnicaoCalc.push({ sub: 'batata_frita', fator: 0.40 });
+  if (guarnicoesPresentes.has('mandioca')) guarnicaoCalc.push({ sub: 'mandioca', fator: 0.30 });
+  if (guarnicoesPresentes.has('salada')) guarnicaoCalc.push({ sub: 'salada', fator: 0.50 });
+  if (guarnicoesPresentes.has('farofa')) guarnicaoCalc.push({ sub: 'farofa', fator: 0.60 });
+  if (guarnicoesPresentes.has('banana_milanesa')) guarnicaoCalc.push({ sub: 'banana_milanesa', fator: 0.25 });
+
+  let kgGuarnicoes = 0;
+  for (const { sub, fator } of guarnicaoCalc) {
+    const perCapita = PER_CAPITA[sub] || 80;
+    kgGuarnicoes += (totalRefeicoesMes * fator * perCapita) / 1000;
+  }
+
+  // Average garnish price ~R$ 6.50/kg
+  const precoGuarnicao = 6.50;
+  resultado.legumes_guarnicoes.kg = Math.round(kgGuarnicoes);
+  resultado.legumes_guarnicoes.custo = Math.round(kgGuarnicoes * precoGuarnicao);
+  resultado.legumes_guarnicoes.preco_medio_kg = precoGuarnicao;
+  resultado.legumes_guarnicoes.itens = new Set(['Arroz', 'Feijão', ...Array.from(guarnicoesPresentes).map(s => s.replace(/_/g, ' '))]);
+
+  // 5. Build final materias_primas
+  const materias_primas: Record<string, any> = {};
+  for (const [key, data] of Object.entries(resultado)) {
+    materias_primas[key] = {
+      kg_mes: data.kg,
+      preco_medio_kg: data.preco_medio_kg,
+      custo_mensal: data.custo,
       itens: Array.from(data.itens),
     };
   }
 
-  return result;
-};
-
-const recalcularPorcoesDia = (pratos: any[], refeicoesDia: number) => {
-  for (const p of pratos) {
-    p.porcoes_dia = Math.round(refeicoesDia * (p.participacao_vendas || 0));
+  // 6. Annotate each dish with participation + porcoes_dia
+  for (const { prato, class: c } of classificados) {
+    if (!c) continue;
+    if (c.tipo === 'proteina') {
+      const catPratos = classificados.filter(x => x.class?.categoria === c.categoria && x.class?.tipo === 'proteina');
+      prato.participacao_vendas = Number((distribuicao[c.categoria]! / catPratos.length).toFixed(4));
+      prato.porcoes_dia = Math.round(refeicoesDia * prato.participacao_vendas);
+      prato.custo_mensal = Math.round((prato.custo_porcao || 0) * totalRefeicoesMes * prato.participacao_vendas);
+    } else if (c.tipo === 'petisco') {
+      // Petiscos: ~5% split among them
+      const petiscos = classificados.filter(x => x.class?.tipo === 'petisco');
+      prato.participacao_vendas = Number((0.05 / petiscos.length).toFixed(4));
+      prato.porcoes_dia = Math.round(refeicoesDia * prato.participacao_vendas);
+      prato.custo_mensal = Math.round((prato.custo_porcao || 0) * totalRefeicoesMes * prato.participacao_vendas);
+    } else if (c.tipo === 'guarnicao') {
+      // Garnish dishes on menu don't add to protein cost, per capita already counted
+      prato.participacao_vendas = 0;
+      prato.porcoes_dia = 0;
+      prato.custo_mensal = 0;
+    } else if (c.tipo === 'sobremesa') {
+      const sobremesas = classificados.filter(x => x.class?.tipo === 'sobremesa');
+      prato.participacao_vendas = Number((0.03 / sobremesas.length).toFixed(4));
+      prato.porcoes_dia = Math.round(refeicoesDia * prato.participacao_vendas);
+      prato.custo_mensal = Math.round((prato.custo_porcao || 0) * totalRefeicoesMes * prato.participacao_vendas);
+    }
+    prato._classificacao = `${c.tipo}/${c.sub}/${c.categoria}`;
   }
+
+  return { materias_primas, pratosAnotados: pratos };
 };
 
 serve(async (req) => {
