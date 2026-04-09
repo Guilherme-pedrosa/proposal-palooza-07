@@ -265,6 +265,167 @@ function extrairJson(content: string): any {
   throw new Error("JSON inválido na resposta da IA");
 }
 
+function limparTextoHtml(html: string): string {
+  return html
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, "")
+    .replace(/<img[^>]*>/gi, "")
+    .replace(/data:[^"'\s]*/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&#\d+;/gi, "")
+    .replace(/\s{2,}/g, "\n")
+    .trim();
+}
+
+function limparMarkdown(texto: string): string {
+  return texto
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/^#{1,6}\s+/g, "")
+    .replace(/[>*_`~]/g, "")
+    .trim();
+}
+
+function normalizar(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function parsePrecoBRL(texto: string): number | null {
+  const match = texto.match(/R\$\s*([\d.]+,\d{2})/i);
+  if (!match) return null;
+  const valor = Number(match[1].replace(/\./g, "").replace(",", "."));
+  return Number.isFinite(valor) ? valor : null;
+}
+
+function respostaPareceRecusa(content: string): boolean {
+  const texto = normalizar(content);
+  return [
+    "nao consigo acessar urls",
+    "nao consigo navegar em sites",
+    "nao consigo extrair conteudo de paginas web",
+    "fornecer-me o conteudo html",
+    "copiar e colar o texto do cardapio",
+    "lamento nao poder completar esta tarefa",
+  ].some((trecho) => texto.includes(trecho));
+}
+
+function deveIgnorarItem(nome: string, categoria: string, descricao = ""): boolean {
+  const texto = normalizar(`${categoria} ${nome} ${descricao}`);
+  const padraoBebida = /\b(chopp|cerveja|longneck|caipirinha|caipivodka|caipiroska|drink|cozumel|gin|vodka|whisky|whiskey|rum|tequila|licor|vinho|espumante|refri|refrigerante|agua com gas|agua sem gas|agua mineral|suco|energetico|cafe|espresso|cappuccino)\b/;
+  const padraoIgnorar = /\b(molho|sache|talher|guardanapo)\b/;
+  return padraoBebida.test(texto) || padraoIgnorar.test(texto);
+}
+
+function extrairMenuDoMarkdown(markdown: string): any {
+  const linhas = markdown
+    .split(/\r?\n/)
+    .map((linha) => linha.trim())
+    .filter(Boolean);
+
+  const restauranteNome = limparMarkdown(
+    linhas.find((linha) => {
+      const limpa = limparMarkdown(linha);
+      return !!limpa && !/^R\$/i.test(limpa) && limpa.length > 3;
+    }) || "Restaurante",
+  );
+
+  const pratos: Array<{ nome: string; preco: number; descricao: string }> = [];
+  const vistos = new Set<string>();
+  let categoriaAtual = "";
+
+  for (let i = 0; i < linhas.length; i++) {
+    const linha = linhas[i];
+    if (!linha.startsWith("##")) continue;
+
+    const titulo = limparMarkdown(linha);
+    if (!titulo) continue;
+
+    const bloco: string[] = [];
+    for (let j = i + 1; j < Math.min(linhas.length, i + 8); j++) {
+      if (linhas[j].startsWith("##")) break;
+      const limpa = limparMarkdown(linhas[j]);
+      if (limpa) bloco.push(limpa);
+    }
+
+    const precoLinha = bloco.find((item) => /R\$\s*[\d.]+,\d{2}/i.test(item));
+    if (!precoLinha) {
+      categoriaAtual = titulo;
+      continue;
+    }
+
+    const preco = parsePrecoBRL(precoLinha);
+    if (preco === null) continue;
+
+    const descricao = bloco
+      .filter((item) => item !== precoLinha && !/R\$\s*[\d.]+,\d{2}/i.test(item))
+      .join(" ")
+      .trim();
+
+    if (deveIgnorarItem(titulo, categoriaAtual, descricao)) continue;
+
+    const chave = normalizar(`${titulo}|${preco}|${descricao}`);
+    if (vistos.has(chave)) continue;
+    vistos.add(chave);
+
+    pratos.push({ nome: titulo, preco, descricao });
+  }
+
+  return {
+    restaurante: {
+      nome: restauranteNome || "Restaurante",
+      qtd_pratos_cardapio: pratos.length,
+      tipo_operacao: "restaurante",
+      coccao_predominante: "variado",
+    },
+    pratos,
+  };
+}
+
+async function extrairMarkdownViaFirecrawl(cardapioUrl: string): Promise<string> {
+  const FIRECRAWL_KEY = (Deno.env.get("FIRECRAWL_API_KEY") || "").trim();
+  if (!FIRECRAWL_KEY) return "";
+
+  try {
+    console.log("Tentando Firecrawl...");
+    const res = await fetch("https://api.firecrawl.dev/v2/scrape", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${FIRECRAWL_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        url: cardapioUrl,
+        formats: ["markdown"],
+        onlyMainContent: true,
+        waitFor: 2000,
+        timeout: 30000,
+        removeBase64Images: true,
+        blockAds: true,
+      }),
+    });
+
+    if (!res.ok) {
+      console.error("Firecrawl erro:", res.status, await res.text());
+      return "";
+    }
+
+    const data = await res.json();
+    const markdown = (data?.data?.markdown || "").trim();
+    console.log("Firecrawl markdown chars:", markdown.length);
+    return markdown.substring(0, 60000);
+  } catch (error) {
+    console.error("Firecrawl falhou:", error);
+    return "";
+  }
+}
+
 // ═══════════════════════════════════════════════════════════
 // HANDLER PRINCIPAL
 // ═══════════════════════════════════════════════════════════
@@ -295,6 +456,7 @@ serve(async (req) => {
 
     // ── 2. BAIXAR HTML DO CARDÁPIO ──
     let textoCardapio = "";
+    let fonteCardapio: "html" | "firecrawl" | "url" = "url";
     try {
       const res = await fetch(cardapio_url, {
         headers: {
@@ -303,28 +465,25 @@ serve(async (req) => {
         },
       });
       const html = await res.text();
-      textoCardapio = html
-        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-        .replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, "")
-        .replace(/<img[^>]*>/gi, "")
-        .replace(/data:[^"'\s]*/gi, "")
-        .replace(/<[^>]+>/g, " ")
-        .replace(/&nbsp;/gi, " ")
-        .replace(/&amp;/gi, "&")
-        .replace(/&#\d+;/gi, "")
-        .replace(/\s{2,}/g, "\n")
-        .trim()
-        .substring(0, 40000);
+      textoCardapio = limparTextoHtml(html).substring(0, 40000);
+      if (textoCardapio.length > 500) fonteCardapio = "html";
     } catch (e) {
       console.error("Fetch HTML falhou:", e);
+    }
+
+    if (textoCardapio.length <= 500) {
+      const markdownFirecrawl = await extrairMarkdownViaFirecrawl(cardapio_url);
+      if (markdownFirecrawl.length > textoCardapio.length) {
+        textoCardapio = markdownFirecrawl;
+        fonteCardapio = "firecrawl";
+      }
     }
 
     // ── 3. UMA CHAMADA AO PERPLEXITY: EXTRAIR PRATOS ──
     const usarTexto = textoCardapio.length > 500;
 
     const systemPrompt = `Você extrai cardápios de restaurantes.
-${usarTexto ? "Receba o texto de uma página de cardápio." : "Acesse a URL informada."}
+    ${usarTexto ? "Receba o texto de uma página de cardápio já extraído." : "Acesse a URL informada."}
 Retorne SOMENTE um JSON com TODOS os pratos que envolvem preparo em cozinha.
 
 REGRAS:
@@ -340,10 +499,10 @@ Retornar APENAS:
 Começar com { e terminar com }. NADA MAIS.`;
 
     const userMsg = usarTexto
-      ? `Extraia TODOS os pratos:\n\n${textoCardapio}`
+      ? `Extraia TODOS os pratos do conteúdo abaixo. Não diga que não consegue navegar, porque o texto já foi extraído da página:\n\n${textoCardapio}`
       : `Acesse e extraia TODOS os pratos: ${cardapio_url}`;
 
-    console.log(`Chamando Perplexity (${usarTexto ? "texto" : "url"})...`);
+    console.log(`Chamando Perplexity (${usarTexto ? fonteCardapio : "url"})...`);
 
     const ppxRes = await fetch("https://api.perplexity.ai/chat/completions", {
       method: "POST",
@@ -374,8 +533,24 @@ Começar com { e terminar com }. NADA MAIS.`;
     console.log("Perplexity finish_reason:", finishReason ?? "desconhecido");
     if (!content) return json({ error: "IA não retornou conteúdo" }, 500);
 
-    const menu = extrairJson(content);
-    const pratos: any[] = menu?.pratos || menu?.pratos_detectados || [];
+    let menu: any = null;
+    let pratos: any[] = [];
+
+    try {
+      if (respostaPareceRecusa(content)) {
+        throw new Error("IA recusou processar o cardápio");
+      }
+      menu = extrairJson(content);
+      pratos = menu?.pratos || menu?.pratos_detectados || [];
+    } catch (error) {
+      console.warn("Falha na resposta da IA; ativando fallback determinístico:", error);
+      if (textoCardapio.length > 500) {
+        menu = extrairMenuDoMarkdown(textoCardapio);
+        pratos = menu?.pratos || [];
+      } else {
+        throw error;
+      }
+    }
 
     console.log(`Pratos extraídos: ${pratos.length}`);
     if (!pratos.length) {
