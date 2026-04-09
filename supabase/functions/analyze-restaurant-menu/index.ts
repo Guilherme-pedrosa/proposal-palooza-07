@@ -18,6 +18,32 @@ const sanitizeSecret = (value?: string | null) =>
 const jsonResponse = (payload: unknown, status = 200) =>
   new Response(JSON.stringify(payload), { status, headers: jsonHeaders });
 
+const repairTruncatedJson = (text: string): string | null => {
+  const jsonStart = text.search(/[\{\[]/);
+  if (jsonStart === -1) return null;
+
+  let partial = text.slice(jsonStart);
+  // Remove trailing incomplete string/value (cut at last complete property)
+  partial = partial.replace(/,\s*"[^"]*"?\s*:?\s*[^,\}\]]*$/, "");
+  // Remove trailing comma
+  partial = partial.replace(/,\s*$/, "");
+
+  // Count and close unclosed brackets/braces
+  const opens = { "{": 0, "[": 0 };
+  for (const ch of partial) {
+    if (ch === "{") opens["{"]++;
+    else if (ch === "}") opens["{"]--;
+    else if (ch === "[") opens["["]++;
+    else if (ch === "]") opens["["]--;
+  }
+
+  // Close arrays first, then objects
+  for (let i = 0; i < opens["["]; i++) partial += "]";
+  for (let i = 0; i < opens["{"]; i++) partial += "}";
+
+  return partial.length > 10 ? partial : null;
+};
+
 const extractJsonObject = (content: string) => {
   const cleanedBase = String(content ?? "")
     .replace(/```json\s*/gi, "")
