@@ -10,7 +10,7 @@ const corsHeaders = {
 const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
 const PERPLEXITY_URL = "https://api.perplexity.ai/chat/completions";
 const PERPLEXITY_MODEL = "sonar-pro";
-const PERPLEXITY_MAX_TOKENS = 16000;
+const PERPLEXITY_MAX_TOKENS = 32000;
 
 const sanitizeSecret = (value?: string | null) =>
   value?.replace(/[\u0000-\u001F\u007F]/g, "").trim();
@@ -70,6 +70,16 @@ const extractJsonObject = (content: string) => {
   for (const candidate of candidates) {
     try {
       return tryParse(candidate);
+    } catch {
+      // continue
+    }
+  }
+
+  // Truncation repair: try to close incomplete JSON
+  const repaired = repairTruncatedJson(cleanedBase);
+  if (repaired) {
+    try {
+      return tryParse(repaired);
     } catch {
       // continue
     }
