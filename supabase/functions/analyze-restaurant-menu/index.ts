@@ -163,51 +163,93 @@ function buscarInsumo(termoBusca: string, insumos: any[]): any | null {
 }
 
 // ─── EXTRAIR JSON DO PERPLEXITY ───
-function extrairJson(content: string): any {
-  if (!content) throw new Error("Resposta vazia da IA");
-
-  // Log raw content for debugging
-  console.log("Perplexity raw (primeiros 300 chars):", content.substring(0, 300));
-  console.log("Perplexity raw (últimos 200 chars):", content.substring(content.length - 200));
-
-  // 1. Limpar markdown, referências, texto extra
-  let limpo = content
+function limparJsonCandidato(valor: string): string {
+  return valor
     .replace(/```json\s*/gi, "")
     .replace(/```\s*/g, "")
-    .replace(/\[\d+\]/g, "")          // remover referências [1] [2] etc
-    .replace(/\*\*[^*]*\*\*/g, "")     // remover **bold**
+    .replace(/\[\d+\]/g, "")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, "")
+    .replace(/,\s*}/g, "}")
+    .replace(/,\s*]/g, "]")
     .trim();
+}
 
-  // 2. Tentar parse direto
-  try { return JSON.parse(limpo); } catch {}
+function extrairBlocoJsonBalanceado(texto: string): string | null {
+  const inicio = texto.search(/[\[{]/);
+  if (inicio === -1) return null;
 
-  // 3. Encontrar o primeiro { e o último } — extrair o bloco JSON
-  const firstBrace = limpo.indexOf("{");
-  const lastBrace = limpo.lastIndexOf("}");
+  const abertura = texto[inicio];
+  const fechamento = abertura === "{" ? "}" : "]";
+  let profundidade = 0;
+  let emString = false;
+  let escape = false;
 
-  if (firstBrace !== -1 && lastBrace > firstBrace) {
-    const bloco = limpo.substring(firstBrace, lastBrace + 1);
-    const reparado = bloco
-      .replace(/,\s*}/g, "}")
-      .replace(/,\s*]/g, "]");
-    try { return JSON.parse(reparado); } catch {}
-  }
+  for (let i = inicio; i < texto.length; i++) {
+    const char = texto[i];
 
-  // 4. Tentar encontrar qualquer {} grande na string
-  const matches = limpo.match(/\{[\s\S]*\}/g);
-  if (matches) {
-    const sorted = matches.sort((a, b) => b.length - a.length);
-    for (const m of sorted) {
-      try {
-        return JSON.parse(m.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]"));
-      } catch {}
+    if (emString) {
+      if (escape) {
+        escape = false;
+        continue;
+      }
+      if (char === "\\") {
+        escape = true;
+        continue;
+      }
+      if (char === '"') {
+        emString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      emString = true;
+      continue;
+    }
+
+    if (char === abertura) profundidade += 1;
+    if (char === fechamento) {
+      profundidade -= 1;
+      if (profundidade === 0) {
+        return texto.substring(inicio, i + 1);
+      }
     }
   }
 
-  // 5. Último recurso: tentar reparar JSON truncado (fechar chaves/colchetes faltantes)
+  return null;
+}
+
+function extrairJson(content: string): any {
+  if (!content) throw new Error("Resposta vazia da IA");
+
+  console.log("Perplexity raw (primeiros 300 chars):", content.substring(0, 300));
+  console.log("Perplexity raw (últimos 200 chars):", content.substring(content.length - 200));
+
+  const limpo = limparJsonCandidato(content);
+
+  try { return JSON.parse(limpo); } catch {}
+
+  const blocoBalanceado = extrairBlocoJsonBalanceado(limpo);
+  if (blocoBalanceado) {
+    try { return JSON.parse(limparJsonCandidato(blocoBalanceado)); } catch {}
+  }
+
+  const firstBrace = limpo.indexOf("{");
+  const lastBrace = limpo.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    const bloco = limpo.substring(firstBrace, lastBrace + 1);
+    try { return JSON.parse(limparJsonCandidato(bloco)); } catch {}
+  }
+
+  const matches = limpo.match(/\{[\s\S]*\}/g);
+  if (matches?.length) {
+    const maior = matches.sort((a, b) => b.length - a.length)[0];
+    try { return JSON.parse(limparJsonCandidato(maior)); } catch {}
+  }
+
   if (firstBrace !== -1) {
     let partial = limpo.substring(firstBrace);
-    // Remover propriedade incompleta no final
     partial = partial.replace(/,\s*"[^"]*"?\s*:?\s*[^,}\]]*$/, "");
     const openBraces = (partial.match(/{/g) || []).length;
     const closeBraces = (partial.match(/}/g) || []).length;
@@ -215,10 +257,9 @@ function extrairJson(content: string): any {
     const closeBrackets = (partial.match(/\]/g) || []).length;
     for (let i = 0; i < openBrackets - closeBrackets; i++) partial += "]";
     for (let i = 0; i < openBraces - closeBraces; i++) partial += "}";
-    try { return JSON.parse(partial); } catch {}
+    try { return JSON.parse(limparJsonCandidato(partial)); } catch {}
   }
 
-  // 6. Logar e falhar
   console.error("Parse falhou. Primeiros 500 chars:", content.substring(0, 500));
   console.error("Últimos 500 chars:", content.substring(content.length - 500));
   throw new Error("JSON inválido na resposta da IA");
@@ -329,6 +370,8 @@ Começar com { e terminar com }. NADA MAIS.`;
 
     const ppxData = await ppxRes.json();
     const content = ppxData?.choices?.[0]?.message?.content;
+    const finishReason = ppxData?.choices?.[0]?.finish_reason;
+    console.log("Perplexity finish_reason:", finishReason ?? "desconhecido");
     if (!content) return json({ error: "IA não retornou conteúdo" }, 500);
 
     const menu = extrairJson(content);
