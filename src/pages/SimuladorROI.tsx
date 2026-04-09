@@ -793,7 +793,7 @@ export default function SimuladorROI() {
                       <div>
                         <div className="flex items-center gap-2">
                           <Check className="h-5 w-5 text-[#87B537]" />
-                          <span className="font-semibold text-lg">{analiseResult.restaurante?.nome ?? nomeRestaurante}</span>
+                          <span className="font-semibold text-lg">{analiseResult.restaurante?.nome ?? clienteSelecionado?.nome ?? 'Restaurante'}</span>
                           {analiseResult.restaurante?.nota_ifood ? (
                             <Badge variant="secondary" className="text-xs">
                               <Star className="h-3 w-3 mr-1 text-yellow-500" />
@@ -1296,7 +1296,7 @@ export default function SimuladorROI() {
               {/* Footer P1 */}
               {analiseResult && (
                 <div style={{ fontSize: '10px', color: '#888', borderTop: '1px solid #e4e4e7', paddingTop: '10px' }}>
-                  📊 Baseado no cardápio real de <strong>{analiseResult.restaurante?.nome ?? nomeRestaurante}</strong>
+                  📊 Baseado no cardápio real de <strong>{analiseResult.restaurante?.nome ?? clienteSelecionado?.nome ?? 'Restaurante'}</strong>
                   {analiseResult.restaurante?.nota_ifood ? ` (⭐ ${analiseResult.restaurante.nota_ifood})` : ''}
                   {' • '}{analiseResult.restaurante?.qtd_pratos_cardapio ?? '—'} pratos analisados
                   {' • '}Cocção predominante: {analiseResult.restaurante?.metodo_coccao_predominante ?? '—'}
