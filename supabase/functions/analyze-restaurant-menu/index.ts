@@ -316,7 +316,7 @@ Começar com { e terminar com }. NADA MAIS.`;
           { role: "system", content: systemPrompt },
           { role: "user", content: userMsg },
         ],
-        max_tokens: 16000,
+        max_tokens: 32000,
         temperature: 0.1,
       }),
     });
