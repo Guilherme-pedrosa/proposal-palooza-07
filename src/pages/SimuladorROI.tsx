@@ -87,18 +87,18 @@ interface MateriasPrimas {
 }
 
 interface AnaliseResult {
-  restaurante: {
-    nome: string;
+  restaurante?: {
+    nome?: string;
     nota_ifood?: number;
-    qtd_pratos_cardapio: number;
+    qtd_pratos_cardapio?: number;
     ticket_medio?: number;
-    tipo_operacao_inferido: string;
-    metodo_coccao_predominante: string;
-    categorias: string[];
+    tipo_operacao_inferido?: string;
+    metodo_coccao_predominante?: string;
+    categorias?: string[];
   };
-  pratos_analisados: PratoAnalisado[];
-  materias_primas: MateriasPrimas;
-  totais_mensais: {
+  pratos_analisados?: PratoAnalisado[];
+  materias_primas?: Partial<MateriasPrimas>;
+  totais_mensais?: {
     energia_kwh: number;
     custo_kwh_usado: number;
     energia_reais: number;
@@ -112,7 +112,7 @@ interface AnaliseResult {
     // legacy field kept for backward compat
     proteinas_reais?: number;
   };
-  resumo_economia_rational: {
+  resumo_economia_rational?: {
     economia_proteina_20pct: number;
     economia_energia_50pct: number;
     economia_gordura_80pct: number;
@@ -142,6 +142,31 @@ const DEFAULT_CATEGORIAS_MP: CategoriaMP[] = [
   { label: 'Pescados', icon: '🐟', kgMes: 0, precoKg: 0, pctEconomia: 25 },
 ];
 
+const cloneDefaultCategoriasMP = () => DEFAULT_CATEGORIAS_MP.map((cat) => ({ ...cat }));
+
+const normalizeCategoriasMP = (value: unknown): CategoriaMP[] => {
+  const fallback = cloneDefaultCategoriasMP();
+
+  if (!Array.isArray(value)) return fallback;
+
+  return fallback.map((base, index) => {
+    const current = value[index];
+    if (!current || typeof current !== 'object') return base;
+
+    const item = current as Record<string, unknown>;
+    const kgMes = Number(item.kgMes ?? item.kg_mes ?? base.kgMes);
+    const precoKg = Number(item.precoKg ?? item.preco_medio_kg ?? base.precoKg);
+    const pctEconomia = Number(item.pctEconomia ?? base.pctEconomia);
+
+    return {
+      ...base,
+      kgMes: Number.isFinite(kgMes) ? kgMes : 0,
+      precoKg: Number.isFinite(precoKg) ? precoKg : 0,
+      pctEconomia: Number.isFinite(pctEconomia) ? pctEconomia : base.pctEconomia,
+    };
+  });
+};
+
 /* ═══════════════════════════════════════════════ */
 /*  COMPONENTE PRINCIPAL                          */
 /* ═══════════════════════════════════════════════ */
@@ -169,7 +194,9 @@ export default function SimuladorROI() {
 
   // ── BLOCO C: CUSTOS ──
   // Matérias-primas por categoria (4 linhas)
-  const [categoriasMP, setCategoriasMP] = useState<CategoriaMP[]>(DEFAULT_CATEGORIAS_MP);
+  const [categoriasMP, setCategoriasMP] = useState<CategoriaMP[]>(() => cloneDefaultCategoriasMP());
+  const safeCategoriasMP = useMemo(() => normalizeCategoriasMP(categoriasMP), [categoriasMP]);
+  const safePratosAnalisados = Array.isArray(analiseResult?.pratos_analisados) ? analiseResult.pratos_analisados : [];
 
   const [custoEnergia, setCustoEnergia] = useState(0);
   const [custoKwh, setCustoKwh] = useState(0.80);
@@ -189,7 +216,7 @@ export default function SimuladorROI() {
 
   // Helper to update a single categoria MP field
   const updateCategoriaMP = (index: number, field: keyof CategoriaMP, value: number) => {
-    setCategoriasMP(prev => prev.map((c, i) => i === index ? { ...c, [field]: value } : c));
+    setCategoriasMP((prev) => normalizeCategoriasMP(prev).map((c, i) => i === index ? { ...c, [field]: value } : c));
   };
 
   // ── QUERIES ──
@@ -265,12 +292,12 @@ export default function SimuladorROI() {
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || 'Erro na análise');
 
-      const result = data.data as AnaliseResult;
+      const result = (data.data ?? null) as AnaliseResult | null;
       setAnaliseResult(result);
       if (data.completeness?.is_complete === false) {
         toast.warning(`Análise parcial: ${data.completeness.analyzed_dishes}/${data.completeness.expected_dishes} pratos processados.`);
       } else {
-        toast.success(`Cardápio de "${result.restaurante.nome}" analisado com sucesso!`);
+        toast.success(`Cardápio de "${result?.restaurante?.nome ?? 'Restaurante'}" analisado com sucesso!`);
       }
     } catch (err: any) {
       console.error('Erro ao analisar:', err);
@@ -282,44 +309,45 @@ export default function SimuladorROI() {
 
   const handleUsarValoresAnalise = () => {
     if (!analiseResult) return;
+
     const t = analiseResult.totais_mensais;
     const mp = analiseResult.materias_primas;
 
     // Fill 4 categories from analysis
-    if (mp) {
+    if (mp && typeof mp === 'object') {
       const keys: Array<{ key: keyof MateriasPrimas; idx: number }> = [
         { key: 'carnes', idx: 0 },
         { key: 'aves', idx: 1 },
         { key: 'legumes_guarnicoes', idx: 2 },
         { key: 'pescados', idx: 3 },
       ];
-      setCategoriasMP(prev => prev.map((cat, i) => {
+      setCategoriasMP((prev) => normalizeCategoriasMP(prev).map((cat, i) => {
         const mapping = keys.find(k => k.idx === i);
-        if (!mapping || !mp[mapping.key]) return cat;
-        const src = mp[mapping.key];
+        const src = mapping ? mp[mapping.key] : null;
+        if (!src) return cat;
         return { ...cat, kgMes: src.kg_mes || 0, precoKg: src.preco_medio_kg || 0 };
       }));
-    } else if (t.proteinas_reais) {
+    } else if (t?.proteinas_reais) {
       // Legacy fallback: dump all into carnes
-      setCategoriasMP(prev => prev.map((cat, i) => i === 0
+      setCategoriasMP((prev) => normalizeCategoriasMP(prev).map((cat, i) => i === 0
         ? { ...cat, kgMes: Math.round(t.proteinas_reais! / 35), precoKg: 35 }
         : cat
       ));
     }
 
-    setCustoEnergia(t.energia_reais);
-    setCustoKwh(t.custo_kwh_usado);
-    setCustoGordura(t.gordura_reais);
-    setHorasEconomizadas(t.horas_cozinha);
-    setCustoHora(t.custo_hora);
-    setCustoAgua(t.agua_descalcificacao_reais);
+    setCustoEnergia(t?.energia_reais ?? 0);
+    setCustoKwh(t?.custo_kwh_usado ?? 0.80);
+    setCustoGordura(t?.gordura_reais ?? 0);
+    setHorasEconomizadas(t?.horas_cozinha ?? 0);
+    setCustoHora(t?.custo_hora ?? 23);
+    setCustoAgua(t?.agua_descalcificacao_reais ?? 0);
     toast.success('Valores preenchidos com base na análise!');
   };
 
   // ── CÁLCULOS ──
   const economia = useMemo(() => {
     // Economia por categoria de MP
-    const econMP = categoriasMP.map(c => ({
+    const econMP = safeCategoriasMP.map(c => ({
       label: c.label,
       icon: c.icon,
       custoAtual: c.kgMes * c.precoKg,
@@ -353,7 +381,7 @@ export default function SimuladorROI() {
       roi12m,
       em5anos,
     };
-  }, [categoriasMP, custoEnergia, custoGordura, horasEconomizadas, custoHora, custoAgua, pctEnergia, pctGordura, pctMaoDeObra, pctAgua, valorInvestimento]);
+  }, [safeCategoriasMP, custoEnergia, custoGordura, horasEconomizadas, custoHora, custoAgua, pctEnergia, pctGordura, pctMaoDeObra, pctAgua, valorInvestimento]);
 
   // ── GRÁFICO DE PAYBACK ──
   const chartData = useMemo(() => {
@@ -493,7 +521,7 @@ export default function SimuladorROI() {
         vendedor_id: user.id,
         nome_restaurante: nome,
         url_cardapio: cardapioUrl || null,
-        materias_primas: categoriasMP as any,
+        materias_primas: safeCategoriasMP as any,
         custo_energia: custoEnergia,
         custo_gordura: custoGordura,
         custo_mao_obra: horasEconomizadas * custoHora,
@@ -516,22 +544,16 @@ export default function SimuladorROI() {
   };
 
   const handleCarregar = (sim: any) => {
-    const mp = sim.materias_primas;
-    if (Array.isArray(mp) && mp.length === 4) {
-      setCategoriasMP(mp.map((c: any, i: number) => ({
-        ...DEFAULT_CATEGORIAS_MP[i],
-        kgMes: c.kgMes ?? 0,
-        precoKg: c.precoKg ?? 0,
-        pctEconomia: c.pctEconomia ?? 25,
-      })));
-    }
+    setCategoriasMP(normalizeCategoriasMP(sim.materias_primas));
     setCustoEnergia(sim.custo_energia ?? 0);
     setCustoGordura(sim.custo_gordura ?? 0);
     setCustoAgua(sim.custo_agua ?? 0);
     setRefeicoesDia(sim.refeicoes_dia ?? 200);
     setDiasMes(sim.dias_mes ?? 26);
     setCardapioUrl(sim.url_cardapio ?? '');
-    if (sim.resultado_analise) setAnaliseResult(sim.resultado_analise);
+    setAnaliseResult(sim.resultado_analise && typeof sim.resultado_analise === 'object'
+      ? sim.resultado_analise as AnaliseResult
+      : null);
     setLoadDialogOpen(false);
     toast.success(`Simulação "${sim.nome_restaurante}" carregada!`);
   };
@@ -822,7 +844,7 @@ export default function SimuladorROI() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {analiseResult.pratos_analisados.map((p, i) => (
+                          {safePratosAnalisados.map((p, i) => (
                             <TableRow key={i}>
                               <TableCell className="font-medium text-sm">{p.prato}</TableCell>
                               <TableCell className="text-sm text-muted-foreground">{p.insumo_match}</TableCell>
@@ -898,7 +920,7 @@ export default function SimuladorROI() {
                         </tr>
                       </thead>
                       <tbody>
-                        {categoriasMP.map((cat, i) => {
+                        {safeCategoriasMP.map((cat, i) => {
                           const econVal = cat.kgMes * cat.precoKg * (cat.pctEconomia / 100);
                           return (
                             <tr key={i} className="border-b last:border-0">
@@ -954,7 +976,7 @@ export default function SimuladorROI() {
 
                   {/* Mobile cards */}
                   <div className="sm:hidden space-y-3">
-                    {categoriasMP.map((cat, i) => {
+                    {safeCategoriasMP.map((cat, i) => {
                       const econVal = cat.kgMes * cat.precoKg * (cat.pctEconomia / 100);
                       return (
                         <div key={i} className="border rounded-lg p-3 space-y-2">
@@ -1423,8 +1445,8 @@ export default function SimuladorROI() {
                 Por que investir em Rational:
               </h3>
               <div style={{ fontSize: '13px', lineHeight: '2.2', color: '#333', flex: 1 }}>
-                {categoriasMP.some(c => c.kgMes > 0) && (
-                  <div>✅ Até {Math.max(...categoriasMP.filter(c => c.kgMes > 0).map(c => c.pctEconomia))}% menos perda de peso na cocção — mais porções por kg</div>
+                {safeCategoriasMP.some(c => c.kgMes > 0) && (
+                  <div>✅ Até {Math.max(...safeCategoriasMP.filter(c => c.kgMes > 0).map(c => c.pctEconomia))}% menos perda de peso na cocção — mais porções por kg</div>
                 )}
                 <div>✅ {pctEnergia}% menos energia — economia na conta de luz</div>
                 <div>✅ {pctGordura}% menos gordura — redução de compra e descarte</div>
