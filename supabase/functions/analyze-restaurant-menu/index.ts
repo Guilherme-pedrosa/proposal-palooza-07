@@ -164,23 +164,63 @@ function buscarInsumo(termoBusca: string, insumos: any[]): any | null {
 
 // ─── EXTRAIR JSON DO PERPLEXITY ───
 function extrairJson(content: string): any {
-  const limpo = (content || "")
+  if (!content) throw new Error("Resposta vazia da IA");
+
+  // Log raw content for debugging
+  console.log("Perplexity raw (primeiros 300 chars):", content.substring(0, 300));
+  console.log("Perplexity raw (últimos 200 chars):", content.substring(content.length - 200));
+
+  // 1. Limpar markdown, referências, texto extra
+  let limpo = content
     .replace(/```json\s*/gi, "")
     .replace(/```\s*/g, "")
+    .replace(/\[\d+\]/g, "")          // remover referências [1] [2] etc
+    .replace(/\*\*[^*]*\*\*/g, "")     // remover **bold**
     .trim();
 
-  // Tentar direto
+  // 2. Tentar parse direto
   try { return JSON.parse(limpo); } catch {}
 
-  // Tentar maior bloco {}
-  const match = limpo.match(/\{[\s\S]*\}/g);
-  if (match) {
-    const maior = match.sort((a, b) => b.length - a.length)[0];
-    try {
-      return JSON.parse(maior.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]"));
-    } catch {}
+  // 3. Encontrar o primeiro { e o último } — extrair o bloco JSON
+  const firstBrace = limpo.indexOf("{");
+  const lastBrace = limpo.lastIndexOf("}");
+
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    const bloco = limpo.substring(firstBrace, lastBrace + 1);
+    const reparado = bloco
+      .replace(/,\s*}/g, "}")
+      .replace(/,\s*]/g, "]");
+    try { return JSON.parse(reparado); } catch {}
   }
 
+  // 4. Tentar encontrar qualquer {} grande na string
+  const matches = limpo.match(/\{[\s\S]*\}/g);
+  if (matches) {
+    const sorted = matches.sort((a, b) => b.length - a.length);
+    for (const m of sorted) {
+      try {
+        return JSON.parse(m.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]"));
+      } catch {}
+    }
+  }
+
+  // 5. Último recurso: tentar reparar JSON truncado (fechar chaves/colchetes faltantes)
+  if (firstBrace !== -1) {
+    let partial = limpo.substring(firstBrace);
+    // Remover propriedade incompleta no final
+    partial = partial.replace(/,\s*"[^"]*"?\s*:?\s*[^,}\]]*$/, "");
+    const openBraces = (partial.match(/{/g) || []).length;
+    const closeBraces = (partial.match(/}/g) || []).length;
+    const openBrackets = (partial.match(/\[/g) || []).length;
+    const closeBrackets = (partial.match(/\]/g) || []).length;
+    for (let i = 0; i < openBrackets - closeBrackets; i++) partial += "]";
+    for (let i = 0; i < openBraces - closeBraces; i++) partial += "}";
+    try { return JSON.parse(partial); } catch {}
+  }
+
+  // 6. Logar e falhar
+  console.error("Parse falhou. Primeiros 500 chars:", content.substring(0, 500));
+  console.error("Últimos 500 chars:", content.substring(content.length - 500));
   throw new Error("JSON inválido na resposta da IA");
 }
 
@@ -276,7 +316,7 @@ Começar com { e terminar com }. NADA MAIS.`;
           { role: "system", content: systemPrompt },
           { role: "user", content: userMsg },
         ],
-        max_tokens: 16000,
+        max_tokens: 32000,
         temperature: 0.1,
       }),
     });
