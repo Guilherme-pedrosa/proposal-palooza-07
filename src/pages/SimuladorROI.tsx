@@ -548,9 +548,9 @@ export default function SimuladorROI() {
 
   return (
     <MainLayout>
-      <div className="p-4 md:p-6 space-y-6 max-w-[1600px] mx-auto">
+      <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 max-w-[1600px] mx-auto">
         {/* HEADER */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
               <Calculator className="h-6 w-6 text-[#87B537]" />
@@ -560,7 +560,7 @@ export default function SimuladorROI() {
               Analise o cardápio real do restaurante e calcule o payback do equipamento Rational
             </p>
           </div>
-          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
             <Button variant="outline" size="sm" onClick={handleSalvar} disabled={salvando}>
               {salvando ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />}
               Salvar
@@ -610,9 +610,9 @@ export default function SimuladorROI() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* ── COLUNA ESQUERDA: FORMULÁRIO ── */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* BLOCO A: Cliente + Proposta */}
             <Card>
               <CardHeader className="pb-3">
@@ -682,7 +682,7 @@ export default function SimuladorROI() {
                 </div>
 
                 {/* Equipamento manual */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>Equipamento</Label>
                     <Select value={equipamento} onValueChange={setEquipamento}>
@@ -724,7 +724,7 @@ export default function SimuladorROI() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3 items-end">
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-3 items-end">
                   <div className="space-y-2">
                     <Label>Link do cardápio online</Label>
                     <Input
@@ -837,7 +837,7 @@ export default function SimuladorROI() {
 
                     {/* Matérias-primas resumo da análise */}
                     {analiseResult.materias_primas && (
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+                      <div className="grid grid-cols-2 gap-3 mt-2">
                         {([
                           { key: 'carnes' as const, label: '🥩 Carnes' },
                           { key: 'aves' as const, label: '🍗 Aves' },
@@ -884,14 +884,16 @@ export default function SimuladorROI() {
                 {/* Matérias-primas — 4 categorias */}
                 <div>
                   <Label className="text-sm font-semibold mb-3 block">Consumo de Matérias-Primas por Mês</Label>
-                  <div className="overflow-x-auto">
+                  
+                  {/* Desktop table */}
+                  <div className="hidden sm:block overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b text-muted-foreground text-xs">
                           <th className="text-left py-2 pr-2">Categoria</th>
                           <th className="text-right py-2 px-2">Kg/mês</th>
                           <th className="text-right py-2 px-2">R$/kg</th>
-                          <th className="text-center py-2 px-2 w-[160px]">Economia %</th>
+                          <th className="text-center py-2 px-2 w-[120px]">Economia %</th>
                           <th className="text-right py-2 pl-2">Economia R$</th>
                         </tr>
                       </thead>
@@ -921,14 +923,19 @@ export default function SimuladorROI() {
                                 />
                               </td>
                               <td className="py-2 px-2">
-                                <div className="flex items-center gap-2">
-                                  <Slider
-                                    value={[cat.pctEconomia]}
-                                    onValueChange={([v]) => updateCategoriaMP(i, 'pctEconomia', v)}
-                                    min={0} max={30} step={1}
-                                    className="flex-1"
+                                <div className="flex items-center gap-1 justify-center">
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    max={30}
+                                    className="w-16 h-8 text-center text-sm font-bold text-[#87B537]"
+                                    value={cat.pctEconomia}
+                                    onChange={(e) => {
+                                      const v = Math.min(30, Math.max(0, Number(e.target.value) || 0));
+                                      updateCategoriaMP(i, 'pctEconomia', v);
+                                    }}
                                   />
-                                  <span className="text-xs font-mono w-10 text-right text-[#87B537] font-bold">{cat.pctEconomia}%</span>
+                                  <span className="text-xs text-[#87B537] font-bold">%</span>
                                 </div>
                               </td>
                               <td className="py-2 pl-2 text-right font-medium text-[#87B537]">
@@ -944,12 +951,71 @@ export default function SimuladorROI() {
                       </tbody>
                     </table>
                   </div>
+
+                  {/* Mobile cards */}
+                  <div className="sm:hidden space-y-3">
+                    {categoriasMP.map((cat, i) => {
+                      const econVal = cat.kgMes * cat.precoKg * (cat.pctEconomia / 100);
+                      return (
+                        <div key={i} className="border rounded-lg p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-sm">{cat.icon} {cat.label}</span>
+                            <span className="font-bold text-[#87B537] text-sm">{formatBRL(econVal)}</span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div className="space-y-1">
+                              <Label className="text-[10px] text-muted-foreground">Kg/mês</Label>
+                              <Input
+                                type="number"
+                                min={0}
+                                className="h-8 text-sm text-right"
+                                value={cat.kgMes || ''}
+                                onChange={(e) => updateCategoriaMP(i, 'kgMes', Number(e.target.value))}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[10px] text-muted-foreground">R$/kg</Label>
+                              <Input
+                                type="number"
+                                min={0}
+                                step={0.5}
+                                className="h-8 text-sm text-right"
+                                value={cat.precoKg || ''}
+                                onChange={(e) => updateCategoriaMP(i, 'precoKg', Number(e.target.value))}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-[10px] text-muted-foreground">Economia %</Label>
+                              <div className="flex items-center gap-1">
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  max={30}
+                                  className="h-8 text-sm text-center font-bold text-[#87B537]"
+                                  value={cat.pctEconomia}
+                                  onChange={(e) => {
+                                    const v = Math.min(30, Math.max(0, Number(e.target.value) || 0));
+                                    updateCategoriaMP(i, 'pctEconomia', v);
+                                  }}
+                                />
+                                <span className="text-xs text-[#87B537] font-bold">%</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <div className="flex items-center justify-between font-bold text-sm pt-2 border-t-2">
+                      <span>Total economia MP</span>
+                      <span className="text-[#87B537]">{formatBRL(economia.totalMP)}</span>
+                    </div>
+                  </div>
                 </div>
 
                 <Separator />
 
                 {/* Outros custos */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                   <div className="space-y-2">
                     <Label className="text-xs">Energia/mês (R$)</Label>
                     <Input type="number" value={custoEnergia} onChange={(e) => setCustoEnergia(Number(e.target.value))} />
@@ -985,61 +1051,72 @@ export default function SimuladorROI() {
                   <TrendingUp className="h-4 w-4" /> Percentuais de Economia (Rational)
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4 sm:space-y-6">
                 {/* Energia */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-yellow-500" /> Energia
-                    </Label>
-                    <span className="text-sm font-mono">
-                      <span className="text-[#87B537] font-bold">{pctEnergia}%</span>
-                      <span className="text-muted-foreground ml-2 text-xs">(Rational: até 70%)</span>
-                    </span>
+                <div className="flex items-center justify-between gap-3">
+                  <Label className="text-sm flex items-center gap-2 flex-1 min-w-0">
+                    <Zap className="h-4 w-4 text-yellow-500 shrink-0" /> Energia
+                    <span className="text-[10px] text-muted-foreground hidden sm:inline">(até 70%)</span>
+                  </Label>
+                  <div className="flex items-center gap-1">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={70}
+                      className="w-16 h-8 text-center text-sm font-bold text-[#87B537]"
+                      value={pctEnergia}
+                      onChange={(e) => setPctEnergia(Math.min(70, Math.max(0, Number(e.target.value) || 0)))}
+                    />
+                    <span className="text-xs text-[#87B537] font-bold">%</span>
                   </div>
-                  <Slider value={[pctEnergia]} onValueChange={([v]) => setPctEnergia(v)} min={0} max={70} step={5} />
                 </div>
 
                 {/* Gordura */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm flex items-center gap-2">
-                      <Droplets className="h-4 w-4 text-amber-600" /> Gordura/Óleo
-                    </Label>
-                    <span className="text-sm font-mono">
-                      <span className="text-[#87B537] font-bold">{pctGordura}%</span>
-                      <span className="text-muted-foreground ml-2 text-xs">(Rational: até 95%)</span>
-                    </span>
+                <div className="flex items-center justify-between gap-3">
+                  <Label className="text-sm flex items-center gap-2 flex-1 min-w-0">
+                    <Droplets className="h-4 w-4 text-amber-600 shrink-0" /> Gordura/Óleo
+                    <span className="text-[10px] text-muted-foreground hidden sm:inline">(até 95%)</span>
+                  </Label>
+                  <div className="flex items-center gap-1">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={95}
+                      className="w-16 h-8 text-center text-sm font-bold text-[#87B537]"
+                      value={pctGordura}
+                      onChange={(e) => setPctGordura(Math.min(95, Math.max(0, Number(e.target.value) || 0)))}
+                    />
+                    <span className="text-xs text-[#87B537] font-bold">%</span>
                   </div>
-                  <Slider value={[pctGordura]} onValueChange={([v]) => setPctGordura(v)} min={0} max={95} step={5} />
                 </div>
 
                 {/* Mão de obra */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-blue-500" /> Mão de obra
-                    </Label>
-                    <span className="text-sm font-mono">
-                      <span className="text-[#87B537] font-bold">{pctMaoDeObra}%</span>
-                      <span className="text-muted-foreground ml-2 text-xs">(Rational: até 60%)</span>
-                    </span>
+                <div className="flex items-center justify-between gap-3">
+                  <Label className="text-sm flex items-center gap-2 flex-1 min-w-0">
+                    <Clock className="h-4 w-4 text-blue-500 shrink-0" /> Mão de obra
+                    <span className="text-[10px] text-muted-foreground hidden sm:inline">(até 60%)</span>
+                  </Label>
+                  <div className="flex items-center gap-1">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={60}
+                      className="w-16 h-8 text-center text-sm font-bold text-[#87B537]"
+                      value={pctMaoDeObra}
+                      onChange={(e) => setPctMaoDeObra(Math.min(60, Math.max(0, Number(e.target.value) || 0)))}
+                    />
+                    <span className="text-xs text-[#87B537] font-bold">%</span>
                   </div>
-                  <Slider value={[pctMaoDeObra]} onValueChange={([v]) => setPctMaoDeObra(v)} min={0} max={60} step={5} />
                 </div>
 
                 {/* Água */}
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm flex items-center gap-2">
-                    <Droplets className="h-4 w-4 text-blue-400" /> Eliminação total de tratamento de água
-                    <span className="text-xs text-muted-foreground">(iCareSystem)</span>
+                <div className="flex items-center justify-between gap-3">
+                  <Label className="text-sm flex items-center gap-2 flex-1 min-w-0">
+                    <Droplets className="h-4 w-4 text-blue-400 shrink-0" /> Trat. água
+                    <span className="text-[10px] text-muted-foreground hidden sm:inline">(iCareSystem)</span>
                   </Label>
                   <Switch checked={pctAgua} onCheckedChange={setPctAgua} />
                 </div>
-
-                <p className="text-xs text-muted-foreground italic">
-                  💡 Os percentuais de economia por categoria de matéria-prima são editáveis na tabela acima (slider por linha).
-                </p>
               </CardContent>
             </Card>
           </div>
