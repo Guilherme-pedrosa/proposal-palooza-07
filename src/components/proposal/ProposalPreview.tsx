@@ -25,7 +25,9 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
       return format(date, "dd/MM/yyyy", { locale: ptBR });
     };
 
-    const totalValue = proposal.products?.reduce((sum, p) => sum + p.totalPrice, 0) || 0;
+    const subtotalProdutos = proposal.products?.reduce((sum, p) => sum + p.totalPrice, 0) || 0;
+    const totalValue = proposal.totalValue ?? subtotalProdutos;
+    const hasDescontoGeral = totalValue < subtotalProdutos;
     const [logoError, setLogoError] = useState(false);
     const companyLogo = (!logoError && company.logo) ? company.logo : logoWedoDefault;
     
@@ -750,6 +752,12 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             {/* Total */}
             <div className="mt-6 flex justify-end pt-6" style={{ borderTop: '1px solid #e5e7eb' }}>
               <div className="text-right">
+                {hasDescontoGeral && (
+                  <>
+                    <p className="text-sm" style={{ color: '#4b5563' }}>Subtotal: {formatCurrency(subtotalProdutos)}</p>
+                    <p className="text-sm" style={{ color: '#dc2626' }}>Desconto: -{formatCurrency(subtotalProdutos - totalValue)}</p>
+                  </>
+                )}
                 <p className="text-sm" style={{ color: '#4b5563' }}>Valor total da proposta:</p>
                 <p className="text-3xl font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue)}</p>
               </div>
