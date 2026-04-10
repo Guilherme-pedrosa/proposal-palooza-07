@@ -3,6 +3,8 @@ import { ProposalPreview } from './ProposalPreview';
 import { Proposal } from '@/types/proposal';
 import { CompanySettings } from '@/types/company';
 import industrialKitchenBg from '@/assets/industrial-kitchen-bg.jpg';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface PrintProposalProps {
   proposal: Partial<Proposal>;
@@ -10,7 +12,7 @@ interface PrintProposalProps {
   onPrintComplete?: () => void;
 }
 
-// Convert image to base64 so it works inside the print iframe/window
+// Convert image to base64 so it works in rendered HTML
 async function getImageAsBase64(url: string): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image();
@@ -31,202 +33,112 @@ async function getImageAsBase64(url: string): Promise<string> {
 export function usePrintProposal() {
   const printFrame = useRef<HTMLIFrameElement | null>(null);
 
-  const printProposal = useCallback((proposal: Partial<Proposal>, company: CompanySettings) => {
-    return new Promise<void>(async (resolve) => {
-      // Pre-convert background image to base64
-      const bgBase64 = await getImageAsBase64(industrialKitchenBg);
+  const printProposal = useCallback(async (proposal: Partial<Proposal>, company: CompanySettings) => {
+    // Pre-convert background image to base64
+    const bgBase64 = await getImageAsBase64(industrialKitchenBg);
 
-      // Also convert company logo if available
-      let logoBase64: string | undefined;
-      if (company.logo) {
-        try {
-          logoBase64 = await getImageAsBase64(company.logo);
-        } catch {
-          logoBase64 = undefined;
+    // Create a temporary container to render ProposalPreview
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = '0';
+    tempContainer.style.width = '210mm';
+    document.body.appendChild(tempContainer);
+
+    const { createRoot } = await import('react-dom/client');
+    const React = await import('react');
+
+    const root = createRoot(tempContainer);
+
+    const PreviewWrapper = () => {
+      return React.createElement(ProposalPreview, {
+        proposal,
+        company,
+        ref: null
+      });
+    };
+
+    root.render(React.createElement(PreviewWrapper));
+
+    // Wait for React render to complete
+    await new Promise(r => setTimeout(r, 800));
+
+    // Replace background images with base64
+    const bgDivs = tempContainer.querySelectorAll('[style*="background-image"]');
+    bgDivs.forEach((el) => {
+      if (el instanceof HTMLElement) {
+        const style = el.style.backgroundImage;
+        if (style && (style.includes('industrial-kitchen') || style.includes('/assets/'))) {
+          el.style.backgroundImage = `url('${bgBase64}')`;
         }
       }
+    });
 
-      // IMPORTANT: open window synchronously-ish to avoid popup blockers
-      const printWindow = window.open('', '_blank', 'width=900,height=700');
-      if (!printWindow) {
-        resolve();
-        return;
+    // Convert ALL images to base64
+    const allImgs = tempContainer.querySelectorAll('img');
+    const imgConversions = Array.from(allImgs).map(async (img) => {
+      if (!img.src || img.src.startsWith('data:')) return;
+      try {
+        const b64 = await getImageAsBase64(img.src);
+        img.src = b64;
+      } catch {
+        // Keep original src if conversion fails
       }
+    });
+    await Promise.all(imgConversions);
 
-      // Show loading message immediately
-      printWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <title>Gerando PDF...</title>
-            <style>
-              body { font-family: Arial, sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; color:#334155; }
-            </style>
-          </head>
-          <body>Preparando proposta para impressão...</body>
-        </html>
-      `);
-      printWindow.document.close();
+    // Wait for base64 images to settle
+    await new Promise(r => setTimeout(r, 300));
 
-      // Create a temporary container to render ProposalPreview
-      const tempContainer = document.createElement('div');
-      tempContainer.style.position = 'absolute';
-      tempContainer.style.left = '-9999px';
-      tempContainer.style.width = '210mm';
-      document.body.appendChild(tempContainer);
-
-      const { createRoot } = await import('react-dom/client');
-      const React = await import('react');
-
-      const root = createRoot(tempContainer);
-
-      const PreviewWrapper = () => {
-        return React.createElement(ProposalPreview, {
-          proposal,
-          company,
-          ref: null
-        });
-      };
-
-      root.render(React.createElement(PreviewWrapper));
-
-      // Wait for React render to complete
-      await new Promise(r => setTimeout(r, 600));
-
-      // Clone the rendered content
-      const clonedContent = tempContainer.cloneNode(true) as HTMLElement;
-
-      // Replace background images with base64 versions
-      const bgDivs = clonedContent.querySelectorAll('[style*="background-image"]');
-      bgDivs.forEach((el) => {
-        if (el instanceof HTMLElement) {
-          const style = el.style.backgroundImage;
-          if (style && (style.includes('industrial-kitchen') || style.includes('/assets/'))) {
-            el.style.backgroundImage = `url('${bgBase64}')`;
-          }
-        }
-      });
-
-      // Convert ALL images (product photos, logos, etc.) to base64
-      const allImgs = clonedContent.querySelectorAll('img');
-      const imgConversions = Array.from(allImgs).map(async (img) => {
-        if (!img.src || img.src.startsWith('data:')) return;
-        try {
-          const b64 = await getImageAsBase64(img.src);
-          img.src = b64;
-        } catch {
-          // Keep original src if conversion fails
-        }
-      });
-      await Promise.all(imgConversions);
-
-      // Get all stylesheets from the main document
-      const styles = Array.from(document.styleSheets)
-        .map(sheet => {
-          try {
-            return Array.from(sheet.cssRules)
-              .map(rule => rule.cssText)
-              .join('\n');
-          } catch {
-            if (sheet.href) {
-              return `@import url("${sheet.href}");`;
-            }
-            return '';
-          }
-        })
-        .join('\n');
-
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <title>Proposta ${proposal.number} - ${proposal.client?.name || 'Cliente'}</title>
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-            <style>
-              ${styles}
-
-              * {
-                box-sizing: border-box;
-              }
-
-              body {
-                margin: 0;
-                padding: 0;
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                color-adjust: exact !important;
-              }
-
-              @page {
-                size: A4 portrait;
-                margin: 0;
-              }
-
-              @media print {
-                body {
-                  margin: 0;
-                  padding: 0;
-                }
-
-                .pdf-page {
-                  width: 210mm !important;
-                  height: 297mm !important;
-                  page-break-after: always !important;
-                  page-break-inside: avoid !important;
-                  overflow: hidden !important;
-                  position: relative !important;
-                }
-
-                .pdf-page:last-child {
-                  page-break-after: auto !important;
-                }
-
-                * {
-                  -webkit-print-color-adjust: exact !important;
-                  print-color-adjust: exact !important;
-                  color-adjust: exact !important;
-                }
-              }
-
-              .proposal-preview {
-                width: 210mm;
-              }
-
-              .pdf-page {
-                width: 210mm;
-                height: 297mm;
-                overflow: hidden;
-                position: relative;
-                page-break-after: always;
-                page-break-inside: avoid;
-              }
-            </style>
-          </head>
-          <body>
-            ${clonedContent.innerHTML}
-          </body>
-        </html>
-      `;
-
-      printWindow.document.open();
-      printWindow.document.write(html);
-      printWindow.document.close();
-
-      printWindow.onload = () => {
-        setTimeout(() => {
-          printWindow.print();
-        }, 800);
-      };
-
-      // Cleanup React
+    // Get all pdf-page elements
+    const pages = tempContainer.querySelectorAll('.pdf-page');
+    
+    if (pages.length === 0) {
       root.unmount();
       document.body.removeChild(tempContainer);
+      return;
+    }
 
-      resolve();
-    });
+    // A4 dimensions in mm
+    const A4_W = 210;
+    const A4_H = 297;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i] as HTMLElement;
+
+      // Ensure the page is visible for html2canvas
+      page.style.position = 'relative';
+      page.style.left = '0';
+
+      const canvas = await html2canvas(page, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        width: page.offsetWidth,
+        height: page.offsetHeight,
+        backgroundColor: '#ffffff',
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.92);
+
+      if (i > 0) {
+        pdf.addPage();
+      }
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, A4_W, A4_H);
+    }
+
+    // Generate filename
+    const clientName = proposal.client?.name?.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30) || 'Cliente';
+    const filename = `${proposal.number || 'Proposta'}_${clientName}.pdf`;
+
+    pdf.save(filename);
+
+    // Cleanup
+    root.unmount();
+    document.body.removeChild(tempContainer);
   }, []);
 
   return { printProposal };

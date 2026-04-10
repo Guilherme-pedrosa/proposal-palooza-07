@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format, addDays } from 'date-fns';
 import {
   ArrowLeft, Save, Send, FileText, ChevronDown, Plus, Trash2, Image as ImageIcon,
-  Copy, MessageCircle, Mail, Printer, Search, Loader2
+  Copy, MessageCircle, Mail, Download, Search, Loader2
 } from 'lucide-react';
 import { WAIButton } from '@/components/WAIButton';
 import { supabase } from '@/integrations/supabase/client';
@@ -638,7 +638,7 @@ export default function PropostaEditor() {
               <Send className="h-3.5 w-3.5" /> Enviar Link
             </Button>
             <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={handleExportPdf} disabled={saving || uploadingAnexos}>
-              <Printer className="h-3.5 w-3.5" /> PDF
+              <Download className="h-3.5 w-3.5" /> PDF
             </Button>
             {gcOrcamentoUrl ? (
               <Button size="sm" variant="outline" className="gap-1.5 shrink-0" asChild>
