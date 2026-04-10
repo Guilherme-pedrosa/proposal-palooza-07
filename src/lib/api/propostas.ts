@@ -50,6 +50,42 @@ export const STATUS_PROPOSTA = {
 
 export type StatusProposta = keyof typeof STATUS_PROPOSTA;
 
+async function enrichProposalProductPhotos<T extends PropostaRow | PropostaRow[] | null>(input: T): Promise<T> {
+  if (!input) return input;
+
+  const rows = Array.isArray(input) ? input : [input];
+  const gcIds = Array.from(new Set(
+    rows
+      .flatMap((row) => ((row.produtos ?? []) as any[]))
+      .filter((product) => product?.gcProdutoId && !product?.photoUrl)
+      .map((product) => product.gcProdutoId as string)
+  ));
+
+  if (gcIds.length === 0) return input;
+
+  const { data, error } = await supabase
+    .from('produtos_gc')
+    .select('gc_id, foto_url, fotos_urls')
+    .in('gc_id', gcIds);
+
+  if (error || !data?.length) return input;
+
+  const photoMap = new Map(
+    data.map((product) => [product.gc_id, product.foto_url || product.fotos_urls?.[0] || null])
+  );
+
+  const enrichedRows = rows.map((row) => ({
+    ...row,
+    produtos: ((row.produtos ?? []) as any[]).map((product) => {
+      if (!product?.gcProdutoId || product?.photoUrl) return product;
+      const resolvedPhoto = photoMap.get(product.gcProdutoId);
+      return resolvedPhoto ? { ...product, photoUrl: resolvedPhoto } : product;
+    }),
+  })) as PropostaRow[];
+
+  return (Array.isArray(input) ? enrichedRows : enrichedRows[0]) as T;
+}
+
 export async function fetchPropostas(): Promise<PropostaRow[]> {
   const { data, error } = await supabase
     .from('propostas')
@@ -57,7 +93,7 @@ export async function fetchPropostas(): Promise<PropostaRow[]> {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data ?? []) as unknown as PropostaRow[];
+  return await enrichProposalProductPhotos((data ?? []) as unknown as PropostaRow[]);
 }
 
 export async function fetchPropostaById(id: string): Promise<PropostaRow | null> {
@@ -68,7 +104,7 @@ export async function fetchPropostaById(id: string): Promise<PropostaRow | null>
     .single();
 
   if (error) throw error;
-  return data as unknown as PropostaRow;
+  return await enrichProposalProductPhotos(data as unknown as PropostaRow);
 }
 
 export async function fetchPropostaByUuid(uuid: string): Promise<PropostaRow | null> {
@@ -79,7 +115,7 @@ export async function fetchPropostaByUuid(uuid: string): Promise<PropostaRow | n
     .single();
 
   if (error) return null;
-  return data as unknown as PropostaRow;
+  return await enrichProposalProductPhotos(data as unknown as PropostaRow);
 }
 
 export async function getNextPropostaNumber(): Promise<string> {

@@ -228,11 +228,11 @@ export default function PropostaEditor() {
       if (gcIds.length > 0) {
         supabase
           .from('produtos_gc')
-          .select('gc_id, foto_url')
+          .select('gc_id, foto_url, fotos_urls')
           .in('gc_id', gcIds)
           .then(({ data }) => {
             if (data && data.length > 0) {
-              const fotoMap = new Map(data.map(d => [d.gc_id, d.foto_url]));
+              const fotoMap = new Map(data.map(d => [d.gc_id, d.foto_url || d.fotos_urls?.[0] || undefined]));
               setProdutos(prev => prev.map(p => {
                 if (p.gcProdutoId && !p.photoUrl && fotoMap.has(p.gcProdutoId)) {
                   return { ...p, photoUrl: fotoMap.get(p.gcProdutoId) || undefined };
@@ -357,7 +357,7 @@ export default function PropostaEditor() {
       unitPrice: preco,
       totalPrice: preco,
       discount: 0,
-      photoUrl: p.foto_url || undefined,
+      photoUrl: p.foto_url || p.fotos_urls?.[0] || undefined,
       gcProdutoId: p.gc_id,
       tabelaPrecoId: defaultTabelaPrecoId || undefined,
     };
