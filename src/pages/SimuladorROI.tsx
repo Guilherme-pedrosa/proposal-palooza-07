@@ -514,6 +514,18 @@ export default function SimuladorROI() {
     enabled: !!user,
   });
 
+  // Auto-load simulation from ?sim= query param
+  const [autoLoaded, setAutoLoaded] = useState(false);
+  useEffect(() => {
+    const simId = searchParams.get('sim');
+    if (!simId || autoLoaded || !simulacoesSalvas?.length) return;
+    const sim = simulacoesSalvas.find((s: any) => s.id === simId);
+    if (sim) {
+      handleCarregar(sim);
+      setAutoLoaded(true);
+    }
+  }, [searchParams, simulacoesSalvas, autoLoaded]);
+
   const handleSalvar = async () => {
     if (!user) { toast.error('Faça login para salvar'); return; }
     const nome = clienteSelecionado?.nome || 'Simulação sem cliente';
