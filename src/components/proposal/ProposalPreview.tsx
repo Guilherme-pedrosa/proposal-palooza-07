@@ -25,7 +25,9 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
       return format(date, "dd/MM/yyyy", { locale: ptBR });
     };
 
-    const totalValue = proposal.products?.reduce((sum, p) => sum + p.totalPrice, 0) || 0;
+    const subtotalProdutos = proposal.products?.reduce((sum, p) => sum + p.totalPrice, 0) || 0;
+    const totalValue = proposal.totalValue ?? subtotalProdutos;
+    const hasDescontoGeral = totalValue < subtotalProdutos;
     const [logoError, setLogoError] = useState(false);
     const companyLogo = (!logoError && company.logo) ? company.logo : logoWedoDefault;
     
