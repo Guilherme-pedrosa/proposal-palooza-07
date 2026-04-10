@@ -174,6 +174,7 @@ const normalizeCategoriasMP = (value: unknown): CategoriaMP[] => {
 
 export default function SimuladorROI() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const pdfRef = useRef<HTMLDivElement>(null);
 
   // ── BLOCO A: CLIENTE + EQUIPAMENTO ──
