@@ -167,11 +167,11 @@ export default function SimulacoesROI() {
       </div>
 
       <ConfirmDialog
-        open={!!excluirId}
-        onOpenChange={(o) => !o && setExcluirId(null)}
-        title="Excluir simulação?"
-        description="Esta ação não pode ser desfeita."
-        onConfirm={handleExcluir}
+        aberto={!!excluirId}
+        titulo="Excluir simulação?"
+        descricao="Esta ação não pode ser desfeita."
+        onConfirmar={handleExcluir}
+        onCancelar={() => setExcluirId(null)}
       />
     </MainLayout>
   );
