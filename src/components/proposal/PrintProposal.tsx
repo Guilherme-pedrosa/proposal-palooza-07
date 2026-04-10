@@ -108,15 +108,18 @@ export function usePrintProposal() {
         }
       });
 
-      // Replace logo images with base64 if available
-      if (logoBase64) {
-        const imgs = clonedContent.querySelectorAll('img');
-        imgs.forEach((img) => {
-          if (img.src && !img.src.includes('data:') && !img.src.includes('logo-wedo')) {
-            img.src = logoBase64!;
-          }
-        });
-      }
+      // Convert ALL images (product photos, logos, etc.) to base64
+      const allImgs = clonedContent.querySelectorAll('img');
+      const imgConversions = Array.from(allImgs).map(async (img) => {
+        if (!img.src || img.src.startsWith('data:')) return;
+        try {
+          const b64 = await getImageAsBase64(img.src);
+          img.src = b64;
+        } catch {
+          // Keep original src if conversion fails
+        }
+      });
+      await Promise.all(imgConversions);
 
       // Get all stylesheets from the main document
       const styles = Array.from(document.styleSheets)
