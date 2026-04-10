@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -173,6 +174,7 @@ const normalizeCategoriasMP = (value: unknown): CategoriaMP[] => {
 
 export default function SimuladorROI() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const pdfRef = useRef<HTMLDivElement>(null);
 
   // ── BLOCO A: CLIENTE + EQUIPAMENTO ──
@@ -511,6 +513,18 @@ export default function SimuladorROI() {
     },
     enabled: !!user,
   });
+
+  // Auto-load simulation from ?sim= query param
+  const [autoLoaded, setAutoLoaded] = useState(false);
+  useEffect(() => {
+    const simId = searchParams.get('sim');
+    if (!simId || autoLoaded || !simulacoesSalvas?.length) return;
+    const sim = simulacoesSalvas.find((s: any) => s.id === simId);
+    if (sim) {
+      handleCarregar(sim);
+      setAutoLoaded(true);
+    }
+  }, [searchParams, simulacoesSalvas, autoLoaded]);
 
   const handleSalvar = async () => {
     if (!user) { toast.error('Faça login para salvar'); return; }

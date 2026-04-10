@@ -39,6 +39,7 @@ import Usuarios from "./pages/Usuarios";
 import Logs from "./pages/Logs";
 import Tarefas from "./pages/Tarefas";
 import SimuladorROI from "./pages/SimuladorROI";
+import SimulacoesROI from "./pages/SimulacoesROI";
 
 const queryClient = new QueryClient();
 
@@ -118,6 +119,7 @@ function AppRoutes() {
       <Route path="/usuarios" element={<ProtectedRoute><Usuarios /></ProtectedRoute>} />
       <Route path="/logs" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
       <Route path="/roi" element={<ProtectedRoute><SimuladorROI /></ProtectedRoute>} />
+      <Route path="/simulacoes" element={<ProtectedRoute><SimulacoesROI /></ProtectedRoute>} />
       <Route path="/simulador-roi" element={<ProtectedRoute><Navigate to="/roi" replace /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
