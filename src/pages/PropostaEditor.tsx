@@ -137,6 +137,8 @@ export default function PropostaEditor() {
   ]);
   const [descontoAVista, setDescontoAVista] = useState(0);
   const [descontoAVistaTipo, setDescontoAVistaTipo] = useState<'percent' | 'value'>('percent');
+  const [descontoGeral, setDescontoGeral] = useState(0);
+  const [descontoGeralTipo, setDescontoGeralTipo] = useState<'percent' | 'value'>('percent');
   const taxaJuros = 2.303;
   const [leasingDialogOpen, setLeasingDialogOpen] = useState(false);
   const [status, setStatus] = useState<string>('rascunho');
@@ -264,6 +266,8 @@ export default function PropostaEditor() {
         }
         if (cond.descontoAVista) setDescontoAVista(cond.descontoAVista);
         if (cond.descontoAVistaTipo) setDescontoAVistaTipo(cond.descontoAVistaTipo);
+        if (cond.descontoGeral) setDescontoGeral(cond.descontoGeral);
+        if (cond.descontoGeralTipo) setDescontoGeralTipo(cond.descontoGeralTipo);
         if (cond.texto) setCondicoesPagamento(cond.texto);
         else setCondicoesPagamento('');
       } catch {
@@ -387,8 +391,13 @@ export default function PropostaEditor() {
   const removeTermo = (idx: number) => setTermos((prev) => prev.filter((_, i) => i !== idx));
 
   const subtotal = produtos.reduce((s, p) => s + p.quantity * p.unitPrice, 0);
-  const descontoTotal = produtos.reduce((s, p) => s + (p.quantity * p.unitPrice * (p.discount || 0) / 100), 0);
-  const total = subtotal - descontoTotal;
+  const descontoProdutos = produtos.reduce((s, p) => s + (p.quantity * p.unitPrice * (p.discount || 0) / 100), 0);
+  const subtotalComDescontoProdutos = subtotal - descontoProdutos;
+  const descontoGeralValor = descontoGeralTipo === 'percent'
+    ? subtotalComDescontoProdutos * (descontoGeral || 0) / 100
+    : (descontoGeral || 0);
+  const descontoTotal = descontoProdutos + descontoGeralValor;
+  const total = subtotalComDescontoProdutos - descontoGeralValor;
 
   const validadeAte = addDays(new Date(), parseInt(validadeDias) || 10);
 
@@ -465,7 +474,7 @@ export default function PropostaEditor() {
         num_parcelas: opcoesPagamento[0]?.parcelas || 1,
         entrada_percent: opcoesPagamento[0]?.entrada || 0,
         taxa_juros: 2.303,
-        condicoes_pagamento: JSON.stringify({ opcoesPagamento, descontoAVista, descontoAVistaTipo, texto: condicoesPagamento || '' }),
+        condicoes_pagamento: JSON.stringify({ opcoesPagamento, descontoAVista, descontoAVistaTipo, descontoGeral, descontoGeralTipo, texto: condicoesPagamento || '' }),
         prazo_entrega: prazoEntrega || null,
       };
 
@@ -806,9 +815,33 @@ export default function PropostaEditor() {
             ))}
 
             {produtos.length > 0 && (
-              <div className="border-t pt-2 space-y-1 text-sm">
+              <div className="border-t pt-2 space-y-2 text-sm">
                 <div className="flex justify-between"><span>Subtotal</span><span>{formatBRL(subtotal)}</span></div>
-                {descontoTotal > 0 && <div className="flex justify-between text-red-600"><span>Desconto</span><span>-{formatBRL(descontoTotal)}</span></div>}
+                {descontoProdutos > 0 && <div className="flex justify-between text-red-600"><span>Desc. Produtos</span><span>-{formatBRL(descontoProdutos)}</span></div>}
+
+                {/* Desconto no total */}
+                <div className="flex items-center gap-2 py-1">
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">Desconto geral:</span>
+                  <Select value={descontoGeralTipo} onValueChange={(v: 'percent' | 'value') => setDescontoGeralTipo(v)}>
+                    <SelectTrigger className="h-7 w-16 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="percent">%</SelectItem>
+                      <SelectItem value="value">R$</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={descontoGeralTipo === 'percent' ? 100 : subtotalComDescontoProdutos}
+                    step={descontoGeralTipo === 'percent' ? 0.5 : 1}
+                    value={descontoGeral || ''}
+                    onChange={(e) => setDescontoGeral(parseFloat(e.target.value) || 0)}
+                    className="h-7 w-20 text-sm"
+                    placeholder="0"
+                  />
+                  {descontoGeralValor > 0 && <span className="text-red-600 text-xs">-{formatBRL(descontoGeralValor)}</span>}
+                </div>
+
                 <Separator />
                 <div className="flex justify-between font-bold text-base"><span>TOTAL</span><span>{formatBRL(total)}</span></div>
               </div>
