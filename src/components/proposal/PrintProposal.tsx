@@ -1,8 +1,8 @@
 import { useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import { ProposalPreview } from './ProposalPreview';
 import { Proposal } from '@/types/proposal';
 import { CompanySettings } from '@/types/company';
+import industrialKitchenBg from '@/assets/industrial-kitchen-bg.jpg';
 
 interface PrintProposalProps {
   proposal: Partial<Proposal>;
@@ -10,26 +10,112 @@ interface PrintProposalProps {
   onPrintComplete?: () => void;
 }
 
+// Convert image to base64 so it works inside the print iframe/window
+async function getImageAsBase64(url: string): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = () => resolve(url);
+    img.src = url;
+  });
+}
+
 export function usePrintProposal() {
   const printFrame = useRef<HTMLIFrameElement | null>(null);
 
   const printProposal = useCallback((proposal: Partial<Proposal>, company: CompanySettings) => {
-    return new Promise<void>((resolve) => {
-      // Create a hidden iframe for printing
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.right = '0';
-      iframe.style.bottom = '0';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
-      iframe.style.border = 'none';
-      document.body.appendChild(iframe);
+    return new Promise<void>(async (resolve) => {
+      // Pre-convert background image to base64
+      const bgBase64 = await getImageAsBase64(industrialKitchenBg);
 
-      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-      if (!iframeDoc) {
-        document.body.removeChild(iframe);
+      // Also convert company logo if available
+      let logoBase64: string | undefined;
+      if (company.logo) {
+        try {
+          logoBase64 = await getImageAsBase64(company.logo);
+        } catch {
+          logoBase64 = undefined;
+        }
+      }
+
+      // IMPORTANT: open window synchronously-ish to avoid popup blockers
+      const printWindow = window.open('', '_blank', 'width=900,height=700');
+      if (!printWindow) {
         resolve();
         return;
+      }
+
+      // Show loading message immediately
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Gerando PDF...</title>
+            <style>
+              body { font-family: Arial, sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; color:#334155; }
+            </style>
+          </head>
+          <body>Preparando proposta para impressão...</body>
+        </html>
+      `);
+      printWindow.document.close();
+
+      // Create a temporary container to render ProposalPreview
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.width = '210mm';
+      document.body.appendChild(tempContainer);
+
+      const { createRoot } = await import('react-dom/client');
+      const React = await import('react');
+
+      const root = createRoot(tempContainer);
+
+      const PreviewWrapper = () => {
+        return React.createElement(ProposalPreview, {
+          proposal,
+          company,
+          ref: null
+        });
+      };
+
+      root.render(React.createElement(PreviewWrapper));
+
+      // Wait for React render to complete
+      await new Promise(r => setTimeout(r, 600));
+
+      // Clone the rendered content
+      const clonedContent = tempContainer.cloneNode(true) as HTMLElement;
+
+      // Replace background images with base64 versions
+      const bgDivs = clonedContent.querySelectorAll('[style*="background-image"]');
+      bgDivs.forEach((el) => {
+        if (el instanceof HTMLElement) {
+          const style = el.style.backgroundImage;
+          if (style && (style.includes('industrial-kitchen') || style.includes('/assets/'))) {
+            el.style.backgroundImage = `url('${bgBase64}')`;
+          }
+        }
+      });
+
+      // Replace logo images with base64 if available
+      if (logoBase64) {
+        const imgs = clonedContent.querySelectorAll('img');
+        imgs.forEach((img) => {
+          if (img.src && !img.src.includes('data:') && !img.src.includes('logo-wedo')) {
+            img.src = logoBase64!;
+          }
+        });
       }
 
       // Get all stylesheets from the main document
@@ -40,7 +126,6 @@ export function usePrintProposal() {
               .map(rule => rule.cssText)
               .join('\n');
           } catch {
-            // External stylesheets may throw CORS errors
             if (sheet.href) {
               return `@import url("${sheet.href}");`;
             }
@@ -49,40 +134,40 @@ export function usePrintProposal() {
         })
         .join('\n');
 
-      // Create the print content
-      const printContent = `
+      const html = `
         <!DOCTYPE html>
         <html>
           <head>
             <meta charset="utf-8">
-            <title>Proposta ${proposal.number}</title>
+            <title>Proposta ${proposal.number} - ${proposal.client?.name || 'Cliente'}</title>
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
             <style>
               ${styles}
-              
+
               * {
                 box-sizing: border-box;
               }
-              
+
               body {
                 margin: 0;
                 padding: 0;
-                font-family: 'Inter', sans-serif;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
               }
-              
+
               @page {
                 size: A4 portrait;
                 margin: 0;
               }
-              
+
               @media print {
                 body {
                   margin: 0;
                   padding: 0;
                 }
-                
+
                 .pdf-page {
                   width: 210mm !important;
                   height: 297mm !important;
@@ -91,16 +176,22 @@ export function usePrintProposal() {
                   overflow: hidden !important;
                   position: relative !important;
                 }
-                
+
                 .pdf-page:last-child {
                   page-break-after: auto !important;
                 }
+
+                * {
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                  color-adjust: exact !important;
+                }
               }
-              
+
               .proposal-preview {
                 width: 210mm;
               }
-              
+
               .pdf-page {
                 width: 210mm;
                 height: 297mm;
@@ -112,69 +203,26 @@ export function usePrintProposal() {
             </style>
           </head>
           <body>
-            <div id="print-root"></div>
+            ${clonedContent.innerHTML}
           </body>
         </html>
       `;
 
-      iframeDoc.open();
-      iframeDoc.write(printContent);
-      iframeDoc.close();
+      printWindow.document.open();
+      printWindow.document.write(html);
+      printWindow.document.close();
 
-      // Wait for iframe to load
-      iframe.onload = () => {
-        const printRoot = iframeDoc.getElementById('print-root');
-        if (!printRoot) {
-          document.body.removeChild(iframe);
-          resolve();
-          return;
-        }
-
-        // Create a temporary container in the main document to render React
-        const tempContainer = document.createElement('div');
-        tempContainer.style.position = 'absolute';
-        tempContainer.style.left = '-9999px';
-        document.body.appendChild(tempContainer);
-
-        // Import ReactDOM to render the component
-        import('react-dom/client').then(({ createRoot }) => {
-          import('react').then((React) => {
-            const root = createRoot(tempContainer);
-            
-            const PreviewWrapper = () => {
-              return React.createElement(ProposalPreview, {
-                proposal,
-                company,
-                ref: null
-              });
-            };
-
-            root.render(React.createElement(PreviewWrapper));
-
-            // Wait for render to complete
-            setTimeout(() => {
-              // Copy the rendered HTML to the iframe
-              printRoot.innerHTML = tempContainer.innerHTML;
-
-              // Wait a bit for styles to apply
-              setTimeout(() => {
-                iframe.contentWindow?.print();
-                
-                // Cleanup after print dialog closes
-                setTimeout(() => {
-                  root.unmount();
-                  document.body.removeChild(tempContainer);
-                  document.body.removeChild(iframe);
-                  resolve();
-                }, 500);
-              }, 500);
-            }, 500);
-          });
-        });
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+        }, 800);
       };
 
-      // Trigger load
-      printFrame.current = iframe;
+      // Cleanup React
+      root.unmount();
+      document.body.removeChild(tempContainer);
+
+      resolve();
     });
   }, []);
 
