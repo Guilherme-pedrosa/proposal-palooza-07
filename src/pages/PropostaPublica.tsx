@@ -242,7 +242,7 @@ export default function PropostaPublica() {
             <CardContent className="px-4 pb-4 space-y-3">
               {produtos.map((p: any, i: number) => (
                 <div key={i} className="flex items-start gap-3 border-b last:border-0 pb-3 last:pb-0">
-                  {p.photoUrl && <img src={p.photoUrl} className="w-12 h-12 rounded object-cover shrink-0" />}
+                  {p.photoUrl && <img src={p.photoUrl} alt={p.name || 'Produto'} className="w-12 h-12 rounded object-cover shrink-0" />}
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm">{p.name}</p>
                     {p.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{p.description}</p>}
