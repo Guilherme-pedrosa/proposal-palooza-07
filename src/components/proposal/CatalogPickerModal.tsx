@@ -12,7 +12,7 @@ import { tabelasPrecoApi, type PrecoProduto } from '@/lib/api/tabelasPreco';
 interface CatalogPickerModalProps {
   open: boolean;
   onClose: () => void;
-  onSelect: (produto: ProdutoGCRow) => void;
+  onSelect: (produto: ProdutoGCRow, precoCalculado: number) => void;
   tabelaPrecoId?: string;
 }
 
@@ -93,7 +93,7 @@ export function CatalogPickerModal({ open, onClose, onSelect, tabelaPrecoId }: C
                 <button
                   key={p.id}
                   className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-accent text-left transition-colors"
-                  onClick={() => { onSelect(p); onClose(); }}
+                  onClick={() => { onSelect(p, preco); onClose(); }}
                 >
                   {p.foto_url ? (
                     <img src={p.foto_url} alt={p.nome} className="w-12 h-12 rounded object-cover shrink-0" />
