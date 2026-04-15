@@ -907,34 +907,34 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           const gridCols = opts.length <= 2 ? 'grid-cols-2' : opts.length === 3 ? 'grid-cols-3' : 'grid-cols-2';
 
           return (
-          <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+          <div className="relative bg-white px-12 pt-10 pb-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
             <div className="absolute top-8 right-12">
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
             </div>
 
             {/* Header */}
-            <div className="mb-6">
+            <div className="mb-4">
               <div className="flex items-center gap-3 mb-1">
                 <div className="w-1 h-8 rounded-full" style={{ backgroundColor: '#22c55e' }}></div>
                 <h2 className="text-2xl font-semibold tracking-tight" style={{ color: '#111827' }}>Condições Comerciais</h2>
               </div>
-              <p className="text-sm mt-2 pl-4" style={{ color: '#4b5563' }}>
+              <p className="text-xs mt-1 pl-4" style={{ color: '#4b5563' }}>
                 Simulação de investimento e modalidades de pagamento para os equipamentos desta proposta.
               </p>
             </div>
 
             {/* Investimento */}
-            <div className="mb-6 pl-4" style={{ borderLeft: '2px solid #e5e7eb' }}>
-              <p className="text-xs uppercase tracking-widest font-medium mb-2" style={{ color: '#9ca3af' }}>Investimento total</p>
+            <div className="mb-4 pl-4" style={{ borderLeft: '2px solid #e5e7eb' }}>
+              <p className="text-xs uppercase tracking-widest font-medium mb-1" style={{ color: '#9ca3af' }}>Investimento total</p>
               <p className="text-4xl font-bold tracking-tight" style={{ color: '#111827' }}>{formatCurrency(totalValue)}</p>
             </div>
 
             {/* À Vista */}
-            <div className="rounded-lg p-4 mb-4" style={{ backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0' }}>
+            <div className="rounded-lg p-3 mb-3" style={{ backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0' }}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: '#047857' }}>💵 À Vista (PIX / Transferência)</p>
-                  <p className="text-2xl font-bold" style={{ color: '#047857' }}>
+                  <p className="text-xl font-bold" style={{ color: '#047857' }}>
                     {formatCurrency(valorAVista)}
                   </p>
                 </div>
@@ -948,14 +948,14 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             </div>
 
             {/* Modalidades */}
-            <div className={`grid ${gridCols} gap-4 mb-8`}>
+            <div className={`grid ${gridCols} gap-3 mb-4`}>
               {opts.map((opt, idx) => {
                 const isLeasing = opt.forma === 'leasing';
                 const valor = getValor(opt);
                 return (
-                  <div key={opt.id || idx} className="rounded-lg p-5" style={{ backgroundColor: isLeasing ? '#f0fdf4' : '#fafafa', border: isLeasing ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
+                  <div key={opt.id || idx} className="rounded-lg p-4" style={{ backgroundColor: isLeasing ? '#f0fdf4' : '#fafafa', border: isLeasing ? '1px solid #bbf7d0' : '1px solid #e5e7eb' }}>
                     <p className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: '#9ca3af' }}>Opção {idx + 1}</p>
-                    <p className="text-xs font-medium uppercase tracking-wide mb-3" style={{ color: isLeasing ? '#15803d' : '#6b7280' }}>{getLabel(opt.forma, opt.parcelas)}</p>
+                    <p className="text-xs font-medium uppercase tracking-wide mb-2" style={{ color: isLeasing ? '#15803d' : '#6b7280' }}>{getLabel(opt.forma, opt.parcelas)}</p>
                     {opt.entrada > 0 && opt.forma !== 'leasing' && (
                       <p className="text-xs mb-1" style={{ color: '#6b7280' }}>
                         Entrada: {formatCurrency(totalValue * opt.entrada / 100)} ({opt.entrada}%)
@@ -979,15 +979,15 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             {hasLeasing && (
               <>
                 {/* Separador */}
-                <div className="flex items-center gap-4 mb-6">
+                <div className="flex items-center gap-4 mb-3">
                   <div className="flex-1 h-px" style={{ backgroundColor: '#e5e7eb' }}></div>
                   <span className="text-xs font-medium uppercase tracking-widest" style={{ color: '#9ca3af' }}>Benefício fiscal — Leasing</span>
                   <div className="flex-1 h-px" style={{ backgroundColor: '#e5e7eb' }}></div>
                 </div>
 
                 {/* Texto explicativo */}
-                <div className="mb-5 pl-4" style={{ borderLeft: '2px solid #bbf7d0' }}>
-                  <p className="text-sm leading-relaxed" style={{ color: '#374151', lineHeight: '1.7' }}>
+                <div className="mb-3 pl-4" style={{ borderLeft: '2px solid #bbf7d0' }}>
+                  <p className="text-xs leading-relaxed" style={{ color: '#374151', lineHeight: '1.6' }}>
                     Empresas enquadradas no regime de <strong style={{ color: '#111827' }}>Lucro Real</strong> podem contabilizar 
                     as parcelas de locação como <strong style={{ color: '#111827' }}>despesa operacional dedutível</strong>, 
                     reduzindo a base de cálculo de tributos federais. A economia potencial pode chegar a 
@@ -996,13 +996,13 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 </div>
 
                 {/* Tabela de tributos */}
-                <div className="overflow-hidden rounded-lg mb-5" style={{ border: '1px solid #e5e7eb' }}>
+                <div className="overflow-hidden rounded-lg mb-3" style={{ border: '1px solid #e5e7eb' }}>
                   <table className="w-full">
                     <thead>
                       <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                        <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>Tributo</th>
-                        <th className="px-5 py-3 text-center text-xs font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>Alíquota</th>
-                        <th className="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>Economia estimada</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>Tributo</th>
+                        <th className="px-4 py-2 text-center text-xs font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>Alíquota</th>
+                        <th className="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: '#6b7280' }}>Economia estimada</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1013,32 +1013,32 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                         { nome: 'COFINS — Crédito sobre despesas de locação', aliquota: '7,6%', valor: totalValue * 0.076 },
                       ].map((item, i) => (
                         <tr key={i} style={{ backgroundColor: i % 2 === 0 ? '#ffffff' : '#f9fafb', borderBottom: '1px solid #f3f4f6' }}>
-                          <td className="px-5 py-3 text-sm" style={{ color: '#374151' }}>{item.nome}</td>
-                          <td className="px-5 py-3 text-sm text-center font-medium" style={{ color: '#111827' }}>{item.aliquota}</td>
-                          <td className="px-5 py-3 text-sm text-right font-semibold" style={{ color: '#15803d' }}>{formatCurrency(item.valor)}</td>
+                          <td className="px-4 py-2 text-xs" style={{ color: '#374151' }}>{item.nome}</td>
+                          <td className="px-4 py-2 text-xs text-center font-medium" style={{ color: '#111827' }}>{item.aliquota}</td>
+                          <td className="px-4 py-2 text-xs text-right font-semibold" style={{ color: '#15803d' }}>{formatCurrency(item.valor)}</td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot>
                       <tr style={{ backgroundColor: '#f0fdf4', borderTop: '2px solid #bbf7d0' }}>
-                        <td className="px-5 py-3 text-sm font-bold" style={{ color: '#111827' }}>Economia potencial total</td>
-                        <td className="px-5 py-3 text-sm text-center font-bold" style={{ color: '#111827' }}>43,25%</td>
-                        <td className="px-5 py-3 text-sm text-right font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue * 0.4325)}</td>
+                        <td className="px-4 py-2 text-xs font-bold" style={{ color: '#111827' }}>Economia potencial total</td>
+                        <td className="px-4 py-2 text-xs text-center font-bold" style={{ color: '#111827' }}>43,25%</td>
+                        <td className="px-4 py-2 text-xs text-right font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue * 0.4325)}</td>
                       </tr>
                     </tfoot>
                   </table>
                 </div>
 
                 {/* Mensalidade após benefícios fiscais */}
-                <div className="rounded-lg p-5" style={{ backgroundColor: '#f0fdf4', border: '2px solid #86efac' }}>
+                <div className="rounded-lg p-4" style={{ backgroundColor: '#f0fdf4', border: '2px solid #86efac' }}>
                   <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: '#15803d' }}>
                     Mensalidade após benefícios fiscais
                   </p>
-                  <p className="text-2xl font-bold" style={{ color: '#15803d' }}>
+                  <p className="text-xl font-bold" style={{ color: '#15803d' }}>
                     {formatCurrency(parcelaLeasing * (1 - 0.4325))}
                     <span className="text-sm font-normal" style={{ color: '#16a34a' }}>/mês</span>
                   </p>
-                  <p className="text-xs mt-2" style={{ color: '#6b7280', lineHeight: '1.6' }}>
+                  <p className="text-xs mt-1" style={{ color: '#6b7280', lineHeight: '1.5' }}>
                     Parcela de {formatCurrency(parcelaLeasing)} com aproveitamento de créditos de PIS e COFINS (9,25%) e deduções de IRPJ (25%) e CSLL (9%) sobre a despesa de locação.
                   </p>
                 </div>
@@ -1046,12 +1046,12 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             )}
 
             {/* Disclaimer após benefícios */}
-            <p className="text-xs italic mt-3" style={{ color: '#6b7280', lineHeight: '1.6' }}>
+            <p className="text-xs italic mt-2" style={{ color: '#6b7280', lineHeight: '1.4' }}>
               Estimativa de economia tributária potencial, sujeita ao regime tributário, existência de lucro tributável, enquadramento da operação, uso do bem na atividade e validação contábil/fiscal.
             </p>
 
             {/* Base legal */}
-            <div className="space-y-1 mt-2">
+            <div className="mt-1">
               <p className="text-xs" style={{ color: '#9ca3af' }}>
                 <strong style={{ color: '#6b7280' }}>Base legal:</strong> Art. 249 e 250 do RIR — Decreto 3.000/1999 · Art. 3º, IV da Lei 10.833/2003 · Art. 15, IV da Lei 10.865/2002
               </p>
