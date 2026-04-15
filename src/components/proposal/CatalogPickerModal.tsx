@@ -12,7 +12,7 @@ import { tabelasPrecoApi, type PrecoProduto } from '@/lib/api/tabelasPreco';
 interface CatalogPickerModalProps {
   open: boolean;
   onClose: () => void;
-  onSelect: (produto: ProdutoGCRow) => void;
+  onSelect: (produto: ProdutoGCRow, precoCalculado: number) => void;
   tabelaPrecoId?: string;
 }
 
