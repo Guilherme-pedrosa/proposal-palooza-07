@@ -13,11 +13,10 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
     );
 
     React.useEffect(() => {
-      // Only update display if external value changed and input isn't focused
-      const numericDisplay = displayValue.replace(',', '.');
-      const parsedDisplay = parseFloat(numericDisplay) || 0;
-      if (parsedDisplay !== value) {
-        setDisplayValue(value === 0 ? '' : value.toString().replace('.', ','));
+      // Update display when external value changes
+      const numericDisplay = parseFloat(displayValue.replace(',', '.')) || 0;
+      if (Math.abs(numericDisplay - value) > 0.001) {
+        setDisplayValue(value === 0 ? '' : value.toFixed(2).replace('.', ','));
       }
     }, [value]);
 
