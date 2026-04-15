@@ -155,8 +155,17 @@ export default function PropostaEditor() {
   const { data: allPrecos = [] } = useQuery({
     queryKey: ['all_precos'],
     queryFn: async () => {
-      const { data } = await supabase.from('precos_produto').select('*');
-      return data ?? [];
+      const allRows: any[] = [];
+      let from = 0;
+      const PAGE_SIZE = 1000;
+      while (true) {
+        const { data } = await supabase.from('precos_produto').select('*').range(from, from + PAGE_SIZE - 1);
+        if (!data || data.length === 0) break;
+        allRows.push(...data);
+        if (data.length < PAGE_SIZE) break;
+        from += PAGE_SIZE;
+      }
+      return allRows;
     },
     staleTime: 5 * 60 * 1000,
   });
