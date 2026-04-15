@@ -340,13 +340,8 @@ export default function PropostaEditor() {
     }
   };
 
-  const addProductFromCatalog = (p: ProdutoGCRow) => {
-    let preco = p.preco_venda || 0;
-    // Try to get price from default table
-    if (defaultTabelaPrecoId && produtosGcMap) {
-      const novoPreco = getPrecoFromTabela(p.id, defaultTabelaPrecoId);
-      if (novoPreco !== null) preco = novoPreco;
-    }
+  const addProductFromCatalog = (p: ProdutoGCRow, precoCalculado: number) => {
+    const preco = precoCalculado > 0 ? precoCalculado : (p.preco_venda || 0);
 
     const item: PropostaProduct = {
       id: crypto.randomUUID(),
