@@ -192,20 +192,44 @@ export default function PropostaEditor() {
     staleTime: 10 * 60 * 1000,
   });
 
-  // Helper: get price for a product from a specific table
+  // Helper: get price for a product from a specific table (from cache)
   const getPrecoFromTabela = (produtoUuid: string, tabelaId: string) => {
     const preco = allPrecos.find(pp => pp.produto_id === produtoUuid && pp.tabela_preco_id === tabelaId);
     return preco?.valor_venda && preco.valor_venda > 0 ? preco.valor_venda : null;
   };
 
+  // Helper: fetch price directly from DB (for when allPrecos might not have it)
+  const fetchPrecoFromDB = async (produtoUuid: string, tabelaId: string): Promise<number | null> => {
+    const { data } = await supabase
+      .from('precos_produto')
+      .select('valor_venda')
+      .eq('produto_id', produtoUuid)
+      .eq('tabela_preco_id', tabelaId)
+      .maybeSingle();
+    return data?.valor_venda && data.valor_venda > 0 ? data.valor_venda : null;
+  };
+
   // Handle per-product price table change
-  const handleProductTabelaChange = (idx: number, newTabelaId: string) => {
+  const handleProductTabelaChange = async (idx: number, newTabelaId: string) => {
+    const product = produtos[idx];
+    if (!product?.gcProdutoId || !produtosGcMap) {
+      setProdutos(prev => prev.map((p, i) => i === idx ? { ...p, tabelaPrecoId: newTabelaId } : p));
+      return;
+    }
+    const produtoUuid = produtosGcMap.get(product.gcProdutoId);
+    if (!produtoUuid) {
+      setProdutos(prev => prev.map((p, i) => i === idx ? { ...p, tabelaPrecoId: newTabelaId } : p));
+      return;
+    }
+
+    // Try cache first, then DB
+    let novoPreco = getPrecoFromTabela(produtoUuid, newTabelaId);
+    if (novoPreco === null) {
+      novoPreco = await fetchPrecoFromDB(produtoUuid, newTabelaId);
+    }
+
     setProdutos(prev => prev.map((p, i) => {
       if (i !== idx) return p;
-      if (!p.gcProdutoId || !produtosGcMap) return { ...p, tabelaPrecoId: newTabelaId };
-      const produtoUuid = produtosGcMap.get(p.gcProdutoId);
-      if (!produtoUuid) return { ...p, tabelaPrecoId: newTabelaId };
-      const novoPreco = getPrecoFromTabela(produtoUuid, newTabelaId);
       if (novoPreco !== null) {
         const sub = p.quantity * novoPreco;
         return { ...p, tabelaPrecoId: newTabelaId, unitPrice: novoPreco, totalPrice: sub - (sub * (p.discount || 0) / 100) };
