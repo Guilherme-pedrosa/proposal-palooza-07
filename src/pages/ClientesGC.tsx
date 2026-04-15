@@ -63,10 +63,11 @@ export default function ClientesGC() {
   const filtered = useMemo(() => {
     let result = clientes.filter(c => {
       const q = search.toLowerCase();
+      const cnpjDigits = search.replace(/\D/g, '');
       const matchSearch = !q ||
         c.nome.toLowerCase().includes(q) ||
         (c.razao_social?.toLowerCase().includes(q)) ||
-        (c.cnpj?.includes(search.replace(/\D/g, ''))) ||
+        (cnpjDigits.length > 0 && c.cnpj?.includes(cnpjDigits)) ||
         (c.cidade?.toLowerCase().includes(q));
 
       const matchSegmento = segmentoFilter === 'todos' || c.segmento === segmentoFilter;
