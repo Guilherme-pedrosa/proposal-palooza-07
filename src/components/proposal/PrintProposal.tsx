@@ -18,16 +18,48 @@ async function getImageAsBase64(url: string): Promise<string> {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx?.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL('image/jpeg', 0.8));
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/jpeg', 0.92));
+      } catch {
+        resolve(url);
+      }
     };
     img.onerror = () => resolve(url);
     img.src = url;
   });
+}
+
+async function waitForImagesToLoad(container: ParentNode): Promise<void> {
+  const images = Array.from(container.querySelectorAll('img'));
+
+  await Promise.all(
+    images.map(async (img) => {
+      img.loading = 'eager';
+      img.decoding = 'sync';
+
+      if (img.complete && img.naturalWidth > 0) {
+        if (typeof img.decode === 'function') {
+          await img.decode().catch(() => undefined);
+        }
+        return;
+      }
+
+      await new Promise<void>((resolve) => {
+        const done = () => resolve();
+        img.addEventListener('load', done, { once: true });
+        img.addEventListener('error', done, { once: true });
+      });
+
+      if (typeof img.decode === 'function') {
+        await img.decode().catch(() => undefined);
+      }
+    })
+  );
 }
 
 export function usePrintProposal() {
@@ -61,7 +93,8 @@ export function usePrintProposal() {
     root.render(React.createElement(PreviewWrapper));
 
     // Wait for React render to complete
-    await new Promise(r => setTimeout(r, 800));
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
 
     // Replace background images with base64
     const bgDivs = tempContainer.querySelectorAll('[style*="background-image"]');
@@ -81,14 +114,23 @@ export function usePrintProposal() {
       try {
         const b64 = await getImageAsBase64(img.src);
         img.src = b64;
+        await new Promise<void>((resolve) => {
+          if (img.complete && img.naturalWidth > 0) {
+            resolve();
+            return;
+          }
+
+          const done = () => resolve();
+          img.addEventListener('load', done, { once: true });
+          img.addEventListener('error', done, { once: true });
+        });
       } catch {
         // Keep original src if conversion fails
       }
     });
     await Promise.all(imgConversions);
 
-    // Wait for base64 images to settle
-    await new Promise(r => setTimeout(r, 300));
+    await waitForImagesToLoad(tempContainer);
 
     // Get all pdf-page elements
     const pages = tempContainer.querySelectorAll('.pdf-page');
