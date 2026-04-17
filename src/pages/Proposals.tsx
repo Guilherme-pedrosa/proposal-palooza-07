@@ -12,14 +12,17 @@ import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   FileText, Search, Plus, Eye, Trash2, Calendar, Building2,
-  DollarSign, Edit, ExternalLink
+  DollarSign, Edit, ExternalLink, Copy, MoreVertical
 } from 'lucide-react';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
-  fetchPropostas, deleteProposta, STATUS_PROPOSTA, formatBRL,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import {
+  fetchPropostas, deleteProposta, clonarProposta, STATUS_PROPOSTA, formatBRL,
   type PropostaRow, type StatusProposta,
 } from '@/lib/api/propostas';
 
@@ -58,6 +61,17 @@ export default function Proposals() {
     await deleteProposta(id);
     queryClient.invalidateQueries({ queryKey: ['propostas'] });
     toast.success('Proposta excluída!');
+  };
+
+  const handleClone = async (id: string) => {
+    try {
+      const nova = await clonarProposta(id);
+      queryClient.invalidateQueries({ queryKey: ['propostas'] });
+      toast.success('Proposta clonada com sucesso!');
+      navigate(`/propostas/${nova.id}`);
+    } catch (err: any) {
+      toast.error(`Erro ao clonar: ${err.message ?? 'tente novamente'}`);
+    }
   };
 
   return (
@@ -123,13 +137,52 @@ export default function Proposals() {
               >
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium text-sm text-primary">{p.numero}</span>
                         {p.versao > 1 && <Badge variant="outline" className="text-[10px]">Rev. {p.versao}</Badge>}
                         <Badge className={`text-[10px] ${st.bg} border-0`}>{st.emoji} {st.label}</Badge>
                       </div>
                       <p className="font-semibold text-foreground mt-1 line-clamp-1">{p.titulo}</p>
+                    </div>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => navigate(`/propostas/${p.id}`)}>
+                            <Edit className="h-4 w-4 mr-2" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleClone(p.id)}>
+                            <Copy className="h-4 w-4 mr-2" /> Clonar proposta
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Excluir proposta?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Esta ação não pode ser desfeita. A proposta {p.numero} será permanentemente removida.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(p.id)} className="bg-destructive hover:bg-destructive/90">
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
 
