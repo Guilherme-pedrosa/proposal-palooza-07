@@ -176,6 +176,37 @@ export async function deleteProposta(id: string) {
   if (error) throw error;
 }
 
+export async function clonarProposta(id: string): Promise<PropostaRow> {
+  const original = await fetchPropostaById(id);
+  if (!original) throw new Error('Proposta não encontrada');
+
+  const novoNumero = await getNextPropostaNumber();
+  const validadeDias = original.validade_dias ?? 10;
+  const novaValidade = new Date();
+  novaValidade.setDate(novaValidade.getDate() + validadeDias);
+
+  const { data: { session } } = await supabase.auth.getSession();
+
+  return await createProposta({
+    numero: novoNumero,
+    titulo: `${original.titulo} (Cópia)`,
+    descricao: original.descricao,
+    cliente_id: original.cliente_id,
+    oportunidade_id: original.oportunidade_id,
+    vendedor_id: session?.user?.id ?? original.vendedor_id,
+    template_id: original.template_id,
+    status: 'rascunho',
+    produtos: original.produtos ?? [],
+    termos_condicoes: original.termos_condicoes ?? [],
+    imagens: original.imagens ?? [],
+    valor_total: original.valor_total ?? 0,
+    desconto_total: original.desconto_total ?? 0,
+    validade_dias: validadeDias,
+    validade_ate: novaValidade.toISOString().split('T')[0],
+    observacoes_internas: original.observacoes_internas,
+  });
+}
+
 export async function registrarVisualizacao(id: string, proposta: PropostaRow) {
   // 1. ANY authenticated user = internal team → never register as client view
   const { data: { session } } = await supabase.auth.getSession();
