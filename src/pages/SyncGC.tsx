@@ -46,11 +46,20 @@ export default function SyncGC() {
     },
   });
 
-  const { data: countProdutos = 0 } = useQuery({
+  const { data: countCatalogo = { produtos: 0, servicos: 0, total: 0 } } = useQuery({
     queryKey: ['count_produtos_gc'],
     queryFn: async () => {
-      const { count } = await supabase.from('produtos_gc').select('*', { count: 'exact', head: true });
-      return count ?? 0;
+      const [{ count: total }, { count: produtos }, { count: servicos }] = await Promise.all([
+        supabase.from('produtos_gc').select('*', { count: 'exact', head: true }),
+        supabase.from('produtos_gc').select('*', { count: 'exact', head: true }).eq('tipo', 'produto'),
+        supabase.from('produtos_gc').select('*', { count: 'exact', head: true }).eq('tipo', 'servico'),
+      ]);
+
+      return {
+        total: total ?? 0,
+        produtos: produtos ?? 0,
+        servicos: servicos ?? 0,
+      };
     },
   });
 
@@ -123,8 +132,8 @@ export default function SyncGC() {
           <Card>
             <CardContent className="p-4 text-center">
               <Package className="h-8 w-8 mx-auto mb-2 text-primary" />
-              <p className="text-2xl font-bold">{countProdutos}</p>
-              <p className="text-xs text-muted-foreground">Produtos e serviços no CRM</p>
+              <p className="text-2xl font-bold">{countCatalogo.total}</p>
+              <p className="text-xs text-muted-foreground">{countCatalogo.produtos} produtos · {countCatalogo.servicos} serviços</p>
             </CardContent>
           </Card>
         </div>
@@ -153,7 +162,7 @@ export default function SyncGC() {
             </CardHeader>
             <CardContent className="px-4 pb-4 space-y-2">
               <p className="text-xs text-muted-foreground">Última sync: {formatDate(lastSyncProdutos)}</p>
-              <p className="text-xs text-muted-foreground">Os serviços do GC são sincronizados junto com os produtos.</p>
+               <p className="text-xs text-muted-foreground">Agora busca /produtos e /servicos separadamente no GestãoClick.</p>
               <Button className="w-full gap-2" onClick={syncProdutos} disabled={isSyncingProdutos}>
                 {isSyncingProdutos ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                 {isSyncingProdutos ? 'Sincronizando...' : 'Sincronizar Produtos e Serviços'}
@@ -196,7 +205,10 @@ export default function SyncGC() {
                       </p>
                       {log.detalhes && (
                         <p className="text-xs text-muted-foreground">
-                          {log.detalhes.total !== undefined && `${log.detalhes.total} registros`}
+                           {log.detalhes.total_catalogo !== undefined && `${log.detalhes.total_catalogo} itens`}
+                           {log.detalhes.total_produtos !== undefined && ` · ${log.detalhes.total_produtos} produtos`}
+                           {log.detalhes.total_servicos !== undefined && ` · ${log.detalhes.total_servicos} serviços`}
+                           {log.detalhes.total !== undefined && log.detalhes.total_catalogo === undefined && `${log.detalhes.total} registros`}
                           {log.detalhes.erros > 0 && ` · ${log.detalhes.erros} erros`}
                           {log.detalhes.paginas && ` · ${log.detalhes.paginas} páginas`}
                         </p>

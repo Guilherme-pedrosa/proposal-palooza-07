@@ -28,6 +28,63 @@ async function fetchComRetry(url: string, headers: Record<string, string>, maxRe
   throw new Error('Máximo de tentativas atingido');
 }
 
+type GCProdutoRegistro = {
+  gc_id: string;
+  codigo: string | null;
+  nome: string;
+  descricao: string | null;
+  categoria: string | null;
+  tipo: 'produto' | 'servico';
+  preco_venda: number | null;
+  unidade: string;
+  estoque_atual: number;
+  ativo: boolean;
+  foto_url: string | null;
+  fotos_urls: string[];
+  gc_synced_at: string;
+};
+
+async function fetchAllPages(endpoint: string, gcHeaders: Record<string, string>) {
+  const items: any[] = [];
+  let pagina = 1;
+  let paginasProcessadas = 0;
+
+  while (true) {
+    await new Promise(resolve => setTimeout(resolve, GC_RATE_LIMIT_DELAY_MS));
+
+    const url = `${GC_BASE_URL}${endpoint}?` + new URLSearchParams({
+      loja_id: String(GC_LOJA_ID),
+      limite: String(GC_MAX_PER_PAGE),
+      pagina: String(pagina),
+    });
+
+    const response = await fetchComRetry(url, gcHeaders, GC_MAX_RETRIES);
+    if (!response.ok) {
+      throw new Error(`Erro ${response.status} ao consultar ${endpoint}: ${await response.text()}`);
+    }
+
+    const body = await response.json();
+    const pageItems = Array.isArray(body?.data) ? body.data : Array.isArray(body) ? body : [];
+    if (pageItems.length === 0) break;
+
+    items.push(...pageItems);
+    paginasProcessadas++;
+
+    const meta = body?.meta;
+    const proximaPagina = meta?.proxima_pagina;
+    const totalDaPagina = Number(meta?.total_da_pagina ?? meta?.total_registros_pagina ?? pageItems.length);
+    const limitePorPagina = Number(meta?.limite_por_pagina ?? GC_MAX_PER_PAGE);
+
+    if (!proximaPagina || totalDaPagina < limitePorPagina || pageItems.length < GC_MAX_PER_PAGE) {
+      break;
+    }
+
+    pagina = Number(proximaPagina);
+  }
+
+  return { items, paginasProcessadas };
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -53,7 +110,8 @@ Deno.serve(async (req) => {
     'Content-Type': 'application/json',
   };
 
-  let totalSincronizados = 0;
+  let totalProdutos = 0;
+  let totalServicos = 0;
   let totalPrecos = 0;
   let erros = 0;
   let paginasTotal = 0;
@@ -70,105 +128,94 @@ Deno.serve(async (req) => {
     lucro_percentual: number;
   }> = [];
 
-  let pagina = 1;
-  let continuar = true;
+  try {
+    const [{ items: produtos, paginasProcessadas: paginasProdutos }, { items: servicos, paginasProcessadas: paginasServicos }] = await Promise.all([
+      fetchAllPages('/produtos', gcHeaders),
+      fetchAllPages('/servicos', gcHeaders),
+    ]);
 
-  while (continuar) {
-    await new Promise(resolve => setTimeout(resolve, GC_RATE_LIMIT_DELAY_MS));
+    const syncedAt = new Date().toISOString();
 
-    const url = `${GC_BASE_URL}/produtos?` + new URLSearchParams({
-      loja_id: String(GC_LOJA_ID),
-      limite: String(GC_MAX_PER_PAGE),
-      pagina: String(pagina),
-    });
-
-    try {
-      const response = await fetchComRetry(url, gcHeaders, GC_MAX_RETRIES);
-
-      if (!response.ok) {
-        await supabase.from('gc_sync_log').insert({
-          entidade: 'produtos', acao: 'sync_pagina',
-          status: 'erro',
-          detalhes: { pagina, status: response.status, body: await response.text() }
-        });
-        erros++;
-        break;
-      }
-
-      const body = await response.json();
-      const produtos = body?.data || body;
-
-      if (!Array.isArray(produtos) || produtos.length === 0) {
-        continuar = false;
-        break;
-      }
-
-      // Build product records — use price from principal table if available
-      const registros = produtos.map((p: any) => {
-        let precoVenda = parseFloat(p.valor_venda) || null;
-        if (Array.isArray(p.valores)) {
-          const principalTabela = p.valores.find((v: any) => String(v.tipo_id) === TABELA_PRINCIPAL_GC_ID);
-          if (principalTabela) {
-            precoVenda = parseFloat(principalTabela.valor_venda) || precoVenda;
-          }
-
-          for (const v of p.valores) {
-            if (v.tipo_id && v.nome_tipo) {
-              tabelasDescobertas.set(String(v.tipo_id), v.nome_tipo);
-              allPriceEntries.push({
-                gc_produto_id: String(p.id),
-                gc_tipo_id: String(v.tipo_id),
-                valor_custo: parseFloat(v.valor_custo) || 0,
-                valor_venda: parseFloat(v.valor_venda) || 0,
-                lucro_percentual: parseFloat(v.lucro_utilizado) || 0,
-              });
-            }
-          }
+    const registrosProdutos: GCProdutoRegistro[] = produtos.map((p: any) => {
+      let precoVenda = parseFloat(p.valor_venda) || null;
+      if (Array.isArray(p.valores)) {
+        const principalTabela = p.valores.find((v: any) => String(v.tipo_id) === TABELA_PRINCIPAL_GC_ID);
+        if (principalTabela) {
+          precoVenda = parseFloat(principalTabela.valor_venda) || precoVenda;
         }
 
-        // Extract photos from GC
-        const fotos: string[] = Array.isArray(p.fotos) ? p.fotos.filter((f: any) => typeof f === 'string' && f.length > 0) : [];
-
-        return {
-          gc_id: String(p.id),
-          codigo: p.codigo_interno || p.codigo,
-          nome: p.nome,
-          descricao: p.descricao,
-          categoria: p.nome_grupo || null,
-          tipo: p.tipo_produto === 'S' ? 'servico' : 'produto',
-          preco_venda: precoVenda,
-          unidade: p.unidade || 'UN',
-          estoque_atual: parseFloat(p.estoque) || 0,
-          ativo: p.ativo !== '0' && p.ativo !== false,
-          foto_url: fotos[0] || null,
-          fotos_urls: fotos,
-          gc_synced_at: new Date().toISOString(),
-        };
-      });
-
-      const { error } = await supabase
-        .from('produtos_gc')
-        .upsert(registros, { onConflict: 'gc_id', ignoreDuplicates: false });
-
-      if (error) {
-        console.error('Product upsert error:', error);
-        erros++;
-      } else {
-        totalSincronizados += registros.length;
+        for (const v of p.valores) {
+          if (v.tipo_id && v.nome_tipo) {
+            tabelasDescobertas.set(String(v.tipo_id), v.nome_tipo);
+            allPriceEntries.push({
+              gc_produto_id: String(p.id),
+              gc_tipo_id: String(v.tipo_id),
+              valor_custo: parseFloat(v.valor_custo) || 0,
+              valor_venda: parseFloat(v.valor_venda) || 0,
+              lucro_percentual: parseFloat(v.lucro_utilizado) || 0,
+            });
+          }
+        }
       }
 
-      paginasTotal++;
+      const fotos: string[] = Array.isArray(p.fotos) ? p.fotos.filter((f: any) => typeof f === 'string' && f.length > 0) : [];
 
-      if (produtos.length < GC_MAX_PER_PAGE) {
-        continuar = false;
-      } else {
-        pagina++;
-      }
-    } catch (e) {
-      console.error('Sync error:', e);
+      return {
+        gc_id: String(p.id),
+        codigo: p.codigo_interno || p.codigo || null,
+        nome: p.nome,
+        descricao: p.descricao || null,
+        categoria: p.nome_grupo || null,
+        tipo: 'produto',
+        preco_venda: precoVenda,
+        unidade: p.unidade || 'UN',
+        estoque_atual: parseFloat(p.estoque) || 0,
+        ativo: p.ativo !== '0' && p.ativo !== false,
+        foto_url: fotos[0] || null,
+        fotos_urls: fotos,
+        gc_synced_at: syncedAt,
+      };
+    });
+
+    const registrosServicos: GCProdutoRegistro[] = servicos.map((s: any) => ({
+      gc_id: String(s.id),
+      codigo: s.codigo || null,
+      nome: s.nome,
+      descricao: s.observacoes || null,
+      categoria: 'Serviços',
+      tipo: 'servico',
+      preco_venda: parseFloat(s.valor_venda) || null,
+      unidade: 'SV',
+      estoque_atual: 0,
+      ativo: true,
+      foto_url: null,
+      fotos_urls: [],
+      gc_synced_at: syncedAt,
+    }));
+
+    const registros = [...registrosProdutos, ...registrosServicos];
+    const { error } = await supabase
+      .from('produtos_gc')
+      .upsert(registros, { onConflict: 'gc_id', ignoreDuplicates: false });
+
+    if (error) {
+      console.error('Catalog upsert error:', error);
       erros++;
-      continuar = false;
+    } else {
+      totalProdutos = registrosProdutos.length;
+      totalServicos = registrosServicos.length;
     }
+
+    paginasTotal = paginasProdutos + paginasServicos;
+  } catch (e) {
+    console.error('Sync error:', e);
+    await supabase.from('gc_sync_log').insert({
+      entidade: 'produtos',
+      acao: 'sync_catalogo',
+      status: 'erro',
+      detalhes: { mensagem: e instanceof Error ? e.message : 'Erro desconhecido' }
+    });
+    erros++;
   }
 
   // --- Upsert price tables ---
@@ -259,7 +306,9 @@ Deno.serve(async (req) => {
     acao: 'sync_completo',
     status: erros === 0 ? 'sucesso' : 'parcial',
     detalhes: {
-      total_produtos: totalSincronizados,
+        total_produtos: totalProdutos,
+        total_servicos: totalServicos,
+        total_catalogo: totalProdutos + totalServicos,
       total_precos: totalPrecos,
       tabelas_preco: tabelasDescobertas.size,
       erros,
@@ -269,7 +318,9 @@ Deno.serve(async (req) => {
 
   return new Response(JSON.stringify({
     sucesso: true,
-    total_produtos: totalSincronizados,
+    total_produtos: totalProdutos,
+    total_servicos: totalServicos,
+    total_catalogo: totalProdutos + totalServicos,
     total_precos: totalPrecos,
     tabelas_preco: tabelasDescobertas.size,
     erros,
