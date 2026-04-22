@@ -8,6 +8,7 @@ export interface ProposalTemplateSection {
 export interface DefaultProduct {
   name: string;
   description: string;
+  observation?: string;
   unit: string;
 }
 
