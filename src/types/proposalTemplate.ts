@@ -60,6 +60,40 @@ O modelo de manutenção preventiva proposto visa aumentar a vida útil dos equi
     ],
   },
   {
+    id: 'manutencao_eletrica_civil',
+    name: 'Manutenção Elétrica e Civil',
+    description: 'Proposta técnico-comercial para manutenção leve predial, reparos e adequações operacionais',
+    icon: '🛠️',
+    color: '#f97316',
+    sections: [
+      { id: 'coverage', name: 'Cobertura Operacional', description: 'Tipos de reparos e frentes atendidas', enabled: true },
+      { id: 'service_flow', name: 'Fluxo de Atendimento', description: 'Triagem, execução, fechamento e registro', enabled: true },
+      { id: 'exclusions', name: 'Limites e Exclusões', description: 'O que não compõe obra civil ou ampliação', enabled: true },
+    ],
+    defaultTitle: 'Proposta Técnico-Comercial — Manutenção Elétrica e Civil Leve',
+    defaultDescription: `A presente proposta tem como objetivo o fornecimento de serviços continuados de manutenção elétrica de baixa tensão e manutenção civil leve, com foco em restabelecimento operacional, conservação predial e rápida resposta às demandas de reparo da unidade.
+
+O escopo contempla intervenções de pequeno e médio porte, sem caracterização de obra ou reforma estrutural, incluindo correções em pontos elétricos, substituição de componentes, ajustes de infraestrutura aparente, reparos localizados de revestimentos e acabamentos, sempre mediante avaliação técnica prévia e execução conforme boas práticas de segurança.
+
+Civil, neste contexto, não compreende construção ou ampliação, mas sim serviços de reparo e recomposição, como troca localizada de piso, correção de acabamentos, pequenos reparos em alvenaria, recomposição de superfícies e adequações operacionais de apoio à manutenção.
+
+Nossa proposta foi estruturada para oferecer previsibilidade técnica, agilidade no atendimento e rastreabilidade das intervenções, com apontamento por ordem de serviço, registro de evidências e fechamento mensal conforme as condições comerciais estabelecidas.`,
+    defaultProducts: [
+      {
+        name: 'Serviço de manutenção elétrica e civil leve',
+        description: `Prestação de serviços técnicos para atendimento de demandas operacionais, incluindo:
+• Reparos elétricos de baixa tensão em circuitos, pontos, tomadas, interruptores, luminárias e dispositivos aparentes
+• Substituição de componentes danificados e regularização de inconformidades operacionais
+• Pequenos reparos civis, recomposição localizada de revestimentos, pisos, rejuntes e acabamentos
+• Correções pontuais em infraestrutura de apoio, sem caracterização de obra nova ou ampliação
+• Vistorias técnicas, identificação de anomalias e orientação corretiva
+• Registro de atendimento, apontamento de horas e evidências fotográficas quando aplicável`,
+        observation: 'Escopo restrito a manutenção leve e corretiva localizada; materiais e serviços fora do escopo serão previamente alinhados.',
+        unit: 'HT',
+      },
+    ],
+  },
+  {
     id: 'coifa',
     name: 'Limpeza de Coifa',
     description: 'Serviços de limpeza, higienização e prevenção de incêndio',

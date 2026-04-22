@@ -133,6 +133,7 @@ export default function PropostaPublica() {
   }
 
   const hasLeasing = opcoesPagamento.some(o => o.forma === 'leasing');
+  const isManutencaoEletricaCivil = proposta.template_id === 'manutencao_eletrica_civil';
 
   const calcPMT = (pv: number, rate: number, n: number): number => {
     if (rate === 0) return pv / n;
@@ -153,9 +154,11 @@ export default function PropostaPublica() {
           <div className="flex justify-center">
             <img src={companyLogo} alt={`Logo ${companyName}`} className="h-14 w-auto object-contain" onError={() => setLogoError(true)} />
           </div>
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">Soluções para Cozinhas Profissionais</p>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider">
+            {isManutencaoEletricaCivil ? 'Manutenção operacional predial leve' : 'Soluções para Cozinhas Profissionais'}
+          </p>
           <Separator />
-          <p className="text-lg font-semibold">PROPOSTA COMERCIAL</p>
+          <p className="text-lg font-semibold">{isManutencaoEletricaCivil ? 'PROPOSTA TÉCNICO-COMERCIAL' : 'PROPOSTA COMERCIAL'}</p>
           <div className="flex items-center justify-center gap-2">
             <span className="text-sm font-medium">{proposta.numero}</span>
             {proposta.versao > 1 && <Badge variant="outline" className="text-[10px]">Rev. {proposta.versao}</Badge>}
@@ -232,6 +235,41 @@ export default function PropostaPublica() {
             })()}
           </CardContent>
         </Card>
+
+        {isManutencaoEletricaCivil && (
+          <Card>
+            <CardContent className="p-4 space-y-4">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Abrangência do atendimento</p>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <div className="rounded-lg border p-3 bg-background">
+                    <p className="text-sm font-semibold mb-2">Elétrica de baixa tensão</p>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      <li>• Correções em pontos, tomadas, interruptores e luminárias</li>
+                      <li>• Substituição de componentes e ajustes operacionais</li>
+                      <li>• Regularizações localizadas sem ampliação de carga</li>
+                    </ul>
+                  </div>
+                  <div className="rounded-lg border p-3 bg-background">
+                    <p className="text-sm font-semibold mb-2">Civil leve</p>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      <li>• Reparos localizados e recomposição de acabamentos</li>
+                      <li>• Troca pontual de piso, revestimentos e rejuntes</li>
+                      <li>• Intervenções sem caráter de obra ou reforma estrutural</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border p-3 bg-muted/30">
+                <p className="text-sm font-semibold mb-1">Diretriz de escopo</p>
+                <p className="text-sm text-muted-foreground">
+                  Este modelo foi estruturado para manutenção leve e corretiva localizada. Necessidades que envolvam obra, ampliação de infraestrutura ou adequações de maior porte devem ser tratadas em orçamento complementar.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Products */}
         {produtos.length > 0 && (
