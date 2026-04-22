@@ -83,7 +83,7 @@ export function GCProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.functions.invoke('gc-sync-produtos');
       if (error) throw error;
       setLastSyncProdutos(new Date());
-      toast.success(`✅ ${data?.total ?? 0} produtos sincronizados com GestãoClick`);
+      toast.success(`✅ ${data?.total_catalogo ?? 0} itens sincronizados (${data?.total_produtos ?? 0} produtos e ${data?.total_servicos ?? 0} serviços)`);
     } catch (e: any) {
       toast.error('❌ Erro ao sincronizar produtos. Verifique a API GC.');
       console.error(e);
