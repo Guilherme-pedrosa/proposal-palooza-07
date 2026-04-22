@@ -38,6 +38,8 @@ import { tabelasPrecoApi } from '@/lib/api/tabelasPreco';
 import type { ProdutoGCRow } from '@/lib/api/produtosGC';
 import type { Proposal as ProposalPrintType, PaymentOption } from '@/types/proposal';
 
+const PUBLIC_APP_URL = 'https://proposal-palooza-07.lovable.app';
+
 interface PropostaProduct {
   id: string;
   name: string;
@@ -544,7 +546,12 @@ export default function PropostaEditor() {
     const envBaseUrl = import.meta.env.VITE_PUBLIC_APP_URL as string | undefined;
     if (envBaseUrl) return envBaseUrl.replace(/\/$/, '');
 
-    return window.location.origin;
+    const { origin, hostname } = window.location;
+    if (hostname.includes('id-preview--') || hostname.includes('lovableproject.com')) {
+      return PUBLIC_APP_URL;
+    }
+
+    return origin;
   };
 
   const handleSendLink = async () => {
