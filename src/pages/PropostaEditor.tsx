@@ -793,11 +793,17 @@ export default function PropostaEditor() {
         <Section title={`Produtos e Serviços — ${formatBRL(total)}`} icon="📦">
           <div className="space-y-3">
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" className="gap-1" onClick={() => setCatalogOpen(true)}>
-                <Search className="h-3 w-3" /> Buscar no Catálogo
+              <Button size="sm" variant="outline" className="gap-1" onClick={() => { setCatalogItemType('produto'); setCatalogOpen(true); }}>
+                <Search className="h-3 w-3" /> Buscar Produto
               </Button>
-              <Button size="sm" variant="outline" className="gap-1" onClick={addManualProduct}>
-                <Plus className="h-3 w-3" /> Manual
+              <Button size="sm" variant="outline" className="gap-1" onClick={() => { setCatalogItemType('servico'); setCatalogOpen(true); }}>
+                <Search className="h-3 w-3" /> Buscar Serviço
+              </Button>
+              <Button size="sm" variant="outline" className="gap-1" onClick={() => addManualProduct('produto')}>
+                <Plus className="h-3 w-3" /> Produto Manual
+              </Button>
+              <Button size="sm" variant="outline" className="gap-1" onClick={() => addManualProduct('servico')}>
+                <Plus className="h-3 w-3" /> Serviço Manual
               </Button>
             </div>
 
@@ -1197,7 +1203,7 @@ export default function PropostaEditor() {
       </div>
 
       {/* Catalog Picker */}
-      <CatalogPickerModal open={catalogOpen} onClose={() => setCatalogOpen(false)} onSelect={addProductFromCatalog} tabelaPrecoId={defaultTabelaPrecoId} />
+      <CatalogPickerModal open={catalogOpen} onClose={() => setCatalogOpen(false)} onSelect={addProductFromCatalog} tabelaPrecoId={defaultTabelaPrecoId} initialItemType={catalogItemType} />
 
       {/* Share Modal */}
       <Dialog open={shareOpen} onOpenChange={setShareOpen}>
