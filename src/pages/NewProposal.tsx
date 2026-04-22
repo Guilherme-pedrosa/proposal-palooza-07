@@ -98,6 +98,7 @@ export default function NewProposal() {
         id: crypto.randomUUID(),
         name: dp.name,
         description: dp.description,
+        observation: dp.observation || '',
         unit: dp.unit,
         quantity: 1,
         unitPrice: 0,
