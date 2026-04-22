@@ -22,7 +22,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
-  fetchPropostas, deleteProposta, clonarProposta, STATUS_PROPOSTA, formatBRL,
+  fetchPropostas, deleteProposta, clonarProposta, updateProposta, STATUS_PROPOSTA, formatBRL,
   type PropostaRow, type StatusProposta,
 } from '@/lib/api/propostas';
 
@@ -41,6 +41,7 @@ export default function Proposals() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('todas');
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
 
   const { data: propostas = [], isLoading } = useQuery({
     queryKey: ['propostas'],
@@ -71,6 +72,19 @@ export default function Proposals() {
       navigate(`/propostas/${nova.id}`);
     } catch (err: any) {
       toast.error(`Erro ao clonar: ${err.message ?? 'tente novamente'}`);
+    }
+  };
+
+  const handleStatusChange = async (id: string, status: StatusProposta) => {
+    try {
+      setUpdatingStatusId(id);
+      await updateProposta(id, { status });
+      queryClient.invalidateQueries({ queryKey: ['propostas'] });
+      toast.success(`Status alterado para ${STATUS_PROPOSTA[status].label.toLowerCase()}.`);
+    } catch (err: any) {
+      toast.error(`Erro ao atualizar status: ${err.message ?? 'tente novamente'}`);
+    } finally {
+      setUpdatingStatusId(null);
     }
   };
 
@@ -208,7 +222,23 @@ export default function Proposals() {
                         </span>
                       )}
                     </div>
-                    <span className="font-semibold text-sm">{formatBRL(p.valor_total)}</span>
+                    <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                      <label className="sr-only" htmlFor={`status-${p.id}`}>Alterar status da proposta</label>
+                      <select
+                        id={`status-${p.id}`}
+                        value={(p.status as StatusProposta) ?? 'rascunho'}
+                        disabled={updatingStatusId === p.id}
+                        onChange={(e) => handleStatusChange(p.id, e.target.value as StatusProposta)}
+                        className="h-9 rounded-md border border-border bg-background px-3 text-xs font-medium text-foreground outline-none transition-colors focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {Object.entries(STATUS_PROPOSTA).map(([value, meta]) => (
+                          <option key={value} value={value}>
+                            {meta.emoji} {meta.label}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="font-semibold text-sm whitespace-nowrap">{formatBRL(p.valor_total)}</span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
