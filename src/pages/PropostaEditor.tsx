@@ -50,6 +50,7 @@ interface PropostaProduct {
   photoUrl?: string;
   gcProdutoId?: string;
   tabelaPrecoId?: string;
+  itemType?: 'produto' | 'servico';
 }
 
 interface PropostaTermo {
@@ -112,6 +113,7 @@ export default function PropostaEditor() {
   const [carregandoGC, setCarregandoGC] = useState(false);
   const [gcOrcamentoUrl, setGcOrcamentoUrl] = useState('');
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [catalogItemType, setCatalogItemType] = useState<'produto' | 'servico'>('produto');
   const [defaultTabelaPrecoId, setDefaultTabelaPrecoId] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
@@ -375,6 +377,7 @@ export default function PropostaEditor() {
 
   const addProductFromCatalog = (p: ProdutoGCRow, precoCalculado: number) => {
     const preco = precoCalculado > 0 ? precoCalculado : (p.preco_venda || 0);
+    const itemType = p.tipo === 'servico' ? 'servico' : 'produto';
 
     const item: PropostaProduct = {
       id: crypto.randomUUID(),
@@ -388,14 +391,16 @@ export default function PropostaEditor() {
       photoUrl: p.foto_url || p.fotos_urls?.[0] || undefined,
       gcProdutoId: p.gc_id,
       tabelaPrecoId: defaultTabelaPrecoId || undefined,
+      itemType,
     };
     setProdutos((prev) => [...prev, item]);
   };
 
-  const addManualProduct = () => {
+  const addManualProduct = (itemType: 'produto' | 'servico' = 'produto') => {
     setProdutos((prev) => [...prev, {
       id: crypto.randomUUID(), name: '', description: '', unit: 'un',
       quantity: 1, unitPrice: 0, totalPrice: 0, discount: 0,
+      itemType,
     }]);
   };
 
