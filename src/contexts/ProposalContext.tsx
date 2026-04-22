@@ -97,6 +97,39 @@ const preventivaTerms: SavedTermCondition[] = [
   },
 ];
 
+const manutencaoEletricaCivilTerms: SavedTermCondition[] = [
+  {
+    id: 'mec-1',
+    title: 'Escopo Técnico — Manutenção Elétrica de Baixa Tensão',
+    description: 'Contempla inspeção, diagnóstico, correção e substituição de componentes em instalações elétricas de baixa tensão, incluindo tomadas, interruptores, luminárias, disjuntores de alimentação terminal, conexões aparentes, readequações pontuais e correção de falhas operacionais, sempre dentro da capacidade instalada existente e sem caracterização de ampliação de carga ou projeto executivo.',
+    templateIds: ['manutencao_eletrica_civil'],
+  },
+  {
+    id: 'mec-2',
+    title: 'Escopo Técnico — Manutenção Civil Leve',
+    description: 'Compreende serviços localizados de reparo, recomposição e ajuste funcional, tais como troca pontual de piso, recomposição de revestimentos, correção de reboco, rejunte, pintura de acabamento localizada, vedações, fixações e pequenos reparos em elementos não estruturais. Este escopo não inclui construção, demolição estrutural, ampliação de áreas ou reformas de grande porte.',
+    templateIds: ['manutencao_eletrica_civil'],
+  },
+  {
+    id: 'mec-3',
+    title: 'Atendimento, Apontamento e Fechamento Mensal',
+    description: 'Os serviços poderão ser executados sob regime de hora técnica, com apontamento por atendimento, atividade executada e evidências operacionais, quando aplicável. Nos contratos mensais, o fechamento técnico e financeiro será realizado na primeira semana do mês subsequente. Eventuais horas excedentes ao previsto serão faturadas conforme valor contratado; horas abaixo da previsão não descaracterizam a disponibilidade operacional reservada à contratante.',
+    templateIds: ['manutencao_eletrica_civil'],
+  },
+  {
+    id: 'mec-4',
+    title: 'Limites de Escopo e Exclusões',
+    description: 'Não fazem parte do escopo padrão serviços caracterizados como obra civil, ampliação de rede, aumento de carga, elaboração de projetos, regularização junto a concessionárias, adequações estruturais, intervenções em média tensão, fornecimento integral de materiais especiais, andaimes, plataformas, ART/RRT específica ou serviços que demandem paralisações extraordinárias sem programação prévia.',
+    templateIds: ['manutencao_eletrica_civil'],
+  },
+  {
+    id: 'mec-5',
+    title: 'Segurança Operacional e Condições de Execução',
+    description: 'As atividades serão executadas conforme boas práticas técnicas e requisitos aplicáveis de segurança, especialmente para intervenções em eletricidade de baixa tensão e áreas em operação. Sempre que necessário, a contratante deverá assegurar liberação da área, desligamento seguro, acesso às instalações e condições adequadas para execução do serviço, evitando interferências que comprometam prazo, segurança ou qualidade final.',
+    templateIds: ['manutencao_eletrica_civil'],
+  },
+];
+
 // Termos específicos para Limpeza de Coifa
 const coifaTerms: SavedTermCondition[] = [
   {
@@ -335,6 +368,7 @@ const equipamentosTerms: SavedTermCondition[] = [
 const defaultTerms: SavedTermCondition[] = [
   ...generalTerms,
   ...preventivaTerms,
+  ...manutencaoEletricaCivilTerms,
   ...coifaTerms,
   ...climatizacaoTerms,
   ...quimicosTerms,
