@@ -686,8 +686,8 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
             </div>
 
-            <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Os produtos</h2>
-            <p className="mb-8" style={{ color: '#4b5563' }}>Lista de produtos orçados nesta proposta comercial.</p>
+            <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Produtos e serviços</h2>
+            <p className="mb-8" style={{ color: '#4b5563' }}>Lista de itens orçados nesta proposta comercial.</p>
 
             {/* Products Table */}
             <div className="overflow-hidden rounded-lg" style={{ border: '1px solid #e5e7eb' }}>
@@ -702,7 +702,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 </colgroup>
                 <thead>
                   <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                    <th className="px-3 py-3 text-left text-xs font-semibold" style={{ color: '#374151' }}>Produto</th>
+                    <th className="px-3 py-3 text-left text-xs font-semibold" style={{ color: '#374151' }}>Item</th>
                     <th className="px-2 py-3 text-center text-xs font-semibold" style={{ color: '#374151' }}>Unid.</th>
                     <th className="px-2 py-3 text-center text-xs font-semibold" style={{ color: '#374151' }}>Qtde</th>
                     <th className="px-2 py-3 text-right text-xs font-semibold" style={{ color: '#374151' }}>Valor unit.</th>
@@ -724,6 +724,11 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                           )}
                           <div style={{ minWidth: 0 }}>
                             <p className="font-medium text-xs leading-snug" style={{ color: '#111827', wordBreak: 'break-word' }}>{product.name}</p>
+                            {product.observation && (
+                              <p className="mt-0.5 text-xs leading-snug" style={{ color: '#4b5563', wordBreak: 'break-word' }}>
+                                Obs.: {product.observation}
+                              </p>
+                            )}
                             {product.discountNote && (
                               <p className="mt-0.5 text-xs italic" style={{ color: '#9ca3af' }}>* {product.discountNote}</p>
                             )}
