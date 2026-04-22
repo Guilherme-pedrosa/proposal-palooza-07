@@ -124,7 +124,7 @@ export default function SyncGC() {
             <CardContent className="p-4 text-center">
               <Package className="h-8 w-8 mx-auto mb-2 text-primary" />
               <p className="text-2xl font-bold">{countProdutos}</p>
-              <p className="text-xs text-muted-foreground">Produtos no CRM</p>
+              <p className="text-xs text-muted-foreground">Produtos e serviços no CRM</p>
             </CardContent>
           </Card>
         </div>
@@ -148,14 +148,15 @@ export default function SyncGC() {
           <Card>
             <CardHeader className="py-3 px-4">
               <CardTitle className="text-sm flex items-center gap-2">
-                <Package className="h-4 w-4" /> Produtos
+                <Package className="h-4 w-4" /> Produtos e Serviços
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4 space-y-2">
               <p className="text-xs text-muted-foreground">Última sync: {formatDate(lastSyncProdutos)}</p>
+              <p className="text-xs text-muted-foreground">Os serviços do GC são sincronizados junto com os produtos.</p>
               <Button className="w-full gap-2" onClick={syncProdutos} disabled={isSyncingProdutos}>
                 {isSyncingProdutos ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                {isSyncingProdutos ? 'Sincronizando...' : 'Sincronizar Produtos'}
+                {isSyncingProdutos ? 'Sincronizando...' : 'Sincronizar Produtos e Serviços'}
               </Button>
             </CardContent>
           </Card>
