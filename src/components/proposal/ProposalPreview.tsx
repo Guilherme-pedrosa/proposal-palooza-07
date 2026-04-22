@@ -33,6 +33,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
     
     // Check template type for conditional rendering
     const isPreventiva = proposal.templateId === 'preventiva' || !proposal.templateId;
+    const isManutencaoEletricaCivil = proposal.templateId === 'manutencao_eletrica_civil';
     const isCoifa = proposal.templateId === 'coifa';
     const isQuimicos = proposal.templateId === 'quimicos';
     const isInstalacao = proposal.templateId === 'instalacao';
@@ -775,6 +776,138 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
             <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
           </div>
+        )}
+
+        {isManutencaoEletricaCivil && (
+          <>
+            <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+              <div className="absolute top-8 right-12">
+                <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
+              </div>
+
+              <div className="mb-8">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] mb-3" style={{ color: '#9a3412' }}>Manutenção operacional</p>
+                <h2 className="text-3xl font-bold mb-3" style={{ color: '#111827' }}>Cobertura para manutenção elétrica e civil leve</h2>
+                <p className="text-sm leading-relaxed max-w-3xl" style={{ color: '#4b5563' }}>
+                  Estruturamos este modelo para operações que precisam de resposta técnica ágil em reparos prediais leves, sem desvio para obras ou reformas. O foco está na recomposição funcional, segurança da instalação e continuidade da rotina operacional.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-5 mb-8">
+                {[
+                  {
+                    title: 'Frente elétrica',
+                    tone: '#fff7ed',
+                    border: '#fdba74',
+                    items: ['Baixa tensão e circuitos terminais', 'Tomadas, interruptores, luminárias e pontos', 'Correções operacionais e substituição de componentes'],
+                  },
+                  {
+                    title: 'Frente civil leve',
+                    tone: '#eff6ff',
+                    border: '#93c5fd',
+                    items: ['Troca pontual de piso e revestimento', 'Recomposição de acabamentos e vedação', 'Pequenos reparos sem caráter estrutural'],
+                  },
+                  {
+                    title: 'Objetivo do contrato',
+                    tone: '#f0fdf4',
+                    border: '#86efac',
+                    items: ['Restabelecer condição operacional', 'Reduzir recorrência de falhas', 'Dar previsibilidade ao atendimento e ao fechamento'],
+                  },
+                  {
+                    title: 'Forma de atuação',
+                    tone: '#faf5ff',
+                    border: '#d8b4fe',
+                    items: ['Triagem técnica da demanda', 'Execução com apontamento por atendimento', 'Registro de evidências e fechamento mensal'],
+                  },
+                ].map((block) => (
+                  <div key={block.title} className="rounded-xl p-5" style={{ backgroundColor: block.tone, border: `1px solid ${block.border}` }}>
+                    <h3 className="text-sm font-semibold uppercase tracking-wide mb-3" style={{ color: '#111827' }}>{block.title}</h3>
+                    <ul className="space-y-2">
+                      {block.items.map((item) => (
+                        <li key={item} className="flex items-start gap-2 text-sm" style={{ color: '#374151' }}>
+                          <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: '#f97316' }}></span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-xl p-5" style={{ backgroundColor: '#111827' }}>
+                <p className="text-xs uppercase tracking-[0.2em] mb-2" style={{ color: 'rgba(255,255,255,0.55)' }}>Posicionamento comercial</p>
+                <p className="text-sm leading-relaxed" style={{ color: '#ffffff' }}>
+                  Este formato é indicado para contratos em que a operação demanda manutenção recorrente, correções localizadas e rápida recomposição de falhas, sem necessidade de obra nova. Assim, o cliente ganha velocidade de atendimento, controle de horas técnicas e clareza sobre os limites do escopo contratado.
+                </p>
+              </div>
+
+              <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
+                {proposal.number} de {formatDate(proposal.createdAt as Date)}
+              </div>
+              <div className="absolute bottom-0 right-0 h-28 w-28" style={{ backgroundColor: '#f97316', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.92 }} />
+              <div className="absolute bottom-0 right-16 h-16 w-16" style={{ backgroundColor: '#ea580c', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.92 }} />
+            </div>
+
+            <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+              <div className="absolute top-8 right-12">
+                <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
+              </div>
+
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-1 h-8 rounded-full" style={{ backgroundColor: '#f97316' }}></div>
+                <h2 className="text-2xl font-semibold tracking-tight" style={{ color: '#111827' }}>Fluxo de atendimento e limites de escopo</h2>
+              </div>
+              <p className="mb-6 ml-4 text-sm" style={{ color: '#6b7280' }}>
+                Modelo recomendado para manutenção sob demanda ou contrato mensal com hora técnica e fechamento subsequente.
+              </p>
+
+              <div className="grid grid-cols-2 gap-8">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] mb-3" style={{ color: '#9ca3af' }}>Etapas do serviço</p>
+                  <div className="space-y-4">
+                    {[
+                      ['1', 'Abertura e triagem', 'Recebimento da demanda, classificação da criticidade e definição da frente técnica.'],
+                      ['2', 'Vistoria e execução', 'Diagnóstico em campo, correção do problema e eventual substituição pontual de componentes.'],
+                      ['3', 'Apontamento técnico', 'Registro de horas, materiais aplicados e evidências da intervenção executada.'],
+                      ['4', 'Fechamento mensal', 'Consolidação dos atendimentos na primeira semana do mês subsequente, conforme contrato.'],
+                    ].map(([n, title, desc]) => (
+                      <div key={n} className="flex items-start gap-3">
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#fff7ed', color: '#c2410c' }}>{n}</div>
+                        <div>
+                          <p className="text-sm font-semibold" style={{ color: '#111827' }}>{title}</p>
+                          <p className="text-xs leading-relaxed" style={{ color: '#4b5563' }}>{desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] mb-3" style={{ color: '#9ca3af' }}>Não caracterizam este escopo</p>
+                  <div className="rounded-xl p-5 mb-4" style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}>
+                    <ul className="space-y-2 text-sm" style={{ color: '#374151' }}>
+                      <li>• Construção, ampliação ou reforma estrutural</li>
+                      <li>• Aumento de carga, projeto executivo e adequações complexas</li>
+                      <li>• Intervenções em média tensão ou infraestrutura principal</li>
+                      <li>• Serviços extraordinários que demandem mobilização especial não prevista</li>
+                    </ul>
+                  </div>
+
+                  <div className="rounded-xl p-5" style={{ backgroundColor: '#fff7ed', border: '1px solid #fdba74' }}>
+                    <p className="text-sm font-semibold mb-2" style={{ color: '#9a3412' }}>Diretriz comercial</p>
+                    <p className="text-xs leading-relaxed" style={{ color: '#7c2d12' }}>
+                      Havendo identificação de necessidade fora do escopo de manutenção leve, a continuidade deverá ser tratada por orçamento complementar, preservando clareza técnica, previsibilidade comercial e governança da contratação.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
+                {proposal.number} de {formatDate(proposal.createdAt as Date)}
+              </div>
+              <div className="absolute bottom-0 right-0 h-28 w-28" style={{ backgroundColor: '#f97316', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.92 }} />
+            </div>
+          </>
         )}
 
         {/* Terms and Conditions Pages - Paginated */}
