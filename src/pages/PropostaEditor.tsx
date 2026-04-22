@@ -44,6 +44,7 @@ interface PropostaProduct {
   id: string;
   name: string;
   description: string;
+  observation?: string;
   unit: string;
   quantity: number;
   unitPrice: number;
@@ -385,6 +386,7 @@ export default function PropostaEditor() {
       id: crypto.randomUUID(),
       name: p.nome,
       description: p.descricao || '',
+      observation: '',
       unit: p.unidade || 'un',
       quantity: 1,
       unitPrice: preco,
@@ -400,7 +402,7 @@ export default function PropostaEditor() {
 
   const addManualProduct = (itemType: 'produto' | 'servico' = 'produto') => {
     setProdutos((prev) => [...prev, {
-      id: crypto.randomUUID(), name: '', description: '', unit: 'un',
+      id: crypto.randomUUID(), name: '', description: '', observation: '', unit: 'un',
       quantity: 1, unitPrice: 0, totalPrice: 0, discount: 0,
       itemType,
     }]);
@@ -461,6 +463,7 @@ export default function PropostaEditor() {
       id: p.id,
       name: p.name,
       description: p.description,
+      observation: p.observation,
       unit: p.unit,
       quantity: p.quantity,
       unitPrice: p.unitPrice,
