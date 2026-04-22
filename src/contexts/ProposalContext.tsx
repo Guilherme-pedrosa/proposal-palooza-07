@@ -89,6 +89,12 @@ const preventivaTerms: SavedTermCondition[] = [
     description: 'Manutenção preventiva em balcões refrigerados, refrigeradores verticais, freezers e pass-through. Inclui limpeza de condensadores, verificação de temperaturas, gaxetas, termostatos e sistemas de degelo.',
     templateIds: ['preventiva'],
   },
+  {
+    id: 'prev-inst-coifa-1',
+    title: 'Medição, Apontamento e Faturamento de Horas Técnicas',
+    description: 'Nos contratos mensais, os serviços serão mensurados e faturados com base em hora técnica contratada, com fechamento operacional e financeiro realizado sempre na primeira semana do mês subsequente à prestação. A previsão de horas apresentada na proposta tem caráter estimativo para planejamento da operação. Eventuais horas excedentes executadas além da previsão serão cobradas pelo valor da hora técnica vigente e previamente contratado, no respectivo fechamento mensal. Na hipótese de consumo inferior ao volume previsto, permanece mantido o valor contratual pactuado, em razão da disponibilidade técnica, alocação de equipe e reserva de capacidade operacional dedicada ao atendimento.',
+    templateIds: ['preventiva', 'instalacao', 'coifa'],
+  },
 ];
 
 // Termos específicos para Limpeza de Coifa
