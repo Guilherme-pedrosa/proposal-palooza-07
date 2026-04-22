@@ -372,6 +372,7 @@ export default function PropostaEditor() {
       if (produtos.length === 0 && tpl.defaultProducts.length > 0) {
         setProdutos(tpl.defaultProducts.map((dp) => ({
           id: crypto.randomUUID(), name: dp.name, description: dp.description,
+          observation: dp.observation || '',
           unit: dp.unit, quantity: 1, unitPrice: 0, totalPrice: 0, discount: 0,
         })));
       }
@@ -858,6 +859,16 @@ export default function PropostaEditor() {
                     <Label className="text-[10px]">Desc %</Label>
                     <Input type="number" value={p.discount || ''} onChange={(e) => updateProduct(i, 'discount', parseFloat(e.target.value) || 0)} className="h-8 text-sm" />
                   </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Observação do item</Label>
+                  <Textarea
+                    value={p.observation || ''}
+                    onChange={(e) => updateProduct(i, 'observation', e.target.value)}
+                    placeholder={p.itemType === 'servico' ? 'Ex: atendimento em horário comercial, escopo complementar...' : 'Ex: voltagem, acabamento, acessórios inclusos...'}
+                    rows={2}
+                    className="min-h-[72px] text-sm"
+                  />
                 </div>
                 <p className="text-xs text-right font-medium">Subtotal: {formatBRL(p.totalPrice)}</p>
               </div>
