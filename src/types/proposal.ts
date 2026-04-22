@@ -11,6 +11,7 @@ export interface Product {
   id: string;
   name: string;
   description: string;
+  observation?: string;
   unit: string;
   quantity: number;
   unitPrice: number;

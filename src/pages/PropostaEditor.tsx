@@ -44,6 +44,7 @@ interface PropostaProduct {
   id: string;
   name: string;
   description: string;
+  observation?: string;
   unit: string;
   quantity: number;
   unitPrice: number;
@@ -371,6 +372,7 @@ export default function PropostaEditor() {
       if (produtos.length === 0 && tpl.defaultProducts.length > 0) {
         setProdutos(tpl.defaultProducts.map((dp) => ({
           id: crypto.randomUUID(), name: dp.name, description: dp.description,
+          observation: dp.observation || '',
           unit: dp.unit, quantity: 1, unitPrice: 0, totalPrice: 0, discount: 0,
         })));
       }
@@ -385,6 +387,7 @@ export default function PropostaEditor() {
       id: crypto.randomUUID(),
       name: p.nome,
       description: p.descricao || '',
+      observation: '',
       unit: p.unidade || 'un',
       quantity: 1,
       unitPrice: preco,
@@ -400,7 +403,7 @@ export default function PropostaEditor() {
 
   const addManualProduct = (itemType: 'produto' | 'servico' = 'produto') => {
     setProdutos((prev) => [...prev, {
-      id: crypto.randomUUID(), name: '', description: '', unit: 'un',
+      id: crypto.randomUUID(), name: '', description: '', observation: '', unit: 'un',
       quantity: 1, unitPrice: 0, totalPrice: 0, discount: 0,
       itemType,
     }]);
@@ -461,6 +464,7 @@ export default function PropostaEditor() {
       id: p.id,
       name: p.name,
       description: p.description,
+      observation: p.observation,
       unit: p.unit,
       quantity: p.quantity,
       unitPrice: p.unitPrice,
@@ -855,6 +859,16 @@ export default function PropostaEditor() {
                     <Label className="text-[10px]">Desc %</Label>
                     <Input type="number" value={p.discount || ''} onChange={(e) => updateProduct(i, 'discount', parseFloat(e.target.value) || 0)} className="h-8 text-sm" />
                   </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Observação do item</Label>
+                  <Textarea
+                    value={p.observation || ''}
+                    onChange={(e) => updateProduct(i, 'observation', e.target.value)}
+                    placeholder={p.itemType === 'servico' ? 'Ex: atendimento em horário comercial, escopo complementar...' : 'Ex: voltagem, acabamento, acessórios inclusos...'}
+                    rows={2}
+                    className="min-h-[72px] text-sm"
+                  />
                 </div>
                 <p className="text-xs text-right font-medium">Subtotal: {formatBRL(p.totalPrice)}</p>
               </div>

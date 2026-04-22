@@ -246,6 +246,7 @@ export default function PropostaPublica() {
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm">{p.name}</p>
                     {p.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{p.description}</p>}
+                    {p.observation && <p className="text-xs text-muted-foreground mt-1">Obs.: {p.observation}</p>}
                     <p className="text-xs text-muted-foreground mt-1">
                       Qtd: {p.quantity} · Preço: {formatBRL(p.unitPrice)}
                       {(p.discount ?? 0) > 0 && ` · Desc: ${p.discount}%`}
