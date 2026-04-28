@@ -23,6 +23,10 @@ export function buildPdfSafeImageUrl(url: string): string {
   try {
     const parsed = new URL(url, window.location.origin);
 
+    if (parsed.pathname.includes('/functions/v1/image-proxy')) {
+      return parsed.toString();
+    }
+
     if (parsed.origin === window.location.origin || isPrivateHostname(parsed.hostname)) {
       return parsed.toString();
     }
