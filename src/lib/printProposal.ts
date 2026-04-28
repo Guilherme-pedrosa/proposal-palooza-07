@@ -3,32 +3,7 @@ import jsPDF from 'jspdf';
 import { Proposal } from '@/types/proposal';
 import { CompanySettings } from '@/types/company';
 import industrialKitchenBg from '@/assets/industrial-kitchen-bg.jpg';
-
-async function getImageAsBase64(url: string): Promise<string> {
-  if (!url || url.startsWith('data:')) return url;
-
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.referrerPolicy = 'no-referrer';
-
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth || img.width;
-        canvas.height = img.naturalHeight || img.height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/jpeg', 0.92));
-      } catch {
-        resolve(url);
-      }
-    };
-
-    img.onerror = () => resolve(url);
-    img.src = url;
-  });
-}
+import { buildPdfSafeImageUrl, getImageAsBase64 } from '@/lib/pdfImageUtils';
 
 async function waitForImagesToLoad(container: ParentNode): Promise<void> {
   const images = Array.from(container.querySelectorAll('img'));
@@ -95,7 +70,8 @@ export async function openPrintWindow(proposal: Partial<Proposal>, company: Comp
       allImages.map(async (img) => {
         if (!img.src || img.src.startsWith('data:')) return;
 
-        const base64 = await getImageAsBase64(img.src);
+        const safeSrc = buildPdfSafeImageUrl(img.src);
+        const base64 = await getImageAsBase64(safeSrc);
         if (base64) {
           img.src = base64;
         }

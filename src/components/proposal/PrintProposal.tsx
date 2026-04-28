@@ -5,33 +5,12 @@ import { CompanySettings } from '@/types/company';
 import industrialKitchenBg from '@/assets/industrial-kitchen-bg.jpg';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { buildPdfSafeImageUrl, getImageAsBase64 } from '@/lib/pdfImageUtils';
 
 interface PrintProposalProps {
   proposal: Partial<Proposal>;
   company: CompanySettings;
   onPrintComplete?: () => void;
-}
-
-// Convert image to base64 so it works in rendered HTML
-async function getImageAsBase64(url: string): Promise<string> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/jpeg', 0.92));
-      } catch {
-        resolve(url);
-      }
-    };
-    img.onerror = () => resolve(url);
-    img.src = url;
-  });
 }
 
 async function waitForImagesToLoad(container: ParentNode): Promise<void> {
@@ -112,7 +91,8 @@ export function usePrintProposal() {
     const imgConversions = Array.from(allImgs).map(async (img) => {
       if (!img.src || img.src.startsWith('data:')) return;
       try {
-        const b64 = await getImageAsBase64(img.src);
+        const safeSrc = buildPdfSafeImageUrl(img.src);
+        const b64 = await getImageAsBase64(safeSrc);
         img.src = b64;
         await new Promise<void>((resolve) => {
           if (img.complete && img.naturalWidth > 0) {
