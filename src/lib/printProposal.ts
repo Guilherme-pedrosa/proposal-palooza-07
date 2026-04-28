@@ -1,163 +1,151 @@
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { Proposal } from '@/types/proposal';
 import { CompanySettings } from '@/types/company';
 import industrialKitchenBg from '@/assets/industrial-kitchen-bg.jpg';
 
-// Convert image to base64 for print HTML
 async function getImageAsBase64(url: string): Promise<string> {
+  if (!url || url.startsWith('data:')) return url;
+
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
+    img.referrerPolicy = 'no-referrer';
+
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx?.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL('image/jpeg', 0.8));
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/jpeg', 0.92));
+      } catch {
+        resolve(url);
+      }
     };
+
     img.onerror = () => resolve(url);
     img.src = url;
   });
 }
 
+async function waitForImagesToLoad(container: ParentNode): Promise<void> {
+  const images = Array.from(container.querySelectorAll('img'));
+
+  await Promise.all(
+    images.map(async (img) => {
+      img.loading = 'eager';
+      img.decoding = 'sync';
+
+      if (img.complete && img.naturalWidth > 0) {
+        if (typeof img.decode === 'function') {
+          await img.decode().catch(() => undefined);
+        }
+        return;
+      }
+
+      await new Promise<void>((resolve) => {
+        const done = () => resolve();
+        img.addEventListener('load', done, { once: true });
+        img.addEventListener('error', done, { once: true });
+      });
+
+      if (typeof img.decode === 'function') {
+        await img.decode().catch(() => undefined);
+      }
+    })
+  );
+}
+
 export async function openPrintWindow(proposal: Partial<Proposal>, company: CompanySettings): Promise<boolean> {
   const previewElement = document.querySelector('.proposal-preview');
 
-  if (!previewElement) {
+  if (!(previewElement instanceof HTMLElement)) {
     console.error('Preview element not found');
     return false;
   }
 
-  // IMPORTANT: open window synchronously from user click to avoid popup blockers
-  const printWindow = window.open('', '_blank', 'width=900,height=700');
-  if (!printWindow) {
-    return false;
-  }
-
-  printWindow.document.write(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Gerando PDF...</title>
-        <style>
-          body { font-family: Arial, sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; color:#334155; }
-        </style>
-      </head>
-      <body>Preparando proposta para impressão...</body>
-    </html>
-  `);
-  printWindow.document.close();
+  const tempContainer = document.createElement('div');
+  tempContainer.style.position = 'absolute';
+  tempContainer.style.left = '-99999px';
+  tempContainer.style.top = '0';
+  tempContainer.style.width = '210mm';
+  tempContainer.style.backgroundColor = '#ffffff';
 
   const clonedContent = previewElement.cloneNode(true) as HTMLElement;
-  const bgImageBase64 = await getImageAsBase64(industrialKitchenBg);
+  tempContainer.appendChild(clonedContent);
+  document.body.appendChild(tempContainer);
 
-  const styles = Array.from(document.styleSheets)
-    .map(sheet => {
-      try {
-        return Array.from(sheet.cssRules)
-          .map(rule => rule.cssText)
-          .join('\n');
-      } catch {
-        if (sheet.href) {
-          return `@import url("${sheet.href}");`;
+  try {
+    const bgImageBase64 = await getImageAsBase64(industrialKitchenBg);
+
+    const bgDivs = tempContainer.querySelectorAll('[style*="background-image"]');
+    bgDivs.forEach((el) => {
+      if (el instanceof HTMLElement) {
+        const backgroundImage = el.style.backgroundImage;
+        if (backgroundImage && (backgroundImage.includes('industrial-kitchen') || backgroundImage.includes('/assets/'))) {
+          el.style.backgroundImage = `url('${bgImageBase64}')`;
         }
-        return '';
       }
-    })
-    .join('\n');
+    });
 
-  const coverDiv = clonedContent.querySelector('.pdf-page');
-  if (coverDiv) {
-    const bgDiv = coverDiv.querySelector('.bg-cover');
-    if (bgDiv instanceof HTMLElement) {
-      bgDiv.style.backgroundImage = `url('${bgImageBase64}')`;
+    const allImages = Array.from(tempContainer.querySelectorAll('img'));
+    await Promise.all(
+      allImages.map(async (img) => {
+        if (!img.src || img.src.startsWith('data:')) return;
+
+        const base64 = await getImageAsBase64(img.src);
+        if (base64) {
+          img.src = base64;
+        }
+      })
+    );
+
+    await waitForImagesToLoad(tempContainer);
+
+    const pages = Array.from(tempContainer.querySelectorAll('.pdf-page')) as HTMLElement[];
+    if (pages.length === 0) {
+      return false;
     }
+
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageWidth = 210;
+    const pageHeight = 297;
+
+    for (let index = 0; index < pages.length; index += 1) {
+      const page = pages[index];
+      page.style.position = 'relative';
+      page.style.left = '0';
+
+      const canvas = await html2canvas(page, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: page.scrollWidth || page.offsetWidth,
+        height: page.scrollHeight || page.offsetHeight,
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+      if (index > 0) {
+        pdf.addPage();
+      }
+
+      pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
+    }
+
+    const clientName = proposal.client?.name?.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30) || 'Cliente';
+    const filename = `${proposal.number || 'Proposta'}_${clientName}.pdf`;
+    pdf.save(filename);
+
+    return true;
+  } catch (error) {
+    console.error('Erro ao gerar PDF da proposta', error);
+    return false;
+  } finally {
+    document.body.removeChild(tempContainer);
   }
-
-  const html = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Proposta ${proposal.number} - ${proposal.client?.name || 'Cliente'}</title>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-        <style>
-          ${styles}
-
-          * {
-            box-sizing: border-box;
-          }
-
-          body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            color-adjust: exact !important;
-          }
-
-          @page {
-            size: A4 portrait;
-            margin: 0;
-          }
-
-          @media print {
-            body {
-              margin: 0;
-              padding: 0;
-            }
-
-            .pdf-page {
-              width: 210mm !important;
-              height: 297mm !important;
-              page-break-after: always !important;
-              page-break-inside: avoid !important;
-              overflow: hidden !important;
-              position: relative !important;
-            }
-
-            .pdf-page:last-child {
-              page-break-after: auto !important;
-            }
-
-            * {
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-              color-adjust: exact !important;
-            }
-          }
-
-          .proposal-preview {
-            width: 210mm;
-          }
-
-          .pdf-page {
-            width: 210mm;
-            height: 297mm;
-            overflow: hidden;
-            position: relative;
-            page-break-after: always;
-            page-break-inside: avoid;
-          }
-        </style>
-      </head>
-      <body>
-        ${clonedContent.outerHTML}
-      </body>
-    </html>
-  `;
-
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
-
-  printWindow.onload = () => {
-    setTimeout(() => {
-      printWindow.print();
-    }, 800);
-  };
-
-  return true;
 }
