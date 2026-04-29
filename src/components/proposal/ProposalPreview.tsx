@@ -37,6 +37,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
     const isCoifa = proposal.templateId === 'coifa';
     const isQuimicos = proposal.templateId === 'quimicos';
     const isInstalacao = proposal.templateId === 'instalacao';
+    const isLocacao = proposal.templateId === 'locacao';
 
     return (
       <div
