@@ -394,4 +394,46 @@ A WeDo atua com gestão técnica de ativos, assegurando rastreabilidade completa
       },
     ],
   },
+  {
+    id: 'locacao',
+    name: 'Locação de Equipamentos',
+    description: 'Proposta de locação de equipamentos com prazos, entrega/retirada e condições de uso',
+    icon: '📦',
+    color: '#0891b2',
+    sections: [
+      { id: 'object', name: 'Objeto da Locação', description: 'Equipamento, prazo e finalidade', enabled: true },
+      { id: 'logistics', name: 'Entrega e Retirada', description: 'Endereços, datas e responsabilidades', enabled: true },
+      { id: 'maintenance', name: 'Manutenção e Responsabilidades', description: 'Responsabilidade do locador e locatário', enabled: true },
+      { id: 'usage', name: 'Uso do Equipamento', description: 'Condições de utilização e conservação', enabled: true },
+    ],
+    defaultTitle: 'Proposta Comercial — Locação de Equipamento',
+    defaultDescription: `A presente proposta tem como objetivo a locação de equipamento profissional para cozinha industrial, em perfeito estado de funcionamento, devidamente testado e pronto para uso, conforme especificações descritas nesta proposta.
+
+A modalidade de locação é a solução ideal para demandas pontuais, sazonais, projetos temporários, eventos ou substituições durante manutenções, oferecendo flexibilidade operacional sem o investimento inicial de aquisição.
+
+A WeDo disponibiliza equipamentos de marcas líderes do segmento de food service, com suporte técnico durante toda a vigência do contrato, incluindo manutenção preventiva e corretiva por falhas naturais do equipamento, conforme condições estabelecidas nesta proposta.
+
+Modelo de locação contempla:
+• Entrega do equipamento testado e em perfeito estado de funcionamento
+• Suporte técnico durante a vigência contratual
+• Manutenção preventiva e corretiva por falhas naturais sob responsabilidade da WeDo
+• Retirada do equipamento ao término do contrato
+• Possibilidade de prorrogação mediante acordo entre as partes
+
+A previsibilidade de custos, a ausência de imobilização de capital e a transferência da gestão técnica do ativo para a WeDo tornam a locação a alternativa mais eficiente para operações que necessitam de equipamentos de qualidade sem comprometer fluxo de caixa ou estrutura patrimonial.`,
+    defaultProducts: [
+      {
+        name: 'Locação de Equipamento Profissional',
+        description: `Locação de equipamento de cozinha profissional incluindo:
+• Equipamento em perfeito estado de funcionamento, testado antes da entrega
+• Entrega no endereço informado pelo LOCATÁRIO
+• Retirada ao término do contrato
+• Suporte técnico durante a vigência
+• Manutenção preventiva e corretiva por falhas naturais (responsabilidade da WeDo)
+• Acompanhamento via plataforma WeDo`,
+        observation: 'Equipamento entregue testado e em perfeito estado. LOCATÁRIO se responsabiliza por mau uso, extravio, furto, roubo ou dano irreparável.',
+        unit: 'MÊS',
+      },
+    ],
+  },
 ];
