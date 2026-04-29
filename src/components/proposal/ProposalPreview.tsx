@@ -911,7 +911,78 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           </>
         )}
 
-        {/* Terms and Conditions Pages - Paginated */}
+        {isLocacao && (
+          <>
+            <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+              <div className="absolute top-8 right-12">
+                <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
+              </div>
+
+              <div className="mb-8">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] mb-3" style={{ color: '#0e7490' }}>Locação de equipamento</p>
+                <h2 className="text-3xl font-bold mb-3" style={{ color: '#111827' }}>Solução flexível com equipamento testado e suporte WeDo</h2>
+                <p className="text-sm leading-relaxed max-w-3xl" style={{ color: '#4b5563' }}>
+                  A modalidade de locação é a alternativa ideal para demandas pontuais, sazonais, eventos, projetos temporários ou substituições durante manutenção. Sem imobilização de capital e com suporte técnico contínuo da WeDo durante toda a vigência do contrato.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-5 mb-8">
+                {[
+                  {
+                    title: 'Objeto da locação',
+                    tone: '#ecfeff',
+                    border: '#67e8f9',
+                    items: ['Equipamento testado e em perfeito funcionamento', 'Entrega no endereço do LOCATÁRIO', 'Retirada ao término do contrato'],
+                  },
+                  {
+                    title: 'Manutenção WeDo',
+                    tone: '#f0fdfa',
+                    border: '#5eead4',
+                    items: ['Preventiva e corretiva por falhas naturais', 'Suporte técnico durante a vigência', 'Acompanhamento via plataforma WeDo'],
+                  },
+                  {
+                    title: 'Responsabilidade do LOCATÁRIO',
+                    tone: '#fff7ed',
+                    border: '#fdba74',
+                    items: ['Uso exclusivamente profissional', 'Conservação e limpeza do equipamento', 'Mau uso, extravio, furto ou dano irreparável'],
+                  },
+                  {
+                    title: 'Vantagens comerciais',
+                    tone: '#eff6ff',
+                    border: '#93c5fd',
+                    items: ['Sem investimento inicial de aquisição', 'Previsibilidade de custos mensais', 'Flexibilidade de prazo e prorrogação'],
+                  },
+                ].map((block) => (
+                  <div key={block.title} className="rounded-xl p-5" style={{ backgroundColor: block.tone, border: `1px solid ${block.border}` }}>
+                    <h3 className="text-sm font-semibold uppercase tracking-wide mb-3" style={{ color: '#111827' }}>{block.title}</h3>
+                    <ul className="space-y-2">
+                      {block.items.map((item) => (
+                        <li key={item} className="flex items-start gap-2 text-sm" style={{ color: '#374151' }}>
+                          <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: '#0891b2' }}></span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-xl p-5" style={{ backgroundColor: '#0A1628' }}>
+                <p className="text-xs uppercase tracking-[0.2em] mb-2" style={{ color: 'rgba(255,255,255,0.55)' }}>Condições gerais</p>
+                <p className="text-sm leading-relaxed" style={{ color: '#ffffff' }}>
+                  O LOCATÁRIO declara receber o equipamento testado e em perfeito estado, sem vícios ou defeitos aparentes. Em caso de extravio, furto, roubo ou dano irreparável, deverá arcar com o valor integral de reposição. A manutenção corretiva por mau uso é de responsabilidade do LOCATÁRIO, incluindo peças, mão de obra e frete.
+                </p>
+              </div>
+
+              <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
+                {proposal.number} de {formatDate(proposal.createdAt as Date)}
+              </div>
+              <div className="absolute bottom-0 right-0 h-28 w-28" style={{ backgroundColor: '#0891b2', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.92 }} />
+              <div className="absolute bottom-0 right-16 h-16 w-16" style={{ backgroundColor: '#0e7490', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.92 }} />
+            </div>
+          </>
+        )}
+
         {proposal.termsConditions && proposal.termsConditions.length > 0 && (() => {
           // Split terms into pages (max 6 terms per page to fit A4)
           const termsPerPage = 6;
