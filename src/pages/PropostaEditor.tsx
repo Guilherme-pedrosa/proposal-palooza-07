@@ -738,10 +738,10 @@ export default function PropostaEditor() {
         {/* Section 2: Client */}
         <Section title="Cliente" icon="🏢">
           <div className="space-y-3">
-            {clienteId && clienteSelecionado ? (
+            {clienteId ? (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="font-semibold text-sm">{clienteSelecionado.razao_social || clienteSelecionado.nome}</p>
+                  <p className="font-semibold text-sm">{clienteSelecionado?.razao_social || clienteSelecionado?.nome || 'Carregando cliente...'}</p>
                   <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => { setClienteId(''); setClienteBusca(''); }}>Trocar</Button>
                 </div>
                 {clienteSelecionado.nome !== clienteSelecionado.razao_social && clienteSelecionado.razao_social && (
