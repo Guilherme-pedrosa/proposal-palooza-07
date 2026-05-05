@@ -738,28 +738,28 @@ export default function PropostaEditor() {
         {/* Section 2: Client */}
         <Section title="Cliente" icon="🏢">
           <div className="space-y-3">
-            {clienteId && clienteSelecionado ? (
+            {clienteId ? (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="font-semibold text-sm">{clienteSelecionado.razao_social || clienteSelecionado.nome}</p>
+                  <p className="font-semibold text-sm">{clienteSelecionado?.razao_social || clienteSelecionado?.nome || 'Carregando cliente...'}</p>
                   <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => { setClienteId(''); setClienteBusca(''); }}>Trocar</Button>
                 </div>
-                {clienteSelecionado.nome !== clienteSelecionado.razao_social && clienteSelecionado.razao_social && (
+                {clienteSelecionado && clienteSelecionado.nome !== clienteSelecionado.razao_social && clienteSelecionado.razao_social && (
                   <p className="text-xs text-muted-foreground">Nome fantasia: {clienteSelecionado.nome}</p>
                 )}
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                  {clienteSelecionado.cnpj && <p><span className="font-medium text-foreground">CNPJ:</span> {clienteSelecionado.cnpj}</p>}
-                  {clienteSelecionado.cpf && <p><span className="font-medium text-foreground">CPF:</span> {clienteSelecionado.cpf}</p>}
-                  {clienteSelecionado.segmento && <p><span className="font-medium text-foreground">Segmento:</span> {clienteSelecionado.segmento}</p>}
-                  {(clienteSelecionado.telefone || clienteSelecionado.celular) && (
+                  {clienteSelecionado?.cnpj && <p><span className="font-medium text-foreground">CNPJ:</span> {clienteSelecionado.cnpj}</p>}
+                  {clienteSelecionado?.cpf && <p><span className="font-medium text-foreground">CPF:</span> {clienteSelecionado.cpf}</p>}
+                  {clienteSelecionado?.segmento && <p><span className="font-medium text-foreground">Segmento:</span> {clienteSelecionado.segmento}</p>}
+                  {(clienteSelecionado?.telefone || clienteSelecionado?.celular) && (
                     <p><span className="font-medium text-foreground">Tel:</span> {clienteSelecionado.telefone || clienteSelecionado.celular}</p>
                   )}
-                  {clienteSelecionado.email && <p><span className="font-medium text-foreground">Email:</span> {clienteSelecionado.email}</p>}
-                  {(clienteSelecionado.cidade || clienteSelecionado.estado) && (
+                  {clienteSelecionado?.email && <p><span className="font-medium text-foreground">Email:</span> {clienteSelecionado.email}</p>}
+                  {(clienteSelecionado?.cidade || clienteSelecionado?.estado) && (
                     <p><span className="font-medium text-foreground">Cidade:</span> {[clienteSelecionado.cidade, clienteSelecionado.estado].filter(Boolean).join(' / ')}</p>
                   )}
                 </div>
-                {clienteSelecionado.endereco && (
+                {clienteSelecionado?.endereco && (
                   <p className="text-xs text-muted-foreground"><span className="font-medium text-foreground">Endereço:</span> {clienteSelecionado.endereco}</p>
                 )}
               </div>
