@@ -147,8 +147,19 @@ export default function ClienteDetail360() {
   // Save atividade
   const saveAtividade = useMutation({
     mutationFn: async (atv: any) => {
-      const { error } = await supabase.from('atividades').insert(atv as any);
+      const { data, error } = await supabase.from('atividades').insert(atv as any).select('id').single();
       if (error) throw error;
+      if (data?.id) {
+        const { pushTarefaParaTodoist } = await import('@/lib/api/todoistSync');
+        pushTarefaParaTodoist({
+          atividade_id: data.id,
+          titulo: atv.titulo,
+          descricao: atv.descricao ?? null,
+          data_prevista: atv.data_prevista ?? null,
+          tipo: atv.tipo,
+          cliente_id: atv.cliente_id ?? id,
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['atividades', 'cliente', id] });

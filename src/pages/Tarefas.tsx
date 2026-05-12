@@ -187,15 +187,26 @@ export default function Tarefas() {
   const handleCriarTarefa = async () => {
     if (!novaTarefa.titulo || !user) return;
     try {
-      await supabase.from('atividades').insert({
+      const data_prevista_iso = novaTarefa.data_prevista ? new Date(novaTarefa.data_prevista).toISOString() : null;
+      const { data: created } = await supabase.from('atividades').insert({
         vendedor_id: user.id,
         tipo: novaTarefa.tipo,
         titulo: novaTarefa.titulo,
         descricao: novaTarefa.descricao || null,
-        data_prevista: novaTarefa.data_prevista ? new Date(novaTarefa.data_prevista).toISOString() : null,
+        data_prevista: data_prevista_iso,
         concluida: false,
-      });
-      toast.success('Tarefa criada!');
+      }).select('id').single();
+      if (created?.id) {
+        const { pushTarefaParaTodoist } = await import('@/lib/api/todoistSync');
+        pushTarefaParaTodoist({
+          atividade_id: created.id,
+          titulo: novaTarefa.titulo,
+          descricao: novaTarefa.descricao || null,
+          data_prevista: data_prevista_iso,
+          tipo: novaTarefa.tipo,
+        });
+      }
+      toast.success('Tarefa criada! Sincronizando com Todoist…');
       setNovaModal(false);
       setNovaTarefa({ titulo: '', tipo: 'tarefa', descricao: '', data_prevista: '' });
       invalidateAll();
