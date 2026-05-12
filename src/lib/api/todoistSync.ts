@@ -50,6 +50,7 @@ export async function pushTarefaParaTodoist(input: {
         data_prevista: toWallClockISO(input.data_prevista ?? null),
         tipo: input.tipo ?? 'tarefa',
         cliente_nome,
+        prioridade: input.prioridade ?? null,
       },
     });
   } catch (e) {
