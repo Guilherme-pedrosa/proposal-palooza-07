@@ -33,6 +33,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
   const [precoCusto, setPrecoCusto] = useState(0);
   const [despesasPct, setDespesasPct] = useState('0');
   const [estoque, setEstoque] = useState('0');
+  const [ncm, setNcm] = useState('');
   const [ativo, setAtivo] = useState(true);
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
@@ -80,7 +81,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
   const reset = () => {
     setTipo('produto'); setNome(''); setCodigo(''); setDescricao(''); setCategoria('');
     setUnidade('UN'); setPrecoCusto(0); setDespesasPct('0');
-    setEstoque('0'); setAtivo(true);
+    setEstoque('0'); setNcm(''); setAtivo(true);
     setFotoFile(null); setFotoPreview(null);
   };
 
@@ -167,6 +168,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
           unidade,
           preco_custo: tipo === 'produto' ? custoFinal : 0,
           estoque: Number(estoque) || 0,
+          ncm: ncm.trim() || undefined,
           foto_url,
           ativo,
         },
@@ -350,6 +352,17 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
                   </p>
                 </div>
               )}
+
+              <div className="space-y-2">
+                <Label>NCM</Label>
+                <Input
+                  value={ncm}
+                  onChange={(e) => setNcm(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                  placeholder="Ex: 84186940"
+                  inputMode="numeric"
+                />
+                <p className="text-xs text-muted-foreground">8 dígitos. Ex.: 8418.69.40 (máq. de gelo), 8422.30.29 (seladora a vácuo).</p>
+              </div>
 
               <div className="grid grid-cols-2 gap-3 items-end">
                 <div className="space-y-2">
