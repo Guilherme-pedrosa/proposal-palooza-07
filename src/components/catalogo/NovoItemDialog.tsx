@@ -38,6 +38,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
   const [gerandoCodigo, setGerandoCodigo] = useState(false);
   const [grupos, setGrupos] = useState<Grupo[]>([]);
   const [carregandoGrupos, setCarregandoGrupos] = useState(false);
+  const [tabelas, setTabelas] = useState<Array<{ id: string; gc_tipo_id: string; nome: string; markup_padrao: number; principal: boolean }>>([]);
 
   const custoFinal = precoCusto * (1 + (Number(despesasPct) || 0) / 100);
 
@@ -56,8 +57,21 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
     }
   };
 
+  const carregarTabelas = async () => {
+    const { data } = await supabase
+      .from('tabelas_preco')
+      .select('id, gc_tipo_id, nome, markup_padrao, principal')
+      .eq('ativa', true)
+      .order('principal', { ascending: false })
+      .order('nome');
+    setTabelas((data ?? []) as any);
+  };
+
   useEffect(() => {
-    if (open && tipo === 'produto' && grupos.length === 0) carregarGrupos();
+    if (open && tipo === 'produto') {
+      if (grupos.length === 0) carregarGrupos();
+      if (tabelas.length === 0) carregarTabelas();
+    }
   }, [open, tipo]);
 
   const reset = () => {
