@@ -198,21 +198,36 @@ export default function Tarefas() {
     if (!input.titulo || !user) return;
     try {
       const data_prevista_iso = input.data_prevista ? new Date(input.data_prevista).toISOString() : null;
-      const { data: created } = await supabase.from('atividades').insert({
-        vendedor_id: input.vendedor_id,
-        tipo: input.tipo,
-        titulo: input.titulo,
-        descricao: input.descricao,
-        data_prevista: data_prevista_iso,
-        concluida: false,
-      }).select('id').single();
-      if (created?.id) {
+      const editingId = editTarefa?.id;
+      let atividadeId: string | undefined = editingId;
+
+      if (editingId) {
+        await supabase.from('atividades').update({
+          vendedor_id: input.vendedor_id,
+          tipo: input.tipo,
+          titulo: input.titulo,
+          descricao: input.descricao,
+          data_prevista: data_prevista_iso,
+        }).eq('id', editingId);
+      } else {
+        const { data: created } = await supabase.from('atividades').insert({
+          vendedor_id: input.vendedor_id,
+          tipo: input.tipo,
+          titulo: input.titulo,
+          descricao: input.descricao,
+          data_prevista: data_prevista_iso,
+          concluida: false,
+        }).select('id').single();
+        atividadeId = created?.id;
+      }
+
+      if (atividadeId) {
         const { pushTarefaParaTodoist } = await import('@/lib/api/todoistSync');
         const tituloComResp = input.vendedor_id !== user.id && input.vendedor_nome
           ? `[→ ${input.vendedor_nome}] ${input.titulo}`
           : input.titulo;
         pushTarefaParaTodoist({
-          atividade_id: created.id,
+          atividade_id: atividadeId,
           titulo: tituloComResp,
           descricao: input.descricao,
           data_prevista: data_prevista_iso,
@@ -220,13 +235,17 @@ export default function Tarefas() {
           prioridade: input.prioridade,
         });
       }
-      const msg = input.vendedor_id !== user.id && input.vendedor_nome
-        ? `Tarefa delegada para ${input.vendedor_nome}!`
-        : 'Tarefa criada! Sincronizando…';
+
+      const msg = editingId
+        ? 'Tarefa atualizada!'
+        : (input.vendedor_id !== user.id && input.vendedor_nome
+            ? `Tarefa delegada para ${input.vendedor_nome}!`
+            : 'Tarefa criada! Sincronizando…');
       toast.success(msg);
+      setEditTarefa(null);
       invalidateAll();
     } catch {
-      toast.error('Erro ao criar tarefa');
+      toast.error(editTarefa ? 'Erro ao atualizar tarefa' : 'Erro ao criar tarefa');
     }
   };
 
