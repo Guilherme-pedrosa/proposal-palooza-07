@@ -46,6 +46,31 @@ Deno.serve(async (req) => {
       'Content-Type': 'application/json',
     };
 
+    // Checa duplicidade de código no GC (busca por código)
+    if (codigo) {
+      try {
+        const buscaUrl = tipo === 'servico'
+          ? `${GC_BASE_URL}/servicos?codigo=${encodeURIComponent(codigo)}`
+          : `${GC_BASE_URL}/produtos?codigo_interno=${encodeURIComponent(codigo)}`;
+        const checkResp = await fetch(buscaUrl, { headers });
+        if (checkResp.ok) {
+          const checkData = await checkResp.json();
+          const lista = Array.isArray(checkData?.data) ? checkData.data : [];
+          const colide = lista.some((it: any) =>
+            String(it.codigo_interno ?? it.codigo ?? '') === String(codigo)
+          );
+          if (colide) {
+            return new Response(JSON.stringify({
+              sucesso: false,
+              erro: `Código "${codigo}" já está em uso no GestãoClick.`,
+            }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+          }
+        }
+      } catch (e) {
+        console.warn('Falha ao checar duplicidade no GC:', e);
+      }
+    }
+
     let endpoint = '';
     let payload: Record<string, any> = {};
 
@@ -55,7 +80,6 @@ Deno.serve(async (req) => {
         loja_id: GC_LOJA_ID,
         nome,
         codigo: codigo || undefined,
-        valor_venda: preco_venda != null ? Number(preco_venda) : 0,
         observacoes: descricao || undefined,
       };
     } else {
@@ -67,7 +91,6 @@ Deno.serve(async (req) => {
         descricao: descricao || undefined,
         unidade: unidade || 'UN',
         estoque: estoque != null ? Number(estoque) : 0,
-        valor_venda: preco_venda != null ? Number(preco_venda) : 0,
         valor_custo: preco_custo != null ? Number(preco_custo) : 0,
         ativo: ativo ? '1' : '0',
         nome_grupo: categoria || undefined,
