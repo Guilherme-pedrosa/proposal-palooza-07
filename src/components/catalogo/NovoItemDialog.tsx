@@ -156,7 +156,12 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Código {tipo === 'produto' ? '(interno)' : ''}</Label>
-              <Input value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="SKU / código" />
+              <div className="flex gap-1">
+                <Input value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="SKU / código" />
+                <Button type="button" variant="outline" size="icon" onClick={gerarCodigo} disabled={gerandoCodigo} title="Gerar próximo código">
+                  {gerandoCodigo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
             {tipo === 'produto' && (
               <div className="space-y-2">
