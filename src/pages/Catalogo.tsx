@@ -18,7 +18,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, SlidersHorizontal, Star, UtensilsCrossed, Snowflake, FlaskConical, Wrench, WifiOff } from 'lucide-react';
+import { Search, SlidersHorizontal, Star, UtensilsCrossed, Snowflake, FlaskConical, Wrench, WifiOff, Plus } from 'lucide-react';
+import { NovoItemDialog } from '@/components/catalogo/NovoItemDialog';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -127,6 +128,7 @@ export default function Catalogo() {
   const [apenasDestaques, setApenasDestaques] = useState(false);
   const [isOffline, setIsOffline] = useState(false);
   const [paginaAtual, setPaginaAtual] = useState(1);
+  const [novoItemOpen, setNovoItemOpen] = useState(false);
   const ITENS_POR_PAGINA = 100;
 
   const { data: produtos = [], isLoading } = useQuery({
@@ -212,7 +214,12 @@ export default function Catalogo() {
               <Badge variant="outline" className="text-xs">Pág. {paginaAtual}/{totalPaginas}</Badge>
             )}
           </div>
+          <Button size="sm" onClick={() => setNovoItemOpen(true)} className="gap-1.5">
+            <Plus className="h-4 w-4" /> Novo item
+          </Button>
         </div>
+
+        <NovoItemDialog open={novoItemOpen} onOpenChange={setNovoItemOpen} />
 
         {/* Offline banner */}
         {isOffline && cacheTime && (
