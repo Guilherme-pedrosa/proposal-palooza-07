@@ -184,6 +184,31 @@ Deno.serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
+    // Grava preços locais (precos_produto) para tipo produto
+    if (tipo !== 'servico' && upserted?.id) {
+      try {
+        const custoLocal = preco_custo != null ? Number(preco_custo) : 0;
+        const { data: tabelasFull } = await supabase
+          .from('tabelas_preco')
+          .select('id, gc_tipo_id, markup_padrao')
+          .eq('ativa', true);
+        const rows = (tabelasFull ?? []).map((t: any) => ({
+          produto_id: upserted.id,
+          tabela_preco_id: t.id,
+          valor_custo: custoLocal,
+          valor_venda: +(custoLocal * (1 + (Number(t.markup_padrao) || 0) / 100)).toFixed(2),
+          lucro_percentual: Number(t.markup_padrao) || 0,
+        }));
+        if (rows.length > 0) {
+          // Limpa antigos e insere
+          await supabase.from('precos_produto').delete().eq('produto_id', upserted.id);
+          await supabase.from('precos_produto').insert(rows);
+        }
+      } catch (e) {
+        console.error('Erro ao gravar precos_produto:', e);
+      }
+    }
+
     return new Response(JSON.stringify({ sucesso: true, gc_id: gcId, produto: upserted }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (e) {
