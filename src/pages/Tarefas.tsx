@@ -92,6 +92,7 @@ export default function Tarefas() {
   const [agrupamento, setAgrupamento] = useState<Agrupamento>('data');
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [novaModal, setNovaModal] = useState(false);
+  const [editTarefa, setEditTarefa] = useState<QuickAddInitial | null>(null);
   const [novaTarefa, setNovaTarefa] = useState({ titulo: '', tipo: 'tarefa', descricao: '', data_prevista: '' });
 
   const { data: atividades = [], isLoading } = useQuery({
