@@ -219,6 +219,8 @@ export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId }: 
         tipo,
         data_prevista,
         prioridade: PRIORITY_TO_API[priority],
+        vendedor_id: assigneeId,
+        vendedor_nome: assignee?.nome ?? null,
       });
       // Reset for next entry (Todoist behavior)
       setTitle(''); setDescription('');
