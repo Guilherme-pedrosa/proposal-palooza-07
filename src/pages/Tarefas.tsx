@@ -409,59 +409,12 @@ export default function Tarefas() {
         )}
       </div>
 
-      {/* New task dialog */}
-      <Dialog open={novaModal} onOpenChange={setNovaModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Nova Tarefa</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Título *</Label>
-              <Input
-                value={novaTarefa.titulo}
-                onChange={e => setNovaTarefa(prev => ({ ...prev, titulo: e.target.value }))}
-                placeholder="O que precisa ser feito?"
-                autoFocus
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Tipo</Label>
-              <Select value={novaTarefa.tipo} onValueChange={v => setNovaTarefa(prev => ({ ...prev, tipo: v }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(tipoLabels).filter(([k]) => k !== 'nota').map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{tipoAtividadeIcons[k]} {v}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Data prevista</Label>
-              <Input
-                type="datetime-local"
-                value={novaTarefa.data_prevista}
-                onChange={e => setNovaTarefa(prev => ({ ...prev, data_prevista: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Descrição</Label>
-              <Textarea
-                value={novaTarefa.descricao}
-                onChange={e => setNovaTarefa(prev => ({ ...prev, descricao: e.target.value }))}
-                placeholder="Detalhes da tarefa..."
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setNovaModal(false)}>Cancelar</Button>
-            <Button onClick={handleCriarTarefa} disabled={!novaTarefa.titulo}>Criar Tarefa</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* New task dialog (Todoist-style QuickAdd) */}
+      <QuickAddTarefa
+        open={novaModal}
+        onOpenChange={setNovaModal}
+        onSubmit={handleCriarTarefa}
+      />
     </MainLayout>
   );
 }
