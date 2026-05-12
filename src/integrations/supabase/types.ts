@@ -1102,6 +1102,7 @@ export type Database = {
           created_at: string | null
           gc_tipo_id: string
           id: string
+          markup_padrao: number
           nome: string
           principal: boolean
           updated_at: string | null
@@ -1111,6 +1112,7 @@ export type Database = {
           created_at?: string | null
           gc_tipo_id: string
           id?: string
+          markup_padrao?: number
           nome: string
           principal?: boolean
           updated_at?: string | null
@@ -1120,6 +1122,7 @@ export type Database = {
           created_at?: string | null
           gc_tipo_id?: string
           id?: string
+          markup_padrao?: number
           nome?: string
           principal?: boolean
           updated_at?: string | null

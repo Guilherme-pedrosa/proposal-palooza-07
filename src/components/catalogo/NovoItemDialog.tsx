@@ -38,6 +38,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
   const [gerandoCodigo, setGerandoCodigo] = useState(false);
   const [grupos, setGrupos] = useState<Grupo[]>([]);
   const [carregandoGrupos, setCarregandoGrupos] = useState(false);
+  const [tabelas, setTabelas] = useState<Array<{ id: string; gc_tipo_id: string; nome: string; markup_padrao: number; principal: boolean }>>([]);
 
   const custoFinal = precoCusto * (1 + (Number(despesasPct) || 0) / 100);
 
@@ -56,8 +57,21 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
     }
   };
 
+  const carregarTabelas = async () => {
+    const { data } = await supabase
+      .from('tabelas_preco')
+      .select('id, gc_tipo_id, nome, markup_padrao, principal')
+      .eq('ativa', true)
+      .order('principal', { ascending: false })
+      .order('nome');
+    setTabelas((data ?? []) as any);
+  };
+
   useEffect(() => {
-    if (open && tipo === 'produto' && grupos.length === 0) carregarGrupos();
+    if (open && tipo === 'produto') {
+      if (grupos.length === 0) carregarGrupos();
+      if (tabelas.length === 0) carregarTabelas();
+    }
   }, [open, tipo]);
 
   const reset = () => {
@@ -279,6 +293,35 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
                   )}
                 </p>
               </div>
+
+              {tabelas.length > 0 && (
+                <div className="space-y-2 rounded-md border p-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Preços que serão enviados ao GC</Label>
+                    <span className="text-[10px] text-muted-foreground">custo × (1 + markup%)</span>
+                  </div>
+                  <div className="max-h-44 overflow-y-auto divide-y">
+                    {tabelas.map((t) => {
+                      const venda = custoFinal * (1 + (Number(t.markup_padrao) || 0) / 100);
+                      return (
+                        <div key={t.id} className="flex items-center justify-between gap-2 py-1.5 text-xs">
+                          <span className="truncate flex-1" title={t.nome}>
+                            {t.principal && <span className="text-primary mr-1">★</span>}
+                            {t.nome}
+                          </span>
+                          <span className="text-muted-foreground tabular-nums">{Number(t.markup_padrao).toFixed(0)}%</span>
+                          <span className="font-medium tabular-nums w-24 text-right">
+                            {venda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Markup padrão por tabela é editável em <strong>Catálogo → Tabelas de preço</strong>.
+                  </p>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3 items-end">
                 <div className="space-y-2">
