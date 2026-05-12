@@ -33,11 +33,46 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
+  const [gerandoCodigo, setGerandoCodigo] = useState(false);
 
   const reset = () => {
     setTipo('produto'); setNome(''); setCodigo(''); setDescricao(''); setCategoria('');
     setUnidade('UN'); setPrecoVenda(0); setPrecoCusto(0); setEstoque('0'); setAtivo(true);
     setFotoFile(null); setFotoPreview(null);
+  };
+
+  const gerarCodigo = async () => {
+    setGerandoCodigo(true);
+    try {
+      // Pega os últimos códigos do tipo escolhido e calcula o próximo numérico
+      const { data, error } = await supabase
+        .from('produtos_gc')
+        .select('codigo')
+        .eq('tipo', tipo)
+        .not('codigo', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(500);
+
+      if (error) throw error;
+
+      let max = 0;
+      (data ?? []).forEach((r: any) => {
+        const m = String(r.codigo ?? '').match(/(\d+)/g);
+        if (m) {
+          const n = parseInt(m[m.length - 1], 10);
+          if (!isNaN(n) && n > max) max = n;
+        }
+      });
+
+      const proximo = String(max + 1).padStart(4, '0');
+      setCodigo(proximo);
+      toast.success(`Código gerado: ${proximo}`);
+    } catch (e: any) {
+      console.error(e);
+      toast.error('Não foi possível gerar o código');
+    } finally {
+      setGerandoCodigo(false);
+    }
   };
 
   const handleFile = (f: File | null) => {
