@@ -21,7 +21,7 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { tipoAtividadeIcons, concluirAtividade, adiarAtividade, proximoDiaUtil } from '@/lib/api/atividades';
-import { QuickAddTarefa } from '@/components/tarefas/QuickAddTarefa';
+import { QuickAddTarefa, QuickAddInitial } from '@/components/tarefas/QuickAddTarefa';
 
 interface AtividadeFull {
   id: string;
