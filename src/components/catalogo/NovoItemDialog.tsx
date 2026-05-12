@@ -28,6 +28,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
   const [unidade, setUnidade] = useState('UN');
   const [precoVenda, setPrecoVenda] = useState(0);
   const [precoCusto, setPrecoCusto] = useState(0);
+  const [despesasPct, setDespesasPct] = useState('0');
   const [estoque, setEstoque] = useState('0');
   const [ativo, setAtivo] = useState(true);
   const [fotoFile, setFotoFile] = useState<File | null>(null);
@@ -35,9 +36,12 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
   const [salvando, setSalvando] = useState(false);
   const [gerandoCodigo, setGerandoCodigo] = useState(false);
 
+  const custoFinal = precoCusto * (1 + (Number(despesasPct) || 0) / 100);
+
   const reset = () => {
     setTipo('produto'); setNome(''); setCodigo(''); setDescricao(''); setCategoria('');
-    setUnidade('UN'); setPrecoVenda(0); setPrecoCusto(0); setEstoque('0'); setAtivo(true);
+    setUnidade('UN'); setPrecoVenda(0); setPrecoCusto(0); setDespesasPct('0');
+    setEstoque('0'); setAtivo(true);
     setFotoFile(null); setFotoPreview(null);
   };
 
@@ -107,7 +111,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
           categoria: categoria.trim() || undefined,
           unidade,
           preco_venda: precoVenda,
-          preco_custo: precoCusto,
+          preco_custo: tipo === 'produto' ? custoFinal : precoCusto,
           estoque: Number(estoque) || 0,
           foto_url,
           ativo,
@@ -206,6 +210,26 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
               </div>
             )}
           </div>
+
+          {tipo === 'produto' && (
+            <div className="space-y-2 rounded-md bg-muted/40 border p-3">
+              <Label className="text-xs">Demais despesas (%) — frete, impostos, etc.</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.1"
+                value={despesasPct}
+                onChange={(e) => setDespesasPct(e.target.value)}
+                placeholder="Ex: 5"
+              />
+              <p className="text-xs text-muted-foreground">
+                Custo final: <strong>{custoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
+                {Number(despesasPct) > 0 && (
+                  <span className="ml-1">({precoCusto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} + {despesasPct}%)</span>
+                )}
+              </p>
+            </div>
+          )}
 
           {tipo === 'produto' && (
             <div className="grid grid-cols-2 gap-3 items-end">
