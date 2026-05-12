@@ -370,17 +370,27 @@ export default function Tarefas() {
                         return (
                           <div
                             key={a.id}
+                            onClick={() => setEditTarefa({
+                              id: a.id,
+                              titulo: a.titulo,
+                              descricao: a.descricao,
+                              tipo: a.tipo,
+                              data_prevista: a.data_prevista,
+                              vendedor_id: a.vendedor_id,
+                            })}
                             className={cn(
-                              "flex items-start gap-3 px-3 py-3 rounded-lg border bg-card hover:shadow-sm transition-all group",
+                              "flex items-start gap-3 px-3 py-3 rounded-lg border bg-card hover:shadow-sm hover:border-primary/40 cursor-pointer transition-all group",
                               a.concluida && "opacity-60",
                               isOverdue && "border-red-200 dark:border-red-900"
                             )}
                           >
-                            <Checkbox
-                              checked={!!a.concluida}
-                              onCheckedChange={() => handleToggleConcluir(a)}
-                              className="mt-0.5"
-                            />
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <Checkbox
+                                checked={!!a.concluida}
+                                onCheckedChange={() => handleToggleConcluir(a)}
+                                className="mt-0.5"
+                              />
+                            </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
                                 <span className="text-sm">{tipoAtividadeIcons[a.tipo] || '📋'}</span>
