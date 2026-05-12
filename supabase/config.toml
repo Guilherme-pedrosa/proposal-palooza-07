@@ -1,1 +1,4 @@
 project_id = "sxyjsbaymdlfmvrngguo"
+
+[functions.receive-task-update]
+verify_jwt = false
