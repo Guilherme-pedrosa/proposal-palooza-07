@@ -32,6 +32,7 @@ Deno.serve(async (req) => {
       preco_custo,
       estoque,              // produto
       foto_url,             // produto (1ª foto)
+      ncm,                  // produto - NCM fiscal
       ativo = true,
     } = body ?? {};
 
@@ -117,6 +118,7 @@ Deno.serve(async (req) => {
         valor_custo: custo,
         ativo: ativo ? '1' : '0',
         nome_grupo: categoria || undefined,
+        ncm: ncm ? String(ncm).replace(/\D/g, '') : undefined,
         fotos: foto_url ? [foto_url] : undefined,
         valores: valores.length > 0 ? valores : undefined,
       };
