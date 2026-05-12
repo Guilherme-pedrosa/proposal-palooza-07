@@ -274,7 +274,7 @@ export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId, in
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl p-0 gap-0 overflow-hidden">
-        <DialogTitle className="sr-only">Nova tarefa</DialogTitle>
+        <DialogTitle className="sr-only">{isEdit ? 'Editar tarefa' : 'Nova tarefa'}</DialogTitle>
         <DialogDescription className="sr-only">
           Crie uma tarefa rapidamente. Use linguagem natural como "amanhã 14h" ou "12/05 17:30".
         </DialogDescription>
