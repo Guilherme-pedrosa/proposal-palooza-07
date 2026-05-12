@@ -129,33 +129,52 @@ export interface QuickAddTarefaResult {
   tipo: string;
   data_prevista: string | null; // ISO local "yyyy-MM-ddTHH:mm" or null
   prioridade: 'p1' | 'p2' | 'p3' | 'p4';
+  vendedor_id: string;
+  vendedor_nome: string | null;
 }
 
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSubmit: (r: QuickAddTarefaResult) => Promise<void> | void;
+  currentUserId: string;
 }
 
-export function QuickAddTarefa({ open, onOpenChange, onSubmit }: Props) {
+interface TeamMember { id: string; nome: string; email: string; perfil: string }
+
+export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId }: Props) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState<string | undefined>();
   const [time, setTime] = useState<string | undefined>();
   const [priority, setPriority] = useState<Priority>(4);
   const [tipo, setTipo] = useState<string>('tarefa');
+  const [assigneeId, setAssigneeId] = useState<string>(currentUserId);
   const [submitting, setSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const nlpFlags = useRef<{ date?: boolean; time?: boolean; prio?: boolean }>({});
+
+  const { data: teamMembers = [] } = useQuery<TeamMember[]>({
+    queryKey: ['team_members'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_team_members');
+      if (error) throw error;
+      return (data ?? []) as TeamMember[];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const assignee = teamMembers.find((u) => u.id === assigneeId);
 
   useEffect(() => {
     if (!open) return;
     setTitle(''); setDescription('');
     setDate(undefined); setTime(undefined);
     setPriority(4); setTipo('tarefa');
+    setAssigneeId(currentUserId);
     nlpFlags.current = {};
     setTimeout(() => inputRef.current?.focus(), 60);
-  }, [open]);
+  }, [open, currentUserId]);
 
   const parsed = useMemo(() => (title ? parseNlp(title) : null), [title]);
 
