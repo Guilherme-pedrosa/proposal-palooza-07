@@ -423,6 +423,7 @@ export default function Tarefas() {
         open={novaModal}
         onOpenChange={setNovaModal}
         onSubmit={handleCriarTarefa}
+        currentUserId={user?.id ?? ''}
       />
     </MainLayout>
   );
