@@ -29,7 +29,6 @@ Deno.serve(async (req) => {
       descricao,
       categoria,            // nome do grupo (produto)
       unidade,              // produto
-      preco_venda,
       preco_custo,
       estoque,              // produto
       foto_url,             // produto (1ª foto)
