@@ -251,14 +251,18 @@ export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId, in
         vendedor_id: assigneeId,
         vendedor_nome: assignee?.nome ?? null,
       });
-      // Reset for next entry (Todoist behavior)
-      setTitle(''); setDescription('');
-      setDate(undefined); setTime(undefined);
-      setPriority(4);
-      setAssigneeId(currentUserId);
-      nlpFlags.current = {};
-      setTimeout(() => inputRef.current?.focus(), 30);
-      if (closeAfter) onOpenChange(false);
+      if (isEdit) {
+        onOpenChange(false);
+      } else {
+        // Reset for next entry (Todoist behavior)
+        setTitle(''); setDescription('');
+        setDate(undefined); setTime(undefined);
+        setPriority(4);
+        setAssigneeId(currentUserId);
+        nlpFlags.current = {};
+        setTimeout(() => inputRef.current?.focus(), 30);
+        if (closeAfter) onOpenChange(false);
+      }
     } finally {
       setSubmitting(false);
     }
