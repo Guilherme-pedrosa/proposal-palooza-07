@@ -29,7 +29,9 @@ Deno.serve(async (req) => {
       descricao,
       categoria,            // nome do grupo (produto)
       unidade,              // produto
-      preco_custo,
+      preco_custo,          // valor de custo "puro" (sem despesas)
+      despesas_acessorias,  // R$ - frete/seguro/etc (campo "Despesas acessórias" do GC)
+      outras_despesas,      // R$ - opcional
       estoque,              // produto
       foto_url,             // produto (1ª foto)
       ncm,                  // produto - NCM fiscal
@@ -97,12 +99,16 @@ Deno.serve(async (req) => {
         .eq('ativa', true);
 
       const custo = preco_custo != null ? Number(preco_custo) : 0;
+      const desp = despesas_acessorias != null ? Number(despesas_acessorias) : 0;
+      const outras = outras_despesas != null ? Number(outras_despesas) : 0;
+      const custoFinal = +(custo + desp + outras).toFixed(2);
+
       const valores = (tabelas ?? []).map((t: any) => {
         const markup = Number(t.markup_padrao) || 0;
-        const valor_venda = +(custo * (1 + markup / 100)).toFixed(2);
+        const valor_venda = +(custoFinal * (1 + markup / 100)).toFixed(2);
         return {
           tipo_id: Number(t.gc_tipo_id),
-          valor_custo: custo,
+          valor_custo: custoFinal,
           valor_venda,
           lucro_utilizado: markup,
         };
@@ -116,6 +122,8 @@ Deno.serve(async (req) => {
         unidade: unidade || 'UN',
         estoque: estoque != null ? Number(estoque) : 0,
         valor_custo: custo,
+        despesas_acessorias: desp > 0 ? desp : undefined,
+        outras_despesas: outras > 0 ? outras : undefined,
         ativo: ativo ? '1' : '0',
         nome_grupo: categoria || undefined,
         ncm: ncm ? String(ncm).replace(/\D/g, '') : undefined,
@@ -187,7 +195,10 @@ Deno.serve(async (req) => {
     // Grava preços locais (precos_produto) para tipo produto
     if (tipo !== 'servico' && upserted?.id) {
       try {
-        const custoLocal = preco_custo != null ? Number(preco_custo) : 0;
+        const custoBase = preco_custo != null ? Number(preco_custo) : 0;
+        const dAcc = despesas_acessorias != null ? Number(despesas_acessorias) : 0;
+        const dOut = outras_despesas != null ? Number(outras_despesas) : 0;
+        const custoLocal = +(custoBase + dAcc + dOut).toFixed(2);
         const { data: tabelasFull } = await supabase
           .from('tabelas_preco')
           .select('id, gc_tipo_id, markup_padrao')
