@@ -14,14 +14,15 @@ Deno.serve(async (_req) => {
 
   // [gc_id, custo_puro, despesas_acessorias (5%)]
   const items = [
-    { gc_id: '92713360', custo: 7583.10, desp: +(7583.10 * 0.05).toFixed(2) }, // SRM45
-    { gc_id: '92713371', custo: 14011.20, desp: +(14011.20 * 0.05).toFixed(2) }, // SRM105
-    { gc_id: '92713377', custo: 7200.00, desp: +(7200.00 * 0.05).toFixed(2) }, // JUMBO32
+    { gc_id: '92713360', nome: 'MÁQUINA DE GELO MACOM SRM 45 - EM CUBOS', custo: 7583.10, desp: 379.16 },
+    { gc_id: '92713371', nome: 'MÁQUINA DE GELO MACOM SRM 105 - EM CUBOS', custo: 14011.20, desp: 700.56 },
+    { gc_id: '92713377', nome: 'SELADORA A VÁCUO SELOVAC JUMBO 32S', custo: 7200.00, desp: 360.00 },
   ];
 
   const results: any[] = [];
   for (const it of items) {
     const payload = {
+      nome: it.nome,
       valor_custo: it.custo,
       despesas_acessorias: it.desp,
     };
