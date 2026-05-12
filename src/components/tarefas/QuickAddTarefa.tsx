@@ -394,6 +394,51 @@ export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId }: 
               ))}
             </PopoverContent>
           </Popover>
+
+          {/* Assignee chip — delegar para outro membro do time */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className={cn(
+                  'inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border transition-colors',
+                  assigneeId !== currentUserId
+                    ? 'border-primary/40 text-primary bg-primary/5'
+                    : 'border-border text-muted-foreground hover:border-primary/40'
+                )}
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                {assignee ? assignee.nome.split(' ')[0] : 'Atribuir a'}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-60 p-1" align="start">
+              {teamMembers.length === 0 && (
+                <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+                  Nenhum membro disponível
+                </div>
+              )}
+              {teamMembers.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setAssigneeId(m.id)}
+                  className={cn(
+                    'w-full flex items-center gap-2 text-sm px-2 py-1.5 rounded hover:bg-accent text-left',
+                    assigneeId === m.id && 'bg-accent'
+                  )}
+                >
+                  <div className="h-6 w-6 rounded-full bg-primary/10 text-primary text-[11px] font-semibold flex items-center justify-center">
+                    {m.nome.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="truncate">{m.nome}{m.id === currentUserId && ' (você)'}</div>
+                    <div className="text-[10px] text-muted-foreground capitalize">{m.perfil}</div>
+                  </div>
+                  {assigneeId === m.id && <Check className="h-3.5 w-3.5 text-primary" />}
+                </button>
+              ))}
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Footer */}
