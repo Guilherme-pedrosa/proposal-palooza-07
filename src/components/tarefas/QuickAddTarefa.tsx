@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Calendar as CalendarIcon, Flag, Tag, X } from 'lucide-react';
+import { Calendar as CalendarIcon, Flag, Tag, X, UserPlus, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { tipoAtividadeIcons } from '@/lib/api/atividades';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 type Priority = 1 | 2 | 3 | 4;
 
@@ -127,33 +129,52 @@ export interface QuickAddTarefaResult {
   tipo: string;
   data_prevista: string | null; // ISO local "yyyy-MM-ddTHH:mm" or null
   prioridade: 'p1' | 'p2' | 'p3' | 'p4';
+  vendedor_id: string;
+  vendedor_nome: string | null;
 }
 
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSubmit: (r: QuickAddTarefaResult) => Promise<void> | void;
+  currentUserId: string;
 }
 
-export function QuickAddTarefa({ open, onOpenChange, onSubmit }: Props) {
+interface TeamMember { id: string; nome: string; email: string; perfil: string }
+
+export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId }: Props) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState<string | undefined>();
   const [time, setTime] = useState<string | undefined>();
   const [priority, setPriority] = useState<Priority>(4);
   const [tipo, setTipo] = useState<string>('tarefa');
+  const [assigneeId, setAssigneeId] = useState<string>(currentUserId);
   const [submitting, setSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const nlpFlags = useRef<{ date?: boolean; time?: boolean; prio?: boolean }>({});
+
+  const { data: teamMembers = [] } = useQuery<TeamMember[]>({
+    queryKey: ['team_members'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_team_members');
+      if (error) throw error;
+      return (data ?? []) as TeamMember[];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const assignee = teamMembers.find((u) => u.id === assigneeId);
 
   useEffect(() => {
     if (!open) return;
     setTitle(''); setDescription('');
     setDate(undefined); setTime(undefined);
     setPriority(4); setTipo('tarefa');
+    setAssigneeId(currentUserId);
     nlpFlags.current = {};
     setTimeout(() => inputRef.current?.focus(), 60);
-  }, [open]);
+  }, [open, currentUserId]);
 
   const parsed = useMemo(() => (title ? parseNlp(title) : null), [title]);
 
@@ -198,11 +219,14 @@ export function QuickAddTarefa({ open, onOpenChange, onSubmit }: Props) {
         tipo,
         data_prevista,
         prioridade: PRIORITY_TO_API[priority],
+        vendedor_id: assigneeId,
+        vendedor_nome: assignee?.nome ?? null,
       });
       // Reset for next entry (Todoist behavior)
       setTitle(''); setDescription('');
       setDate(undefined); setTime(undefined);
       setPriority(4);
+      setAssigneeId(currentUserId);
       nlpFlags.current = {};
       setTimeout(() => inputRef.current?.focus(), 30);
       if (closeAfter) onOpenChange(false);
@@ -366,6 +390,51 @@ export function QuickAddTarefa({ open, onOpenChange, onSubmit }: Props) {
                 >
                   <span>{tipoAtividadeIcons[t.value]}</span>
                   {t.label}
+                </button>
+              ))}
+            </PopoverContent>
+          </Popover>
+
+          {/* Assignee chip — delegar para outro membro do time */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className={cn(
+                  'inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border transition-colors',
+                  assigneeId !== currentUserId
+                    ? 'border-primary/40 text-primary bg-primary/5'
+                    : 'border-border text-muted-foreground hover:border-primary/40'
+                )}
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                {assignee ? assignee.nome.split(' ')[0] : 'Atribuir a'}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-60 p-1" align="start">
+              {teamMembers.length === 0 && (
+                <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+                  Nenhum membro disponível
+                </div>
+              )}
+              {teamMembers.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setAssigneeId(m.id)}
+                  className={cn(
+                    'w-full flex items-center gap-2 text-sm px-2 py-1.5 rounded hover:bg-accent text-left',
+                    assigneeId === m.id && 'bg-accent'
+                  )}
+                >
+                  <div className="h-6 w-6 rounded-full bg-primary/10 text-primary text-[11px] font-semibold flex items-center justify-center">
+                    {m.nome.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="truncate">{m.nome}{m.id === currentUserId && ' (você)'}</div>
+                    <div className="text-[10px] text-muted-foreground capitalize">{m.perfil}</div>
+                  </div>
+                  {assigneeId === m.id && <Check className="h-3.5 w-3.5 text-primary" />}
                 </button>
               ))}
             </PopoverContent>

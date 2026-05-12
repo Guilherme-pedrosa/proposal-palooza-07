@@ -191,12 +191,14 @@ export default function Tarefas() {
     tipo: string;
     data_prevista: string | null;
     prioridade: 'p1' | 'p2' | 'p3' | 'p4';
+    vendedor_id: string;
+    vendedor_nome: string | null;
   }) => {
     if (!input.titulo || !user) return;
     try {
       const data_prevista_iso = input.data_prevista ? new Date(input.data_prevista).toISOString() : null;
       const { data: created } = await supabase.from('atividades').insert({
-        vendedor_id: user.id,
+        vendedor_id: input.vendedor_id,
         tipo: input.tipo,
         titulo: input.titulo,
         descricao: input.descricao,
@@ -205,16 +207,22 @@ export default function Tarefas() {
       }).select('id').single();
       if (created?.id) {
         const { pushTarefaParaTodoist } = await import('@/lib/api/todoistSync');
+        const tituloComResp = input.vendedor_id !== user.id && input.vendedor_nome
+          ? `[→ ${input.vendedor_nome}] ${input.titulo}`
+          : input.titulo;
         pushTarefaParaTodoist({
           atividade_id: created.id,
-          titulo: input.titulo,
+          titulo: tituloComResp,
           descricao: input.descricao,
           data_prevista: data_prevista_iso,
           tipo: input.tipo,
           prioridade: input.prioridade,
         });
       }
-      toast.success('Tarefa criada! Sincronizando…');
+      const msg = input.vendedor_id !== user.id && input.vendedor_nome
+        ? `Tarefa delegada para ${input.vendedor_nome}!`
+        : 'Tarefa criada! Sincronizando…';
+      toast.success(msg);
       invalidateAll();
     } catch {
       toast.error('Erro ao criar tarefa');
@@ -415,6 +423,7 @@ export default function Tarefas() {
         open={novaModal}
         onOpenChange={setNovaModal}
         onSubmit={handleCriarTarefa}
+        currentUserId={user?.id ?? ''}
       />
     </MainLayout>
   );
