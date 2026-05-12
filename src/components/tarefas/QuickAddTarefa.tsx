@@ -133,11 +133,21 @@ export interface QuickAddTarefaResult {
   vendedor_nome: string | null;
 }
 
+export interface QuickAddInitial {
+  id: string;
+  titulo: string;
+  descricao?: string | null;
+  tipo?: string | null;
+  data_prevista?: string | null;
+  vendedor_id?: string | null;
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSubmit: (r: QuickAddTarefaResult) => Promise<void> | void;
   currentUserId: string;
+  initial?: QuickAddInitial | null;
 }
 
 interface TeamMember { id: string; nome: string; email: string; perfil: string }
