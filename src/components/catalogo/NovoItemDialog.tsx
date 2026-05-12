@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { CurrencyInput } from '@/components/ui/currency-input';
-import { Loader2, ImagePlus, X } from 'lucide-react';
+import { Loader2, ImagePlus, X, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadProductPhoto } from '@/lib/api/produtosGC';
@@ -33,11 +33,46 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
+  const [gerandoCodigo, setGerandoCodigo] = useState(false);
 
   const reset = () => {
     setTipo('produto'); setNome(''); setCodigo(''); setDescricao(''); setCategoria('');
     setUnidade('UN'); setPrecoVenda(0); setPrecoCusto(0); setEstoque('0'); setAtivo(true);
     setFotoFile(null); setFotoPreview(null);
+  };
+
+  const gerarCodigo = async () => {
+    setGerandoCodigo(true);
+    try {
+      // Pega os últimos códigos do tipo escolhido e calcula o próximo numérico
+      const { data, error } = await supabase
+        .from('produtos_gc')
+        .select('codigo')
+        .eq('tipo', tipo)
+        .not('codigo', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(500);
+
+      if (error) throw error;
+
+      let max = 0;
+      (data ?? []).forEach((r: any) => {
+        const m = String(r.codigo ?? '').match(/(\d+)/g);
+        if (m) {
+          const n = parseInt(m[m.length - 1], 10);
+          if (!isNaN(n) && n > max) max = n;
+        }
+      });
+
+      const proximo = String(max + 1).padStart(4, '0');
+      setCodigo(proximo);
+      toast.success(`Código gerado: ${proximo}`);
+    } catch (e: any) {
+      console.error(e);
+      toast.error('Não foi possível gerar o código');
+    } finally {
+      setGerandoCodigo(false);
+    }
   };
 
   const handleFile = (f: File | null) => {
@@ -121,7 +156,12 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Código {tipo === 'produto' ? '(interno)' : ''}</Label>
-              <Input value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="SKU / código" />
+              <div className="flex gap-1">
+                <Input value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="SKU / código" />
+                <Button type="button" variant="outline" size="icon" onClick={gerarCodigo} disabled={gerandoCodigo} title="Gerar próximo código">
+                  {gerandoCodigo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
             {tipo === 'produto' && (
               <div className="space-y-2">
