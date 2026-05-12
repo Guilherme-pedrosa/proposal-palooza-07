@@ -152,7 +152,8 @@ interface Props {
 
 interface TeamMember { id: string; nome: string; email: string; perfil: string }
 
-export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId }: Props) {
+export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId, initial }: Props) {
+  const isEdit = !!initial?.id;
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState<string | undefined>();
@@ -178,13 +179,31 @@ export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId }: 
 
   useEffect(() => {
     if (!open) return;
-    setTitle(''); setDescription('');
-    setDate(undefined); setTime(undefined);
-    setPriority(4); setTipo('tarefa');
-    setAssigneeId(currentUserId);
+    if (initial) {
+      setTitle(initial.titulo || '');
+      setDescription(initial.descricao || '');
+      setTipo(initial.tipo || 'tarefa');
+      setAssigneeId(initial.vendedor_id || currentUserId);
+      if (initial.data_prevista) {
+        const d = new Date(initial.data_prevista);
+        if (!isNaN(d.getTime())) {
+          const pad = (n: number) => String(n).padStart(2, '0');
+          setDate(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
+          setTime(`${pad(d.getHours())}:${pad(d.getMinutes())}`);
+        }
+      } else {
+        setDate(undefined); setTime(undefined);
+      }
+      setPriority(4);
+    } else {
+      setTitle(''); setDescription('');
+      setDate(undefined); setTime(undefined);
+      setPriority(4); setTipo('tarefa');
+      setAssigneeId(currentUserId);
+    }
     nlpFlags.current = {};
     setTimeout(() => inputRef.current?.focus(), 60);
-  }, [open, currentUserId]);
+  }, [open, currentUserId, initial]);
 
   const parsed = useMemo(() => (title ? parseNlp(title) : null), [title]);
 
