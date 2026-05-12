@@ -205,10 +205,11 @@ export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId, in
     setTimeout(() => inputRef.current?.focus(), 60);
   }, [open, currentUserId, initial]);
 
-  const parsed = useMemo(() => (title ? parseNlp(title) : null), [title]);
+  const parsed = useMemo(() => (!isEdit && title ? parseNlp(title) : null), [title, isEdit]);
 
-  // Apply NLP whenever title changes
+  // Apply NLP whenever title changes (skip in edit mode)
   useEffect(() => {
+    if (isEdit) return;
     if (!parsed) return;
     if (parsed.date) {
       setDate(parsed.date);
@@ -232,7 +233,7 @@ export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId, in
       setPriority(4);
       nlpFlags.current.prio = false;
     }
-  }, [title]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [title, isEdit]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const finalTitle = (parsed?.cleaned || title).trim();
   const canSubmit = !!finalTitle && !submitting;
