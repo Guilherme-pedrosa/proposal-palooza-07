@@ -30,6 +30,7 @@ export async function pushTarefaParaTodoist(input: {
   data_prevista?: string | null;
   tipo?: string | null;
   cliente_id?: string | null;
+  prioridade?: 'p1' | 'p2' | 'p3' | 'p4' | null;
 }) {
   try {
     let cliente_nome: string | null = null;
