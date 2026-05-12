@@ -31,7 +31,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
   const [categoria, setCategoria] = useState('');
   const [unidade, setUnidade] = useState('UN');
   const [precoCusto, setPrecoCusto] = useState(0);
-  const [despesasPct, setDespesasPct] = useState('0');
+  const [despesasValor, setDespesasValor] = useState(0);
   const [estoque, setEstoque] = useState('0');
   const [ncm, setNcm] = useState('');
   const [ativo, setAtivo] = useState(true);
@@ -44,7 +44,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
   const [grupoOpen, setGrupoOpen] = useState(false);
   const [tabelas, setTabelas] = useState<Array<{ id: string; gc_tipo_id: string; nome: string; markup_padrao: number; principal: boolean }>>([]);
 
-  const custoFinal = precoCusto * (1 + (Number(despesasPct) || 0) / 100);
+  const custoFinal = precoCusto + (Number(despesasValor) || 0);
 
   const carregarGrupos = async () => {
     setCarregandoGrupos(true);
@@ -80,7 +80,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
 
   const reset = () => {
     setTipo('produto'); setNome(''); setCodigo(''); setDescricao(''); setCategoria('');
-    setUnidade('UN'); setPrecoCusto(0); setDespesasPct('0');
+    setUnidade('UN'); setPrecoCusto(0); setDespesasValor(0);
     setEstoque('0'); setNcm(''); setAtivo(true);
     setFotoFile(null); setFotoPreview(null);
   };
@@ -167,7 +167,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
           categoria: categoria.trim() || undefined,
           unidade,
           preco_custo: tipo === 'produto' ? precoCusto : 0,
-          despesas_acessorias: tipo === 'produto' ? +(precoCusto * (Number(despesasPct) || 0) / 100).toFixed(2) : undefined,
+          despesas_acessorias: tipo === 'produto' ? Number(despesasValor) || 0 : undefined,
           estoque: Number(estoque) || 0,
           ncm: ncm.trim() || undefined,
           foto_url,
@@ -308,19 +308,14 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
               </div>
 
               <div className="space-y-2 rounded-md bg-muted/40 border p-3">
-                <Label className="text-xs">Demais despesas (%) — frete, impostos, etc.</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  step="0.1"
-                  value={despesasPct}
-                  onChange={(e) => setDespesasPct(e.target.value)}
-                  placeholder="Ex: 5"
-                />
+                <Label className="text-xs">Despesas acessórias (R$) — frete, embalagem, etc.</Label>
+                <CurrencyInput value={despesasValor} onChange={setDespesasValor} />
                 <p className="text-xs text-muted-foreground">
                   Custo final: <strong>{custoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
-                  {Number(despesasPct) > 0 && (
-                    <span className="ml-1">({precoCusto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} + {despesasPct}%)</span>
+                  {despesasValor > 0 && (
+                    <span className="ml-1">
+                      ({precoCusto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} + {despesasValor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})
+                    </span>
                   )}
                 </p>
               </div>
