@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { CurrencyInput } from '@/components/ui/currency-input';
-import { Loader2, ImagePlus, X, Wand2 } from 'lucide-react';
+import { Loader2, ImagePlus, X, Wand2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadProductPhoto } from '@/lib/api/produtosGC';
@@ -18,6 +18,8 @@ interface Props {
   onOpenChange: (v: boolean) => void;
 }
 
+interface Grupo { id: string; nome: string; }
+
 export function NovoItemDialog({ open, onOpenChange }: Props) {
   const qc = useQueryClient();
   const [tipo, setTipo] = useState<'produto' | 'servico'>('produto');
@@ -26,7 +28,6 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
   const [descricao, setDescricao] = useState('');
   const [categoria, setCategoria] = useState('');
   const [unidade, setUnidade] = useState('UN');
-  const [precoVenda, setPrecoVenda] = useState(0);
   const [precoCusto, setPrecoCusto] = useState(0);
   const [despesasPct, setDespesasPct] = useState('0');
   const [estoque, setEstoque] = useState('0');
@@ -35,27 +36,61 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [gerandoCodigo, setGerandoCodigo] = useState(false);
+  const [grupos, setGrupos] = useState<Grupo[]>([]);
+  const [carregandoGrupos, setCarregandoGrupos] = useState(false);
 
   const custoFinal = precoCusto * (1 + (Number(despesasPct) || 0) / 100);
 
+  const carregarGrupos = async () => {
+    setCarregandoGrupos(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('gc-listar-grupos');
+      if (error) throw error;
+      if (!data?.sucesso) throw new Error(data?.erro || 'Falha ao carregar grupos');
+      setGrupos(data.grupos || []);
+    } catch (e: any) {
+      console.error(e);
+      toast.error('Não foi possível carregar grupos do GC');
+    } finally {
+      setCarregandoGrupos(false);
+    }
+  };
+
+  useEffect(() => {
+    if (open && tipo === 'produto' && grupos.length === 0) carregarGrupos();
+  }, [open, tipo]);
+
   const reset = () => {
     setTipo('produto'); setNome(''); setCodigo(''); setDescricao(''); setCategoria('');
-    setUnidade('UN'); setPrecoVenda(0); setPrecoCusto(0); setDespesasPct('0');
+    setUnidade('UN'); setPrecoCusto(0); setDespesasPct('0');
     setEstoque('0'); setAtivo(true);
     setFotoFile(null); setFotoPreview(null);
+  };
+
+  const codigoExiste = async (cod: string): Promise<boolean> => {
+    const { data, error } = await supabase
+      .from('produtos_gc')
+      .select('id')
+      .eq('tipo', tipo)
+      .eq('codigo', cod)
+      .limit(1);
+    if (error) {
+      console.error(error);
+      return false;
+    }
+    return (data ?? []).length > 0;
   };
 
   const gerarCodigo = async () => {
     setGerandoCodigo(true);
     try {
-      // Pega os últimos códigos do tipo escolhido e calcula o próximo numérico
       const { data, error } = await supabase
         .from('produtos_gc')
         .select('codigo')
         .eq('tipo', tipo)
         .not('codigo', 'is', null)
         .order('created_at', { ascending: false })
-        .limit(500);
+        .limit(1000);
 
       if (error) throw error;
 
@@ -81,12 +116,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
 
   const handleFile = (f: File | null) => {
     setFotoFile(f);
-    if (f) {
-      const url = URL.createObjectURL(f);
-      setFotoPreview(url);
-    } else {
-      setFotoPreview(null);
-    }
+    setFotoPreview(f ? URL.createObjectURL(f) : null);
   };
 
   const handleSalvar = async () => {
@@ -94,6 +124,14 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
       toast.error('Informe o nome do item');
       return;
     }
+    if (codigo.trim()) {
+      const dup = await codigoExiste(codigo.trim());
+      if (dup) {
+        toast.error(`Código "${codigo.trim()}" já existe para outro ${tipo}. Use "Gerar" ou escolha outro.`);
+        return;
+      }
+    }
+
     setSalvando(true);
     try {
       let foto_url: string | undefined;
@@ -110,8 +148,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
           descricao: descricao.trim() || undefined,
           categoria: categoria.trim() || undefined,
           unidade,
-          preco_venda: precoVenda,
-          preco_custo: tipo === 'produto' ? custoFinal : precoCusto,
+          preco_custo: tipo === 'produto' ? custoFinal : 0,
           estoque: Number(estoque) || 0,
           foto_url,
           ativo,
@@ -188,8 +225,25 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
 
           {tipo === 'produto' && (
             <div className="space-y-2">
-              <Label>Categoria / Grupo</Label>
-              <Input value={categoria} onChange={(e) => setCategoria(e.target.value)} placeholder="Ex: Forno Combinado, Refrigeração..." />
+              <div className="flex items-center justify-between">
+                <Label>Categoria / Grupo (do GC)</Label>
+                <Button type="button" variant="ghost" size="sm" onClick={carregarGrupos} disabled={carregandoGrupos} className="h-7 px-2">
+                  {carregandoGrupos ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                </Button>
+              </div>
+              <Select value={categoria} onValueChange={setCategoria}>
+                <SelectTrigger>
+                  <SelectValue placeholder={carregandoGrupos ? 'Carregando grupos...' : 'Selecione um grupo'} />
+                </SelectTrigger>
+                <SelectContent className="max-h-64">
+                  {grupos.map((g) => (
+                    <SelectItem key={g.id} value={g.nome}>{g.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Grupos sincronizados diretamente do GestãoClick.
+              </p>
             </div>
           )}
 
@@ -198,79 +252,72 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
             <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={3} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Preço de venda</Label>
-              <CurrencyInput value={precoVenda} onChange={setPrecoVenda} />
-            </div>
-            {tipo === 'produto' && (
+          {tipo === 'produto' && (
+            <>
               <div className="space-y-2">
                 <Label>Preço de custo</Label>
                 <CurrencyInput value={precoCusto} onChange={setPrecoCusto} />
+                <p className="text-xs text-muted-foreground">
+                  O preço de venda é calculado automaticamente pelas tabelas de preço.
+                </p>
               </div>
-            )}
-          </div>
 
-          {tipo === 'produto' && (
-            <div className="space-y-2 rounded-md bg-muted/40 border p-3">
-              <Label className="text-xs">Demais despesas (%) — frete, impostos, etc.</Label>
-              <Input
-                type="number"
-                min={0}
-                step="0.1"
-                value={despesasPct}
-                onChange={(e) => setDespesasPct(e.target.value)}
-                placeholder="Ex: 5"
-              />
-              <p className="text-xs text-muted-foreground">
-                Custo final: <strong>{custoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
-                {Number(despesasPct) > 0 && (
-                  <span className="ml-1">({precoCusto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} + {despesasPct}%)</span>
-                )}
-              </p>
-            </div>
-          )}
-
-          {tipo === 'produto' && (
-            <div className="grid grid-cols-2 gap-3 items-end">
-              <div className="space-y-2">
-                <Label>Estoque inicial</Label>
-                <Input type="number" min={0} value={estoque} onChange={(e) => setEstoque(e.target.value)} />
+              <div className="space-y-2 rounded-md bg-muted/40 border p-3">
+                <Label className="text-xs">Demais despesas (%) — frete, impostos, etc.</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.1"
+                  value={despesasPct}
+                  onChange={(e) => setDespesasPct(e.target.value)}
+                  placeholder="Ex: 5"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Custo final: <strong>{custoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
+                  {Number(despesasPct) > 0 && (
+                    <span className="ml-1">({precoCusto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} + {despesasPct}%)</span>
+                  )}
+                </p>
               </div>
-              <div className="flex items-center justify-between rounded-md border px-3 py-2">
-                <Label>Ativo</Label>
-                <Switch checked={ativo} onCheckedChange={setAtivo} />
-              </div>
-            </div>
-          )}
 
-          {tipo === 'produto' && (
-            <div className="space-y-2">
-              <Label>Foto</Label>
-              {fotoPreview ? (
-                <div className="relative w-32 h-32 rounded-md overflow-hidden border">
-                  <img src={fotoPreview} alt="preview" className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => handleFile(null)}
-                    className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
+              <div className="grid grid-cols-2 gap-3 items-end">
+                <div className="space-y-2">
+                  <Label>Estoque inicial</Label>
+                  <Input type="number" min={0} value={estoque} onChange={(e) => setEstoque(e.target.value)} />
                 </div>
-              ) : (
-                <label className="flex items-center gap-2 cursor-pointer text-sm border border-dashed rounded-md px-3 py-4 justify-center hover:bg-muted/50">
-                  <ImagePlus className="h-4 w-4" />
-                  <span>Selecionar imagem</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
-                  />
-                </label>
-              )}
-            </div>
+                <div className="flex items-center justify-between rounded-md border px-3 py-2">
+                  <Label>Ativo</Label>
+                  <Switch checked={ativo} onCheckedChange={setAtivo} />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Foto</Label>
+                {fotoPreview ? (
+                  <div className="relative w-32 h-32 rounded-md overflow-hidden border">
+                    <img src={fotoPreview} alt="preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => handleFile(null)}
+                      className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex items-center gap-2 cursor-pointer text-sm border border-dashed rounded-md px-3 py-4 justify-center hover:bg-muted/50">
+                    <ImagePlus className="h-4 w-4" />
+                    <span>Selecionar imagem</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
+                    />
+                  </label>
+                )}
+              </div>
+            </>
           )}
         </div>
 
