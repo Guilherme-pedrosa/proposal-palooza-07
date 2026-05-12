@@ -84,6 +84,29 @@ Deno.serve(async (req) => {
       };
     } else {
       endpoint = '/produtos';
+
+      // Busca tabelas de preço ativas e calcula valores via markup_padrao
+      const supabaseTmp = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      );
+      const { data: tabelas } = await supabaseTmp
+        .from('tabelas_preco')
+        .select('gc_tipo_id, markup_padrao')
+        .eq('ativa', true);
+
+      const custo = preco_custo != null ? Number(preco_custo) : 0;
+      const valores = (tabelas ?? []).map((t: any) => {
+        const markup = Number(t.markup_padrao) || 0;
+        const valor_venda = +(custo * (1 + markup / 100)).toFixed(2);
+        return {
+          tipo_id: Number(t.gc_tipo_id),
+          valor_custo: custo,
+          valor_venda,
+          lucro_utilizado: markup,
+        };
+      });
+
       payload = {
         loja_id: GC_LOJA_ID,
         nome,
@@ -91,10 +114,11 @@ Deno.serve(async (req) => {
         descricao: descricao || undefined,
         unidade: unidade || 'UN',
         estoque: estoque != null ? Number(estoque) : 0,
-        valor_custo: preco_custo != null ? Number(preco_custo) : 0,
+        valor_custo: custo,
         ativo: ativo ? '1' : '0',
         nome_grupo: categoria || undefined,
         fotos: foto_url ? [foto_url] : undefined,
+        valores: valores.length > 0 ? valores : undefined,
       };
     }
 
