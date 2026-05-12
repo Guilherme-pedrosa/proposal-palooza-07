@@ -455,6 +455,15 @@ export default function Tarefas() {
         onSubmit={handleCriarTarefa}
         currentUserId={user?.id ?? ''}
       />
+
+      {/* Edit task dialog */}
+      <QuickAddTarefa
+        open={!!editTarefa}
+        onOpenChange={(v) => { if (!v) setEditTarefa(null); }}
+        onSubmit={handleCriarTarefa}
+        currentUserId={user?.id ?? ''}
+        initial={editTarefa}
+      />
     </MainLayout>
   );
 }
