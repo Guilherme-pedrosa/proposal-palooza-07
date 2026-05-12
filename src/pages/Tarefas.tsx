@@ -21,6 +21,7 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { tipoAtividadeIcons, concluirAtividade, adiarAtividade, proximoDiaUtil } from '@/lib/api/atividades';
+import { QuickAddTarefa } from '@/components/tarefas/QuickAddTarefa';
 
 interface AtividadeFull {
   id: string;
@@ -184,15 +185,21 @@ export default function Tarefas() {
     }
   };
 
-  const handleCriarTarefa = async () => {
-    if (!novaTarefa.titulo || !user) return;
+  const handleCriarTarefa = async (input: {
+    titulo: string;
+    descricao: string | null;
+    tipo: string;
+    data_prevista: string | null;
+    prioridade: 'p1' | 'p2' | 'p3' | 'p4';
+  }) => {
+    if (!input.titulo || !user) return;
     try {
-      const data_prevista_iso = novaTarefa.data_prevista ? new Date(novaTarefa.data_prevista).toISOString() : null;
+      const data_prevista_iso = input.data_prevista ? new Date(input.data_prevista).toISOString() : null;
       const { data: created } = await supabase.from('atividades').insert({
         vendedor_id: user.id,
-        tipo: novaTarefa.tipo,
-        titulo: novaTarefa.titulo,
-        descricao: novaTarefa.descricao || null,
+        tipo: input.tipo,
+        titulo: input.titulo,
+        descricao: input.descricao,
         data_prevista: data_prevista_iso,
         concluida: false,
       }).select('id').single();
@@ -200,15 +207,14 @@ export default function Tarefas() {
         const { pushTarefaParaTodoist } = await import('@/lib/api/todoistSync');
         pushTarefaParaTodoist({
           atividade_id: created.id,
-          titulo: novaTarefa.titulo,
-          descricao: novaTarefa.descricao || null,
+          titulo: input.titulo,
+          descricao: input.descricao,
           data_prevista: data_prevista_iso,
-          tipo: novaTarefa.tipo,
+          tipo: input.tipo,
+          prioridade: input.prioridade,
         });
       }
-      toast.success('Tarefa criada! Sincronizando com Todoist…');
-      setNovaModal(false);
-      setNovaTarefa({ titulo: '', tipo: 'tarefa', descricao: '', data_prevista: '' });
+      toast.success('Tarefa criada! Sincronizando…');
       invalidateAll();
     } catch {
       toast.error('Erro ao criar tarefa');
@@ -404,59 +410,12 @@ export default function Tarefas() {
         )}
       </div>
 
-      {/* New task dialog */}
-      <Dialog open={novaModal} onOpenChange={setNovaModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Nova Tarefa</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Título *</Label>
-              <Input
-                value={novaTarefa.titulo}
-                onChange={e => setNovaTarefa(prev => ({ ...prev, titulo: e.target.value }))}
-                placeholder="O que precisa ser feito?"
-                autoFocus
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Tipo</Label>
-              <Select value={novaTarefa.tipo} onValueChange={v => setNovaTarefa(prev => ({ ...prev, tipo: v }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(tipoLabels).filter(([k]) => k !== 'nota').map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{tipoAtividadeIcons[k]} {v}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Data prevista</Label>
-              <Input
-                type="datetime-local"
-                value={novaTarefa.data_prevista}
-                onChange={e => setNovaTarefa(prev => ({ ...prev, data_prevista: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Descrição</Label>
-              <Textarea
-                value={novaTarefa.descricao}
-                onChange={e => setNovaTarefa(prev => ({ ...prev, descricao: e.target.value }))}
-                placeholder="Detalhes da tarefa..."
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setNovaModal(false)}>Cancelar</Button>
-            <Button onClick={handleCriarTarefa} disabled={!novaTarefa.titulo}>Criar Tarefa</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* New task dialog (Todoist-style QuickAdd) */}
+      <QuickAddTarefa
+        open={novaModal}
+        onOpenChange={setNovaModal}
+        onSubmit={handleCriarTarefa}
+      />
     </MainLayout>
   );
 }
