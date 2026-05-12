@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     });
   }
 
-  const { atividade_id, titulo, descricao, data_prevista, tipo, cliente_nome } = body || {};
+  const { atividade_id, titulo, descricao, data_prevista, tipo, cliente_nome, prioridade } = body || {};
   if (!atividade_id || !titulo) {
     return new Response(JSON.stringify({ error: 'atividade_id and titulo required' }), {
       status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
     title: fullTitle,
     description: descricao || null,
     due_at: data_prevista || null,
-    priority: PRIORITY_BY_TIPO[tipo] || 'p3',
+    priority: prioridade || PRIORITY_BY_TIPO[tipo] || 'p3',
     external_ref: `wedo-crm:atividade:${atividade_id}`,
     external_source: 'wedo-crm',
   };
