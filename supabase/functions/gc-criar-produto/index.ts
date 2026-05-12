@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
       descricao: descricao || null,
       categoria: tipo === 'servico' ? 'Serviços' : (categoria || null),
       tipo,
-      preco_venda: preco_venda != null ? Number(preco_venda) : null,
+      preco_venda: null,
       unidade: tipo === 'servico' ? 'SV' : (unidade || 'UN'),
       estoque_atual: tipo === 'servico' ? 0 : (estoque != null ? Number(estoque) : 0),
       ativo: !!ativo,
