@@ -184,15 +184,21 @@ export default function Tarefas() {
     }
   };
 
-  const handleCriarTarefa = async () => {
-    if (!novaTarefa.titulo || !user) return;
+  const handleCriarTarefa = async (input: {
+    titulo: string;
+    descricao: string | null;
+    tipo: string;
+    data_prevista: string | null;
+    prioridade: 'p1' | 'p2' | 'p3' | 'p4';
+  }) => {
+    if (!input.titulo || !user) return;
     try {
-      const data_prevista_iso = novaTarefa.data_prevista ? new Date(novaTarefa.data_prevista).toISOString() : null;
+      const data_prevista_iso = input.data_prevista ? new Date(input.data_prevista).toISOString() : null;
       const { data: created } = await supabase.from('atividades').insert({
         vendedor_id: user.id,
-        tipo: novaTarefa.tipo,
-        titulo: novaTarefa.titulo,
-        descricao: novaTarefa.descricao || null,
+        tipo: input.tipo,
+        titulo: input.titulo,
+        descricao: input.descricao,
         data_prevista: data_prevista_iso,
         concluida: false,
       }).select('id').single();
@@ -200,15 +206,14 @@ export default function Tarefas() {
         const { pushTarefaParaTodoist } = await import('@/lib/api/todoistSync');
         pushTarefaParaTodoist({
           atividade_id: created.id,
-          titulo: novaTarefa.titulo,
-          descricao: novaTarefa.descricao || null,
+          titulo: input.titulo,
+          descricao: input.descricao,
           data_prevista: data_prevista_iso,
-          tipo: novaTarefa.tipo,
+          tipo: input.tipo,
+          prioridade: input.prioridade,
         });
       }
-      toast.success('Tarefa criada! Sincronizando com Todoist…');
-      setNovaModal(false);
-      setNovaTarefa({ titulo: '', tipo: 'tarefa', descricao: '', data_prevista: '' });
+      toast.success('Tarefa criada! Sincronizando…');
       invalidateAll();
     } catch {
       toast.error('Erro ao criar tarefa');
