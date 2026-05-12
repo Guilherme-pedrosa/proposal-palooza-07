@@ -212,6 +212,26 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
           </div>
 
           {tipo === 'produto' && (
+            <div className="space-y-2 rounded-md bg-muted/40 border p-3">
+              <Label className="text-xs">Demais despesas (%) — frete, impostos, etc.</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.1"
+                value={despesasPct}
+                onChange={(e) => setDespesasPct(e.target.value)}
+                placeholder="Ex: 5"
+              />
+              <p className="text-xs text-muted-foreground">
+                Custo final: <strong>{custoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
+                {Number(despesasPct) > 0 && (
+                  <span className="ml-1">({precoCusto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} + {despesasPct}%)</span>
+                )}
+              </p>
+            </div>
+          )}
+
+          {tipo === 'produto' && (
             <div className="grid grid-cols-2 gap-3 items-end">
               <div className="space-y-2">
                 <Label>Estoque inicial</Label>
