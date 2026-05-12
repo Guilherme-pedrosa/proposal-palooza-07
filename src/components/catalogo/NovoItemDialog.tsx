@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { CurrencyInput } from '@/components/ui/currency-input';
-import { Loader2, ImagePlus, X, Wand2, RefreshCw } from 'lucide-react';
+import { Loader2, ImagePlus, X, Wand2, RefreshCw, ChevronsUpDown, Check } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadProductPhoto } from '@/lib/api/produtosGC';
@@ -38,6 +40,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
   const [gerandoCodigo, setGerandoCodigo] = useState(false);
   const [grupos, setGrupos] = useState<Grupo[]>([]);
   const [carregandoGrupos, setCarregandoGrupos] = useState(false);
+  const [grupoOpen, setGrupoOpen] = useState(false);
   const [tabelas, setTabelas] = useState<Array<{ id: string; gc_tipo_id: string; nome: string; markup_padrao: number; principal: boolean }>>([]);
 
   const custoFinal = precoCusto * (1 + (Number(despesasPct) || 0) / 100);
@@ -245,16 +248,41 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
                   {carregandoGrupos ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
                 </Button>
               </div>
-              <Select value={categoria} onValueChange={setCategoria}>
-                <SelectTrigger>
-                  <SelectValue placeholder={carregandoGrupos ? 'Carregando grupos...' : 'Selecione um grupo'} />
-                </SelectTrigger>
-                <SelectContent className="max-h-64">
-                  {grupos.map((g) => (
-                    <SelectItem key={g.id} value={g.nome}>{g.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={grupoOpen} onOpenChange={setGrupoOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    role="combobox"
+                    className="w-full justify-between font-normal"
+                  >
+                    <span className={categoria ? '' : 'text-muted-foreground'}>
+                      {categoria || (carregandoGrupos ? 'Carregando grupos...' : 'Selecione um grupo')}
+                    </span>
+                    <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+                  <Command>
+                    <CommandInput placeholder="Buscar grupo..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhum grupo encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {grupos.map((g) => (
+                          <CommandItem
+                            key={g.id}
+                            value={g.nome}
+                            onSelect={(v) => { setCategoria(v); setGrupoOpen(false); }}
+                          >
+                            <Check className={`mr-2 h-4 w-4 ${categoria === g.nome ? 'opacity-100' : 'opacity-0'}`} />
+                            {g.nome}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               <p className="text-xs text-muted-foreground">
                 Grupos sincronizados diretamente do GestãoClick.
               </p>
