@@ -226,6 +226,7 @@ export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId }: 
       setTitle(''); setDescription('');
       setDate(undefined); setTime(undefined);
       setPriority(4);
+      setAssigneeId(currentUserId);
       nlpFlags.current = {};
       setTimeout(() => inputRef.current?.focus(), 30);
       if (closeAfter) onOpenChange(false);
