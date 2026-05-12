@@ -26,12 +26,12 @@ Deno.serve(async (req) => {
     const grupos: Array<{ id: string; nome: string }> = [];
     let pagina = 1;
     while (pagina < 50) {
-      const resp = await fetch(`${GC_BASE_URL}/produtos/grupos?pagina=${pagina}`, { headers });
+      const resp = await fetch(`https://api.gestaoclick.com/grupos_produtos?pagina=${pagina}`, { headers });
       if (!resp.ok) break;
       const data = await resp.json();
       const lista = Array.isArray(data?.data) ? data.data : [];
       lista.forEach((g: any) => grupos.push({ id: String(g.id), nome: String(g.nome ?? '') }));
-      const totalPag = Number(data?.meta?.total_pages ?? data?.total_de_paginas ?? 1);
+      const totalPag = Number(data?.meta?.total_paginas ?? 1);
       if (pagina >= totalPag || lista.length === 0) break;
       pagina++;
     }
