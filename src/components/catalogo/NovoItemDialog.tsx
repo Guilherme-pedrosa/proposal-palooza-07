@@ -40,6 +40,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
   const [gerandoCodigo, setGerandoCodigo] = useState(false);
   const [grupos, setGrupos] = useState<Grupo[]>([]);
   const [carregandoGrupos, setCarregandoGrupos] = useState(false);
+  const [grupoOpen, setGrupoOpen] = useState(false);
   const [tabelas, setTabelas] = useState<Array<{ id: string; gc_tipo_id: string; nome: string; markup_padrao: number; principal: boolean }>>([]);
 
   const custoFinal = precoCusto * (1 + (Number(despesasPct) || 0) / 100);
