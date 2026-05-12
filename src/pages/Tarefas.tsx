@@ -21,7 +21,7 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { tipoAtividadeIcons, concluirAtividade, adiarAtividade, proximoDiaUtil } from '@/lib/api/atividades';
-import { QuickAddTarefa } from '@/components/tarefas/QuickAddTarefa';
+import { QuickAddTarefa, QuickAddInitial } from '@/components/tarefas/QuickAddTarefa';
 
 interface AtividadeFull {
   id: string;
@@ -92,6 +92,7 @@ export default function Tarefas() {
   const [agrupamento, setAgrupamento] = useState<Agrupamento>('data');
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [novaModal, setNovaModal] = useState(false);
+  const [editTarefa, setEditTarefa] = useState<QuickAddInitial | null>(null);
   const [novaTarefa, setNovaTarefa] = useState({ titulo: '', tipo: 'tarefa', descricao: '', data_prevista: '' });
 
   const { data: atividades = [], isLoading } = useQuery({
@@ -197,21 +198,36 @@ export default function Tarefas() {
     if (!input.titulo || !user) return;
     try {
       const data_prevista_iso = input.data_prevista ? new Date(input.data_prevista).toISOString() : null;
-      const { data: created } = await supabase.from('atividades').insert({
-        vendedor_id: input.vendedor_id,
-        tipo: input.tipo,
-        titulo: input.titulo,
-        descricao: input.descricao,
-        data_prevista: data_prevista_iso,
-        concluida: false,
-      }).select('id').single();
-      if (created?.id) {
+      const editingId = editTarefa?.id;
+      let atividadeId: string | undefined = editingId;
+
+      if (editingId) {
+        await supabase.from('atividades').update({
+          vendedor_id: input.vendedor_id,
+          tipo: input.tipo,
+          titulo: input.titulo,
+          descricao: input.descricao,
+          data_prevista: data_prevista_iso,
+        }).eq('id', editingId);
+      } else {
+        const { data: created } = await supabase.from('atividades').insert({
+          vendedor_id: input.vendedor_id,
+          tipo: input.tipo,
+          titulo: input.titulo,
+          descricao: input.descricao,
+          data_prevista: data_prevista_iso,
+          concluida: false,
+        }).select('id').single();
+        atividadeId = created?.id;
+      }
+
+      if (atividadeId) {
         const { pushTarefaParaTodoist } = await import('@/lib/api/todoistSync');
         const tituloComResp = input.vendedor_id !== user.id && input.vendedor_nome
           ? `[→ ${input.vendedor_nome}] ${input.titulo}`
           : input.titulo;
         pushTarefaParaTodoist({
-          atividade_id: created.id,
+          atividade_id: atividadeId,
           titulo: tituloComResp,
           descricao: input.descricao,
           data_prevista: data_prevista_iso,
@@ -219,13 +235,17 @@ export default function Tarefas() {
           prioridade: input.prioridade,
         });
       }
-      const msg = input.vendedor_id !== user.id && input.vendedor_nome
-        ? `Tarefa delegada para ${input.vendedor_nome}!`
-        : 'Tarefa criada! Sincronizando…';
+
+      const msg = editingId
+        ? 'Tarefa atualizada!'
+        : (input.vendedor_id !== user.id && input.vendedor_nome
+            ? `Tarefa delegada para ${input.vendedor_nome}!`
+            : 'Tarefa criada! Sincronizando…');
       toast.success(msg);
+      setEditTarefa(null);
       invalidateAll();
     } catch {
-      toast.error('Erro ao criar tarefa');
+      toast.error(editTarefa ? 'Erro ao atualizar tarefa' : 'Erro ao criar tarefa');
     }
   };
 
@@ -350,17 +370,27 @@ export default function Tarefas() {
                         return (
                           <div
                             key={a.id}
+                            onClick={() => setEditTarefa({
+                              id: a.id,
+                              titulo: a.titulo,
+                              descricao: a.descricao,
+                              tipo: a.tipo,
+                              data_prevista: a.data_prevista,
+                              vendedor_id: a.vendedor_id,
+                            })}
                             className={cn(
-                              "flex items-start gap-3 px-3 py-3 rounded-lg border bg-card hover:shadow-sm transition-all group",
+                              "flex items-start gap-3 px-3 py-3 rounded-lg border bg-card hover:shadow-sm hover:border-primary/40 cursor-pointer transition-all group",
                               a.concluida && "opacity-60",
                               isOverdue && "border-red-200 dark:border-red-900"
                             )}
                           >
-                            <Checkbox
-                              checked={!!a.concluida}
-                              onCheckedChange={() => handleToggleConcluir(a)}
-                              className="mt-0.5"
-                            />
+                            <div onClick={(e) => e.stopPropagation()}>
+                              <Checkbox
+                                checked={!!a.concluida}
+                                onCheckedChange={() => handleToggleConcluir(a)}
+                                className="mt-0.5"
+                              />
+                            </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
                                 <span className="text-sm">{tipoAtividadeIcons[a.tipo] || '📋'}</span>
@@ -424,6 +454,15 @@ export default function Tarefas() {
         onOpenChange={setNovaModal}
         onSubmit={handleCriarTarefa}
         currentUserId={user?.id ?? ''}
+      />
+
+      {/* Edit task dialog */}
+      <QuickAddTarefa
+        open={!!editTarefa}
+        onOpenChange={(v) => { if (!v) setEditTarefa(null); }}
+        onSubmit={handleCriarTarefa}
+        currentUserId={user?.id ?? ''}
+        initial={editTarefa}
       />
     </MainLayout>
   );

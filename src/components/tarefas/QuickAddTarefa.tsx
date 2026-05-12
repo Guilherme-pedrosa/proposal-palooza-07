@@ -133,16 +133,27 @@ export interface QuickAddTarefaResult {
   vendedor_nome: string | null;
 }
 
+export interface QuickAddInitial {
+  id: string;
+  titulo: string;
+  descricao?: string | null;
+  tipo?: string | null;
+  data_prevista?: string | null;
+  vendedor_id?: string | null;
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSubmit: (r: QuickAddTarefaResult) => Promise<void> | void;
   currentUserId: string;
+  initial?: QuickAddInitial | null;
 }
 
 interface TeamMember { id: string; nome: string; email: string; perfil: string }
 
-export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId }: Props) {
+export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId, initial }: Props) {
+  const isEdit = !!initial?.id;
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState<string | undefined>();
@@ -168,18 +179,37 @@ export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId }: 
 
   useEffect(() => {
     if (!open) return;
-    setTitle(''); setDescription('');
-    setDate(undefined); setTime(undefined);
-    setPriority(4); setTipo('tarefa');
-    setAssigneeId(currentUserId);
+    if (initial) {
+      setTitle(initial.titulo || '');
+      setDescription(initial.descricao || '');
+      setTipo(initial.tipo || 'tarefa');
+      setAssigneeId(initial.vendedor_id || currentUserId);
+      if (initial.data_prevista) {
+        const d = new Date(initial.data_prevista);
+        if (!isNaN(d.getTime())) {
+          const pad = (n: number) => String(n).padStart(2, '0');
+          setDate(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
+          setTime(`${pad(d.getHours())}:${pad(d.getMinutes())}`);
+        }
+      } else {
+        setDate(undefined); setTime(undefined);
+      }
+      setPriority(4);
+    } else {
+      setTitle(''); setDescription('');
+      setDate(undefined); setTime(undefined);
+      setPriority(4); setTipo('tarefa');
+      setAssigneeId(currentUserId);
+    }
     nlpFlags.current = {};
     setTimeout(() => inputRef.current?.focus(), 60);
-  }, [open, currentUserId]);
+  }, [open, currentUserId, initial]);
 
-  const parsed = useMemo(() => (title ? parseNlp(title) : null), [title]);
+  const parsed = useMemo(() => (!isEdit && title ? parseNlp(title) : null), [title, isEdit]);
 
-  // Apply NLP whenever title changes
+  // Apply NLP whenever title changes (skip in edit mode)
   useEffect(() => {
+    if (isEdit) return;
     if (!parsed) return;
     if (parsed.date) {
       setDate(parsed.date);
@@ -203,7 +233,7 @@ export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId }: 
       setPriority(4);
       nlpFlags.current.prio = false;
     }
-  }, [title]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [title, isEdit]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const finalTitle = (parsed?.cleaned || title).trim();
   const canSubmit = !!finalTitle && !submitting;
@@ -222,14 +252,18 @@ export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId }: 
         vendedor_id: assigneeId,
         vendedor_nome: assignee?.nome ?? null,
       });
-      // Reset for next entry (Todoist behavior)
-      setTitle(''); setDescription('');
-      setDate(undefined); setTime(undefined);
-      setPriority(4);
-      setAssigneeId(currentUserId);
-      nlpFlags.current = {};
-      setTimeout(() => inputRef.current?.focus(), 30);
-      if (closeAfter) onOpenChange(false);
+      if (isEdit) {
+        onOpenChange(false);
+      } else {
+        // Reset for next entry (Todoist behavior)
+        setTitle(''); setDescription('');
+        setDate(undefined); setTime(undefined);
+        setPriority(4);
+        setAssigneeId(currentUserId);
+        nlpFlags.current = {};
+        setTimeout(() => inputRef.current?.focus(), 30);
+        if (closeAfter) onOpenChange(false);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -240,7 +274,7 @@ export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId }: 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl p-0 gap-0 overflow-hidden">
-        <DialogTitle className="sr-only">Nova tarefa</DialogTitle>
+        <DialogTitle className="sr-only">{isEdit ? 'Editar tarefa' : 'Nova tarefa'}</DialogTitle>
         <DialogDescription className="sr-only">
           Crie uma tarefa rapidamente. Use linguagem natural como "amanhã 14h" ou "12/05 17:30".
         </DialogDescription>
@@ -448,7 +482,7 @@ export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId }: 
           </span>
           <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button size="sm" onClick={() => submit(true)} disabled={!canSubmit}>
-            Adicionar tarefa
+            {isEdit ? 'Salvar alterações' : 'Adicionar tarefa'}
           </Button>
         </div>
       </DialogContent>
