@@ -28,6 +28,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
   const [unidade, setUnidade] = useState('UN');
   const [precoVenda, setPrecoVenda] = useState(0);
   const [precoCusto, setPrecoCusto] = useState(0);
+  const [despesasPct, setDespesasPct] = useState('0');
   const [estoque, setEstoque] = useState('0');
   const [ativo, setAtivo] = useState(true);
   const [fotoFile, setFotoFile] = useState<File | null>(null);
@@ -35,9 +36,12 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
   const [salvando, setSalvando] = useState(false);
   const [gerandoCodigo, setGerandoCodigo] = useState(false);
 
+  const custoFinal = precoCusto * (1 + (Number(despesasPct) || 0) / 100);
+
   const reset = () => {
     setTipo('produto'); setNome(''); setCodigo(''); setDescricao(''); setCategoria('');
-    setUnidade('UN'); setPrecoVenda(0); setPrecoCusto(0); setEstoque('0'); setAtivo(true);
+    setUnidade('UN'); setPrecoVenda(0); setPrecoCusto(0); setDespesasPct('0');
+    setEstoque('0'); setAtivo(true);
     setFotoFile(null); setFotoPreview(null);
   };
 
