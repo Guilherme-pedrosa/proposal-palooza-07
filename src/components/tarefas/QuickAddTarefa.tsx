@@ -482,7 +482,7 @@ export function QuickAddTarefa({ open, onOpenChange, onSubmit, currentUserId, in
           </span>
           <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button size="sm" onClick={() => submit(true)} disabled={!canSubmit}>
-            Adicionar tarefa
+            {isEdit ? 'Salvar alterações' : 'Adicionar tarefa'}
           </Button>
         </div>
       </DialogContent>
