@@ -195,7 +195,10 @@ Deno.serve(async (req) => {
     // Grava preços locais (precos_produto) para tipo produto
     if (tipo !== 'servico' && upserted?.id) {
       try {
-        const custoLocal = preco_custo != null ? Number(preco_custo) : 0;
+        const custoBase = preco_custo != null ? Number(preco_custo) : 0;
+        const dAcc = despesas_acessorias != null ? Number(despesas_acessorias) : 0;
+        const dOut = outras_despesas != null ? Number(outras_despesas) : 0;
+        const custoLocal = +(custoBase + dAcc + dOut).toFixed(2);
         const { data: tabelasFull } = await supabase
           .from('tabelas_preco')
           .select('id, gc_tipo_id, markup_padrao')
