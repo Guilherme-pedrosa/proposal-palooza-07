@@ -111,7 +111,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
           categoria: categoria.trim() || undefined,
           unidade,
           preco_venda: precoVenda,
-          preco_custo: precoCusto,
+          preco_custo: tipo === 'produto' ? custoFinal : precoCusto,
           estoque: Number(estoque) || 0,
           foto_url,
           ativo,
