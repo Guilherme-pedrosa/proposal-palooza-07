@@ -187,10 +187,19 @@ export default function PropostaEditor() {
   const { data: produtosGcMap } = useQuery({
     queryKey: ['produtos_gc_id_map'],
     queryFn: async () => {
-      const { data } = await supabase.from('produtos_gc').select('id, gc_id');
       const map = new Map<string, string>();
-      for (const p of data || []) {
-        map.set(p.gc_id, p.id);
+      const PAGE = 1000;
+      let from = 0;
+      // Pagina para contornar o limite default de 1000 do Supabase
+      while (true) {
+        const { data, error } = await supabase
+          .from('produtos_gc')
+          .select('id, gc_id')
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        for (const p of data || []) map.set(p.gc_id, p.id);
+        if (!data || data.length < PAGE) break;
+        from += PAGE;
       }
       return map;
     },
