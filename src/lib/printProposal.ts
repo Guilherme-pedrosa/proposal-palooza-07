@@ -108,7 +108,7 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
       return false;
     }
 
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
 
     for (let index = 0; index < pages.length; index += 1) {
       const page = pages[index];
@@ -131,12 +131,13 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
         scrollY: 0,
       });
 
-      const imgData = canvas.toDataURL('image/png');
+      // JPEG q=0.85 reduz o PDF de ~60MB para ~2-5MB sem perda visual perceptível.
+      const imgData = canvas.toDataURL('image/jpeg', 0.85);
       if (index > 0) {
         pdf.addPage();
       }
 
-      pdf.addImage(imgData, 'PNG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM);
+      pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
     }
 
     const clientName = proposal.client?.name?.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30) || 'Cliente';
