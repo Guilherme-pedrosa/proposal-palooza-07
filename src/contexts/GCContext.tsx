@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { ClienteGC, ProdutoGC } from '@/types/crm';
+import { useQueryClient } from '@tanstack/react-query';
+import { invalidateCatalogQueries } from '@/lib/query/invalidateCatalogQueries';
 
 interface OrcamentoPayload {
   gc_cliente_id: string;
@@ -38,6 +40,7 @@ interface GCState {
 const GCContext = createContext<GCState | undefined>(undefined);
 
 export function GCProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [isSyncingClientes, setIsSyncingClientes] = useState(false);
   const [isSyncingProdutos, setIsSyncingProdutos] = useState(false);
   const [lastSyncClientes, setLastSyncClientes] = useState<Date | null>(null);
@@ -83,6 +86,7 @@ export function GCProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase.functions.invoke('gc-sync-produtos');
       if (error) throw error;
       setLastSyncProdutos(new Date());
+      await invalidateCatalogQueries(queryClient);
       toast.success(`✅ ${data?.total_catalogo ?? 0} itens sincronizados (${data?.total_produtos ?? 0} produtos e ${data?.total_servicos ?? 0} serviços)`);
     } catch (e: any) {
       toast.error('❌ Erro ao sincronizar produtos. Verifique a API GC.');

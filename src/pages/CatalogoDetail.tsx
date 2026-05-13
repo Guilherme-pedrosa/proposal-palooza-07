@@ -13,6 +13,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { invalidateCatalogQueries } from '@/lib/query/invalidateCatalogQueries';
 import {
   fetchProdutoById,
   badgeEstoque,
@@ -253,7 +254,7 @@ export default function CatalogoDetail() {
 
   const refetch = () => {
     queryClient.invalidateQueries({ queryKey: ['produto_gc', id] });
-    queryClient.invalidateQueries({ queryKey: ['produtos_gc'] });
+    void invalidateCatalogQueries(queryClient);
   };
 
   if (isLoading) {

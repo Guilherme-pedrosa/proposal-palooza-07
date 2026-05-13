@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadProductPhoto } from '@/lib/api/produtosGC';
 import { useQueryClient } from '@tanstack/react-query';
+import { invalidateCatalogQueries } from '@/lib/query/invalidateCatalogQueries';
 
 interface Props {
   open: boolean;
@@ -179,7 +180,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
       if (!data?.sucesso) throw new Error(data?.erro || 'Falha ao criar no GestãoClick');
 
       toast.success(`✅ ${tipo === 'servico' ? 'Serviço' : 'Produto'} criado no GestãoClick (ID ${data.gc_id})`);
-      qc.invalidateQueries({ queryKey: ['produtos_gc'] });
+      await invalidateCatalogQueries(qc);
       reset();
       onOpenChange(false);
     } catch (e: any) {
