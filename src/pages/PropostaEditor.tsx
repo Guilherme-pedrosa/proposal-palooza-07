@@ -217,13 +217,17 @@ export default function PropostaEditor() {
   // Handle per-product price table change
   const handleProductTabelaChange = async (idx: number, newTabelaId: string) => {
     const product = produtos[idx];
+    const tabelaNome = tabelasPreco.find(t => t.id === newTabelaId)?.nome || 'tabela';
+
     if (!product?.gcProdutoId || !produtosGcMap) {
       setProdutos(prev => prev.map((p, i) => i === idx ? { ...p, tabelaPrecoId: newTabelaId } : p));
+      toast({ title: 'Item manual', description: 'Item sem vínculo com o catálogo — preço não foi alterado.', variant: 'destructive' });
       return;
     }
     const produtoUuid = produtosGcMap.get(product.gcProdutoId);
     if (!produtoUuid) {
       setProdutos(prev => prev.map((p, i) => i === idx ? { ...p, tabelaPrecoId: newTabelaId } : p));
+      toast({ title: 'Produto não encontrado', description: 'Produto não está sincronizado com o catálogo.', variant: 'destructive' });
       return;
     }
 
@@ -231,6 +235,20 @@ export default function PropostaEditor() {
     let novoPreco = getPrecoFromTabela(produtoUuid, newTabelaId);
     if (novoPreco === null) {
       novoPreco = await fetchPrecoFromDB(produtoUuid, newTabelaId);
+    }
+
+    // Fallback: base price from produtos_gc
+    let usouFallback = false;
+    if (novoPreco === null) {
+      const { data: prod } = await supabase
+        .from('produtos_gc')
+        .select('preco_venda')
+        .eq('id', produtoUuid)
+        .maybeSingle();
+      if (prod?.preco_venda && prod.preco_venda > 0) {
+        novoPreco = Number(prod.preco_venda);
+        usouFallback = true;
+      }
     }
 
     setProdutos(prev => prev.map((p, i) => {
@@ -241,6 +259,21 @@ export default function PropostaEditor() {
       }
       return { ...p, tabelaPrecoId: newTabelaId };
     }));
+
+    if (novoPreco === null) {
+      toast({
+        title: `Sem preço em "${tabelaNome}"`,
+        description: 'Este produto não tem preço cadastrado nesta tabela. Cadastre em Catálogo → Tabelas de Preço.',
+        variant: 'destructive',
+      });
+    } else if (usouFallback) {
+      toast({
+        title: 'Usando preço base',
+        description: `"${tabelaNome}" não tem preço para este item — usei o preço base do catálogo.`,
+      });
+    } else {
+      toast({ title: 'Preço atualizado', description: `Novo preço da tabela "${tabelaNome}" aplicado.` });
+    }
   };
 
   // Load existing proposal
