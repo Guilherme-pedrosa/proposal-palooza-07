@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -183,21 +183,20 @@ export default function PropostaEditor() {
     }
   }, [tabelasPreco]);
 
-  // Build a map of gc_id -> produto UUID for price lookups
+  // Map gc_id -> { uuid, precoBase } (paginado p/ contornar limite de 1000 do Supabase)
   const { data: produtosGcMap } = useQuery({
     queryKey: ['produtos_gc_id_map'],
     queryFn: async () => {
-      const map = new Map<string, string>();
+      const map = new Map<string, { uuid: string; precoBase: number | null }>();
       const PAGE = 1000;
       let from = 0;
-      // Pagina para contornar o limite default de 1000 do Supabase
       while (true) {
         const { data, error } = await supabase
           .from('produtos_gc')
-          .select('id, gc_id')
+          .select('id, gc_id, preco_venda')
           .range(from, from + PAGE - 1);
         if (error) throw error;
-        for (const p of data || []) map.set(p.gc_id, p.id);
+        for (const p of data || []) map.set(p.gc_id, { uuid: p.id, precoBase: p.preco_venda });
         if (!data || data.length < PAGE) break;
         from += PAGE;
       }
@@ -206,25 +205,23 @@ export default function PropostaEditor() {
     staleTime: 10 * 60 * 1000,
   });
 
-  // Helper: get price for a product from a specific table (from cache)
-  const getPrecoFromTabela = (produtoUuid: string, tabelaId: string) => {
-    const preco = allPrecos.find(pp => pp.produto_id === produtoUuid && pp.tabela_preco_id === tabelaId);
-    return preco?.valor_venda && preco.valor_venda > 0 ? preco.valor_venda : null;
-  };
+  // Lookup direto: `${gc_id}|${tabela_id}` -> valor_venda (sem ida ao banco)
+  const precoLookup = useMemo(() => {
+    const m = new Map<string, number>();
+    if (!produtosGcMap) return m;
+    const uuidToGc = new Map<string, string>();
+    produtosGcMap.forEach((v, gc) => uuidToGc.set(v.uuid, gc));
+    for (const pp of allPrecos) {
+      const gc = uuidToGc.get(pp.produto_id);
+      if (gc && pp.valor_venda > 0) {
+        m.set(`${gc}|${pp.tabela_preco_id}`, Number(pp.valor_venda));
+      }
+    }
+    return m;
+  }, [allPrecos, produtosGcMap]);
 
-  // Helper: fetch price directly from DB (for when allPrecos might not have it)
-  const fetchPrecoFromDB = async (produtoUuid: string, tabelaId: string): Promise<number | null> => {
-    const { data } = await supabase
-      .from('precos_produto')
-      .select('valor_venda')
-      .eq('produto_id', produtoUuid)
-      .eq('tabela_preco_id', tabelaId)
-      .maybeSingle();
-    return data?.valor_venda && data.valor_venda > 0 ? data.valor_venda : null;
-  };
-
-  // Handle per-product price table change
-  const handleProductTabelaChange = async (idx: number, newTabelaId: string) => {
+  // Handle per-product price table change (100% em memória)
+  const handleProductTabelaChange = (idx: number, newTabelaId: string) => {
     const product = produtos[idx];
     const tabelaNome = tabelasPreco.find(t => t.id === newTabelaId)?.nome || 'tabela';
 
@@ -233,31 +230,18 @@ export default function PropostaEditor() {
       toast({ title: 'Item manual', description: 'Item sem vínculo com o catálogo — preço não foi alterado.', variant: 'destructive' });
       return;
     }
-    const produtoUuid = produtosGcMap.get(product.gcProdutoId);
-    if (!produtoUuid) {
+    const ref = produtosGcMap.get(product.gcProdutoId);
+    if (!ref) {
       setProdutos(prev => prev.map((p, i) => i === idx ? { ...p, tabelaPrecoId: newTabelaId } : p));
       toast({ title: 'Produto não encontrado', description: 'Produto não está sincronizado com o catálogo.', variant: 'destructive' });
       return;
     }
 
-    // Try cache first, then DB
-    let novoPreco = getPrecoFromTabela(produtoUuid, newTabelaId);
-    if (novoPreco === null) {
-      novoPreco = await fetchPrecoFromDB(produtoUuid, newTabelaId);
-    }
-
-    // Fallback: base price from produtos_gc
+    let novoPreco: number | null = precoLookup.get(`${product.gcProdutoId}|${newTabelaId}`) ?? null;
     let usouFallback = false;
-    if (novoPreco === null) {
-      const { data: prod } = await supabase
-        .from('produtos_gc')
-        .select('preco_venda')
-        .eq('id', produtoUuid)
-        .maybeSingle();
-      if (prod?.preco_venda && prod.preco_venda > 0) {
-        novoPreco = Number(prod.preco_venda);
-        usouFallback = true;
-      }
+    if (novoPreco === null && ref.precoBase && ref.precoBase > 0) {
+      novoPreco = Number(ref.precoBase);
+      usouFallback = true;
     }
 
     setProdutos(prev => prev.map((p, i) => {
