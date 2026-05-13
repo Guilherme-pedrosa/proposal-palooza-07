@@ -156,21 +156,27 @@ export default function PropostaEditor() {
     queryFn: tabelasPrecoApi.getAll,
   });
 
-  // Load all prices (all tables) for per-product price table selection
+  // Carrega só os preços dos produtos presentes na proposta (evita baixar 40k+ linhas)
+  const gcIdsAtuais = useMemo(
+    () => Array.from(new Set(produtos.map(p => p.gcProdutoId).filter(Boolean) as string[])),
+    [produtos],
+  );
   const { data: allPrecos = [] } = useQuery({
-    queryKey: ['all_precos'],
+    queryKey: ['precos_proposta', gcIdsAtuais.sort().join(',')],
+    enabled: gcIdsAtuais.length > 0,
     queryFn: async () => {
-      const allRows: any[] = [];
-      let from = 0;
-      const PAGE_SIZE = 1000;
-      while (true) {
-        const { data } = await supabase.from('precos_produto').select('*').range(from, from + PAGE_SIZE - 1);
-        if (!data || data.length === 0) break;
-        allRows.push(...data);
-        if (data.length < PAGE_SIZE) break;
-        from += PAGE_SIZE;
-      }
-      return allRows;
+      // Resolve UUIDs dos gc_ids
+      const { data: prods } = await supabase
+        .from('produtos_gc')
+        .select('id, gc_id')
+        .in('gc_id', gcIdsAtuais);
+      const uuids = (prods ?? []).map(p => p.id);
+      if (uuids.length === 0) return [];
+      const { data } = await supabase
+        .from('precos_produto')
+        .select('produto_id, tabela_preco_id, valor_venda')
+        .in('produto_id', uuids);
+      return data ?? [];
     },
     staleTime: 5 * 60 * 1000,
   });
