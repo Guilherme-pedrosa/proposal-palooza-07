@@ -254,7 +254,7 @@ export default function CatalogoDetail() {
 
   const refetch = () => {
     queryClient.invalidateQueries({ queryKey: ['produto_gc', id] });
-    invalidateCatalogQueries(queryClient);
+    void invalidateCatalogQueries(queryClient);
   };
 
   if (isLoading) {
