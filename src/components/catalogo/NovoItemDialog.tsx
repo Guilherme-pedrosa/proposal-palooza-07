@@ -180,6 +180,20 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
       if (!data?.sucesso) throw new Error(data?.erro || 'Falha ao criar no GestãoClick');
 
       toast.success(`✅ ${tipo === 'servico' ? 'Serviço' : 'Produto'} criado no GestãoClick (ID ${data.gc_id})`);
+
+      // Puxa de volta do GC para garantir que o catálogo reflete exatamente o que está lá
+      toast.info('Sincronizando catálogo com o GestãoClick...');
+      try {
+        const { error: syncErr } = await supabase.functions.invoke('gc-sync-produtos', {
+          body: { gc_id: data.gc_id },
+        });
+        if (syncErr) throw syncErr;
+        toast.success('Catálogo sincronizado');
+      } catch (syncErr: any) {
+        console.error('Falha no sync pós-criação:', syncErr);
+        toast.warning('Item criado, mas o sync automático falhou. Rode o "Sync GC" manualmente.');
+      }
+
       await invalidateCatalogQueries(qc);
       reset();
       onOpenChange(false);
