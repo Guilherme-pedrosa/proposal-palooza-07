@@ -184,9 +184,7 @@ export function NovoItemDialog({ open, onOpenChange }: Props) {
       // Puxa de volta do GC para garantir que o catálogo reflete exatamente o que está lá
       toast.info('Sincronizando catálogo com o GestãoClick...');
       try {
-        const { error: syncErr } = await supabase.functions.invoke('gc-sync-produtos', {
-          body: { gc_id: data.gc_id },
-        });
+        const { error: syncErr } = await supabase.functions.invoke('gc-sync-produtos');
         if (syncErr) throw syncErr;
         toast.success('Catálogo sincronizado');
       } catch (syncErr: any) {
