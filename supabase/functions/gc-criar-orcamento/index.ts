@@ -124,7 +124,7 @@ serve(async (req) => {
     console.log('[gc-criar-orcamento] GC response:', JSON.stringify(json));
     const orcamento = json.data ?? json;
     const gc_orcamento_id = String(orcamento.id);
-    const gc_orcamento_url = `https://gestaoclick.com/orcamentos/visualizar/${gc_orcamento_id}`;
+    const gc_orcamento_url = `https://app.gestaoclick.com/orcamentos/visualizar/${gc_orcamento_id}`;
 
     return new Response(JSON.stringify({
       sucesso: true,
