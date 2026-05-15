@@ -7,16 +7,13 @@ const corsHeaders = {
 
 const GC_BASE_URL = 'https://api.gestaoclick.com';
 const GC_LOJA_ID = 446246;
-const GC_SITUACAO_ORCAMENTO_INICIAL = 7116099;
+// Override via env GC_SITUACAO_ORCAMENTO_ID se necessário
+const GC_SITUACAO_DEFAULT = 7116099;
 const GC_MAX_RETRIES = 3;
 
-async function fetchComRetry(url: string, headers: Record<string, string>, body: object, maxRetries: number): Promise<Response> {
+async function fetchComRetry(url: string, init: RequestInit, maxRetries: number): Promise<Response> {
   for (let tentativa = 0; tentativa < maxRetries; tentativa++) {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-    });
+    const response = await fetch(url, init);
     if (response.status === 429) {
       await new Promise(r => setTimeout(r, Math.pow(2, tentativa) * 1000));
       continue;
@@ -33,6 +30,7 @@ serve(async (req) => {
 
   const ACCESS_TOKEN = Deno.env.get('GC_ACCESS_TOKEN')!;
   const SECRET_TOKEN = Deno.env.get('GC_SECRET_ACCESS_TOKEN')!;
+  const SITUACAO_ID = Number(Deno.env.get('GC_SITUACAO_ORCAMENTO_ID') ?? GC_SITUACAO_DEFAULT);
 
   if (!ACCESS_TOKEN || !SECRET_TOKEN) {
     return new Response(JSON.stringify({ erro: 'Credenciais GC não configuradas' }), {
@@ -51,27 +49,60 @@ serve(async (req) => {
     produtos,
     observacoes,
     vendedor_nome,
-    proposta_numero
+    proposta_numero,
   } = await req.json();
 
-  const payload = {
-    loja_id: GC_LOJA_ID,
-    cliente_id: gc_cliente_id,
-    situacao_id: GC_SITUACAO_ORCAMENTO_INICIAL,
-    observacoes: `CRM WeDo - Proposta ${proposta_numero} - ${vendedor_nome}\n\n${observacoes || ''}`,
-    produtos: produtos.map((p: any) => ({
-      produto_id: p.gc_produto_id,
-      quantidade: p.quantidade,
-      valor_unitario: p.valor_unitario,
-    })),
-  };
-
-  const url = `${GC_BASE_URL}/orcamentos?` + new URLSearchParams({
-    loja_id: String(GC_LOJA_ID),
+  // Estrutura correta da API GestãoClick:
+  // produtos: [{ produto: { produto_id, quantidade, valor_venda, valor_total, ... } }]
+  const produtosGC = (produtos ?? []).map((p: any) => {
+    const quantidade = Number(p.quantidade ?? 1);
+    const valor_venda = Number(p.valor_unitario ?? 0);
+    const valor_total = Number((quantidade * valor_venda).toFixed(2));
+    return {
+      produto: {
+        produto_id: String(p.gc_produto_id),
+        quantidade: quantidade.toFixed(2),
+        valor_venda: valor_venda.toFixed(2),
+        valor_total: valor_total.toFixed(2),
+        tipo_desconto: 'R$',
+        desconto_valor: '0.00',
+        desconto_porcentagem: '0.00',
+      },
+    };
   });
 
+  const valorTotalOrc = produtosGC.reduce(
+    (acc: number, item: any) => acc + Number(item.produto.valor_total),
+    0,
+  );
+
+  const hoje = new Date().toISOString().split('T')[0];
+
+  const payload: Record<string, any> = {
+    tipo: 'produto',
+    loja_id: GC_LOJA_ID,
+    cliente_id: gc_cliente_id,
+    situacao_id: SITUACAO_ID,
+    data: hoje,
+    valor_total: valorTotalOrc.toFixed(2),
+    valor_frete: '0.00',
+    desconto_valor: '0.00',
+    desconto_porcentagem: '0.00',
+    condicao_pagamento: 'a_vista',
+    observacoes: `CRM WeDo - Proposta ${proposta_numero} - ${vendedor_nome}\n\n${observacoes || ''}`,
+    produtos: produtosGC,
+  };
+
+  const url = `${GC_BASE_URL}/orcamentos`;
+
+  console.log('[gc-criar-orcamento] payload:', JSON.stringify(payload));
+
   try {
-    const response = await fetchComRetry(url, gcHeaders, payload, GC_MAX_RETRIES);
+    const response = await fetchComRetry(url, {
+      method: 'POST',
+      headers: gcHeaders,
+      body: JSON.stringify(payload),
+    }, GC_MAX_RETRIES);
 
     if (response.status === 401) {
       return new Response(JSON.stringify({
@@ -82,20 +113,24 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errBody = await response.text();
+      console.error('[gc-criar-orcamento] GC error:', response.status, errBody);
       return new Response(JSON.stringify({
         erro: 'ERRO_GC',
         mensagem: `Erro ao criar orçamento: ${errBody}`
       }), { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const { data: orcamento } = await response.json();
+    const json = await response.json();
+    console.log('[gc-criar-orcamento] GC response:', JSON.stringify(json));
+    const orcamento = json.data ?? json;
     const gc_orcamento_id = String(orcamento.id);
     const gc_orcamento_url = `https://gestaoclick.com/orcamentos/visualizar/${gc_orcamento_id}`;
 
     return new Response(JSON.stringify({
       sucesso: true,
       gc_orcamento_id,
-      gc_orcamento_url
+      gc_orcamento_url,
+      valor_total: valorTotalOrc,
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (e) {
     return new Response(JSON.stringify({
