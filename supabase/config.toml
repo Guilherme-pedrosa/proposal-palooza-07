@@ -2,3 +2,6 @@ project_id = "sxyjsbaymdlfmvrngguo"
 
 [functions.receive-task-update]
 verify_jwt = false
+
+[functions.gc-bulk-update-revenda]
+verify_jwt = false
