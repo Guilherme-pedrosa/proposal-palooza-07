@@ -40,22 +40,32 @@ Deno.serve(async (req) => {
     }
     const existing = getJson?.data ?? {};
 
-    // Build merged payload — preserve everything, override only what we want
+    // Build a clean payload — only writable fields, preserve prices/group/etc.
+    const valoresClean = Array.isArray(existing.valores)
+      ? existing.valores.map((v: any) => ({
+          tipo_id: Number(v.tipo_id),
+          lucro_utilizado: parseFloat(v.lucro_utilizado) || 0,
+          valor_custo: parseFloat(v.valor_custo) || 0,
+          valor_venda: parseFloat(v.valor_venda) || 0,
+        }))
+      : undefined;
+
     const merged: Record<string, any> = {
-      ...existing,
       loja_id: LOJA_ID,
       nome: it.nome,
       codigo_interno: it.codigo,
       descricao: it.descricao,
       fotos: [it.foto_url],
+      ativo: existing.ativo ?? '1',
+      grupo_id: existing.grupo_id ? Number(existing.grupo_id) : undefined,
+      unidade_id: existing.unidade_id ? Number(existing.unidade_id) : undefined,
+      marca_id: existing.marca_id ? Number(existing.marca_id) : undefined,
+      movimenta_estoque: existing.movimenta_estoque ?? '1',
+      valor_custo: parseFloat(existing.valor_custo) || 0,
+      valor_venda: parseFloat(existing.valor_venda) || 0,
+      valores: valoresClean,
     };
-    // Remove read-only / nested fields that GC may reject
-    delete merged.id;
-    delete merged.created_at;
-    delete merged.updated_at;
-    delete merged.nome_grupo; // group set via grupo_id
-    delete merged.nome_marca;
-    delete merged.nome_unidade;
+    Object.keys(merged).forEach((k) => merged[k] === undefined && delete merged[k]);
 
     const putResp = await fetch(`${GC}/produtos/${it.gc_id}`, {
       method: 'PUT',
