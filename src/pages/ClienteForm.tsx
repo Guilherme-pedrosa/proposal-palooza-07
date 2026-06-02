@@ -230,6 +230,8 @@ export default function ClienteForm() {
               razao_social: form.razao_social || undefined,
               cnpj: payload.cnpj || undefined,
               cpf: payload.cpf || undefined,
+              inscricao_estadual: form.inscricao_estadual || undefined,
+              contato: form.contato || undefined,
               telefone: form.telefone || undefined,
               celular: form.celular || undefined,
               email: form.email || undefined,
