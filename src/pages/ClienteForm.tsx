@@ -29,6 +29,7 @@ export default function ClienteForm() {
   const [saving, setSaving] = useState(false);
   const [lookingUpCep, setLookingUpCep] = useState(false);
   const [lookingUpCnpj, setLookingUpCnpj] = useState(false);
+  const [lookingUpIE, setLookingUpIE] = useState(false);
   const [tipoPessoa, setTipoPessoa] = useState<'PJ' | 'PF'>('PJ');
 
   const [form, setForm] = useState({
@@ -108,6 +109,35 @@ export default function ClienteForm() {
     }
   };
 
+  const buscarInscricaoEstadual = async (cnpjClean: string, uf: string) => {
+    if (cnpjClean.length !== 14 || !uf) return;
+    setLookingUpIE(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('consultar-sintegra', {
+        body: { cnpj: cnpjClean, uf },
+      });
+      if (error) throw error;
+      if (data?.inscricao_estadual) {
+        setForm(f => ({ ...f, inscricao_estadual: data.inscricao_estadual }));
+        const status = data.ie_ativa ? 'ativa' : 'inativa';
+        toast.success(`Inscrição Estadual encontrada (${status})`);
+      } else {
+        toast.info('Nenhuma Inscrição Estadual encontrada para esta UF');
+      }
+    } catch (error: any) {
+      toast.error(error?.message || 'Erro ao consultar Sintegra');
+    } finally {
+      setLookingUpIE(false);
+    }
+  };
+
+  const handleBuscarIE = async () => {
+    const cnpj = form.cnpj.replace(/\D/g, '');
+    if (cnpj.length !== 14) return toast.error('Preencha um CNPJ válido primeiro');
+    if (!form.estado) return toast.error('Preencha o Estado (UF) primeiro');
+    await buscarInscricaoEstadual(cnpj, form.estado);
+  };
+
   const handleCNPJ = async () => {
     const cnpj = form.cnpj.replace(/\D/g, '');
     if (cnpj.length !== 14) {
@@ -117,6 +147,7 @@ export default function ClienteForm() {
     setLookingUpCnpj(true);
     try {
       const data = await clientesGCApi.lookupCNPJ(cnpj);
+      const ufResolvida = data.uf || form.estado;
       setForm(f => ({
         ...f,
         nome: data.razao_social || f.nome,
@@ -125,10 +156,14 @@ export default function ClienteForm() {
         email: data.email || f.email,
         endereco: [data.logradouro, data.numero, data.complemento].filter(Boolean).join(', ') || f.endereco,
         cidade: data.municipio || f.cidade,
-        estado: data.uf || f.estado,
+        estado: ufResolvida,
         cep: data.cep?.replace(/\D/g, '') || f.cep,
       }));
       toast.success('Dados do CNPJ preenchidos automaticamente!');
+      // Busca IE automaticamente em seguida
+      if (ufResolvida) {
+        buscarInscricaoEstadual(cnpj, ufResolvida);
+      }
     } catch (error: any) {
       toast.error(error.message || 'Erro ao consultar CNPJ');
     } finally {
