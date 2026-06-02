@@ -66,6 +66,8 @@ export default function ClienteForm() {
         razao_social: existing.razao_social || '',
         cnpj: existing.cnpj || '',
         cpf: existing.cpf || '',
+        inscricao_estadual: (existing as any).inscricao_estadual || '',
+        contato: (existing as any).contato || '',
         segmento: existing.segmento || '',
         porte: existing.porte || '',
         telefone: existing.telefone || '',
@@ -79,6 +81,7 @@ export default function ClienteForm() {
       });
     }
   }, [existing]);
+
 
   const set = (field: string, value: string) => setForm(f => ({ ...f, [field]: value }));
 
