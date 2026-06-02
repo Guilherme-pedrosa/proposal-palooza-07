@@ -145,6 +145,7 @@ export type Database = {
           celular: string | null
           cidade: string | null
           cnpj: string | null
+          contato: string | null
           cpf: string | null
           created_at: string | null
           email: string | null
@@ -155,6 +156,7 @@ export type Database = {
           gc_synced_at: string | null
           geocodificado: boolean | null
           id: string
+          inscricao_estadual: string | null
           latitude: number | null
           longitude: number | null
           nome: string
@@ -174,6 +176,7 @@ export type Database = {
           celular?: string | null
           cidade?: string | null
           cnpj?: string | null
+          contato?: string | null
           cpf?: string | null
           created_at?: string | null
           email?: string | null
@@ -184,6 +187,7 @@ export type Database = {
           gc_synced_at?: string | null
           geocodificado?: boolean | null
           id?: string
+          inscricao_estadual?: string | null
           latitude?: number | null
           longitude?: number | null
           nome: string
@@ -203,6 +207,7 @@ export type Database = {
           celular?: string | null
           cidade?: string | null
           cnpj?: string | null
+          contato?: string | null
           cpf?: string | null
           created_at?: string | null
           email?: string | null
@@ -213,6 +218,7 @@ export type Database = {
           gc_synced_at?: string | null
           geocodificado?: boolean | null
           id?: string
+          inscricao_estadual?: string | null
           latitude?: number | null
           longitude?: number | null
           nome?: string
