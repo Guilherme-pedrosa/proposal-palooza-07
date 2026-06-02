@@ -36,6 +36,8 @@ export default function ClienteForm() {
     razao_social: '',
     cnpj: '',
     cpf: '',
+    inscricao_estadual: '',
+    contato: '',
     segmento: '',
     porte: '',
     telefone: '',
@@ -47,6 +49,7 @@ export default function ClienteForm() {
     estado: '',
     observacoes: '',
   });
+
 
   // Load existing client
   const { data: existing } = useQuery({
