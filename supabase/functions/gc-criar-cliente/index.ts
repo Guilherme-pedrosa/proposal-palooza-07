@@ -26,6 +26,7 @@ Deno.serve(async (req) => {
     const {
       tipo_pessoa, nome, razao_social, cnpj, cpf,
       telefone, celular, email, endereco, cidade, estado, cep,
+      inscricao_estadual, contato,
     } = body;
 
     if (!nome) {
@@ -49,6 +50,11 @@ Deno.serve(async (req) => {
     if (telefone) gcPayload.telefone = telefone;
     if (celular) gcPayload.celular = celular;
     if (email) gcPayload.email = email;
+    if (inscricao_estadual) gcPayload.inscricao_estadual = inscricao_estadual;
+    if (contato) {
+      gcPayload.contatos = [{ contato: { nome: contato } }];
+    }
+
 
     // Build address if provided
     if (endereco || cidade || estado || cep) {
