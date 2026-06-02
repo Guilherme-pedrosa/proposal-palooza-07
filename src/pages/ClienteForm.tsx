@@ -177,6 +177,11 @@ export default function ClienteForm() {
       return;
     }
 
+    if (!form.contato.trim()) {
+      toast.error('Contato é obrigatório');
+      return;
+    }
+
     if (tipoPessoa === 'PJ' && form.cnpj) {
       const cnpjClean = form.cnpj.replace(/\D/g, '');
       if (cnpjClean.length !== 14) {
