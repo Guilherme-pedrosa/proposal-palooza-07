@@ -177,6 +177,11 @@ export default function ClienteForm() {
       return;
     }
 
+    if (!form.contato.trim()) {
+      toast.error('Contato é obrigatório');
+      return;
+    }
+
     if (tipoPessoa === 'PJ' && form.cnpj) {
       const cnpjClean = form.cnpj.replace(/\D/g, '');
       if (cnpjClean.length !== 14) {
@@ -198,6 +203,8 @@ export default function ClienteForm() {
         razao_social: form.razao_social || null,
         cnpj: tipoPessoa === 'PJ' ? form.cnpj.replace(/\D/g, '') || null : null,
         cpf: tipoPessoa === 'PF' ? form.cpf.replace(/\D/g, '') || null : null,
+        inscricao_estadual: form.inscricao_estadual || null,
+        contato: form.contato || null,
         segmento: form.segmento || null,
         porte: form.porte || null,
         telefone: form.telefone || null,
@@ -223,6 +230,8 @@ export default function ClienteForm() {
               razao_social: form.razao_social || undefined,
               cnpj: payload.cnpj || undefined,
               cpf: payload.cpf || undefined,
+              inscricao_estadual: form.inscricao_estadual || undefined,
+              contato: form.contato || undefined,
               telefone: form.telefone || undefined,
               celular: form.celular || undefined,
               email: form.email || undefined,
@@ -317,9 +326,20 @@ export default function ClienteForm() {
               </div>
             </div>
           ) : (
-            <div>
-              <Label>CPF</Label>
-              <Input value={form.cpf} onChange={(e) => set('cpf', e.target.value)} placeholder="000.000.000-00" />
+            <div className="space-y-4">
+              <div>
+                <Label>CPF</Label>
+                <Input value={form.cpf} onChange={(e) => set('cpf', e.target.value)} placeholder="000.000.000-00" />
+              </div>
+              <div>
+                <Label>Contato (Pessoa) *</Label>
+                <Input
+                  value={form.contato}
+                  onChange={(e) => set('contato', e.target.value)}
+                  placeholder="Nome do contato principal"
+                  required
+                />
+              </div>
             </div>
           )}
 
@@ -341,11 +361,12 @@ export default function ClienteForm() {
                 </div>
               </div>
               <div>
-                <Label>Contato (Pessoa)</Label>
+                <Label>Contato (Pessoa) *</Label>
                 <Input
                   value={form.contato}
                   onChange={(e) => set('contato', e.target.value)}
                   placeholder="Nome do contato principal"
+                  required
                 />
               </div>
             </div>
