@@ -326,9 +326,20 @@ export default function ClienteForm() {
               </div>
             </div>
           ) : (
-            <div>
-              <Label>CPF</Label>
-              <Input value={form.cpf} onChange={(e) => set('cpf', e.target.value)} placeholder="000.000.000-00" />
+            <div className="space-y-4">
+              <div>
+                <Label>CPF</Label>
+                <Input value={form.cpf} onChange={(e) => set('cpf', e.target.value)} placeholder="000.000.000-00" />
+              </div>
+              <div>
+                <Label>Contato (Pessoa) *</Label>
+                <Input
+                  value={form.contato}
+                  onChange={(e) => set('contato', e.target.value)}
+                  placeholder="Nome do contato principal"
+                  required
+                />
+              </div>
             </div>
           )}
 
