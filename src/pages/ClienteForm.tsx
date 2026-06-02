@@ -301,7 +301,35 @@ export default function ClienteForm() {
                 <Label>Nome Fantasia</Label>
                 <Input value={form.razao_social} onChange={(e) => set('razao_social', e.target.value)} />
               </div>
-            )}
+          )}
+
+          {/* Inscrição Estadual + Contato (apenas PJ) */}
+          {tipoPessoa === 'PJ' && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label>Inscrição Estadual</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={form.inscricao_estadual}
+                    onChange={(e) => set('inscricao_estadual', e.target.value)}
+                    placeholder="Buscar automático ou ISENTO"
+                    className="flex-1"
+                  />
+                  <Button variant="outline" onClick={handleBuscarIE} disabled={lookingUpIE} title="Buscar IE no Sintegra">
+                    {lookingUpIE ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <Label>Contato (Pessoa)</Label>
+                <Input
+                  value={form.contato}
+                  onChange={(e) => set('contato', e.target.value)}
+                  placeholder="Nome do contato principal"
+                />
+              </div>
+            </div>
+          )}
           </div>
 
           {/* Documento */}
