@@ -350,11 +350,12 @@ export default function ClienteForm() {
                 </div>
               </div>
               <div>
-                <Label>Contato (Pessoa)</Label>
+                <Label>Contato (Pessoa) *</Label>
                 <Input
                   value={form.contato}
                   onChange={(e) => set('contato', e.target.value)}
                   placeholder="Nome do contato principal"
+                  required
                 />
               </div>
             </div>
