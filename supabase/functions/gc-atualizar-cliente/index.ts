@@ -24,39 +24,48 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const {
-      tipo_pessoa, nome, razao_social, cnpj, cpf,
+      gc_id, tipo_pessoa, nome, razao_social, cnpj, cpf,
       telefone, celular, email, endereco, cidade, estado, cep,
       inscricao_estadual, contato,
     } = body;
 
-    if (!nome) {
+    if (!gc_id) {
       return new Response(
-        JSON.stringify({ sucesso: false, erro: 'Nome é obrigatório' }),
+        JSON.stringify({ sucesso: false, erro: 'gc_id é obrigatório' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Build GC payload
+    const headers = {
+      'access-token': ACCESS_TOKEN,
+      'secret-access-token': SECRET_TOKEN,
+      'Content-Type': 'application/json',
+    };
+
+    // Fetch existing to preserve required fields
+    const existingResp = await fetch(`${GC_BASE_URL}/clientes/${gc_id}`, { headers });
+    const existingBody = await existingResp.json();
+    const existing = existingBody?.data || existingBody || {};
+
     const gcPayload: Record<string, any> = {
-      tipo_pessoa: tipo_pessoa || 'PJ',
-      nome,
       loja_id: GC_LOJA_ID,
+      tipo_pessoa: tipo_pessoa || existing.tipo_pessoa || 'PJ',
+      nome: nome ?? existing.nome,
       ativo: '1',
     };
 
-    if (razao_social) gcPayload.razao_social = razao_social;
-    if (cnpj) gcPayload.cnpj = cnpj;
-    if (cpf) gcPayload.cpf = cpf;
-    if (telefone) gcPayload.telefone = telefone;
-    if (celular) gcPayload.celular = celular;
-    if (email) gcPayload.email = email;
-    if (inscricao_estadual) gcPayload.inscricao_estadual = inscricao_estadual;
-    if (contato) {
+    if (razao_social !== undefined) gcPayload.razao_social = razao_social || '';
+    if (cnpj !== undefined) gcPayload.cnpj = cnpj || '';
+    if (cpf !== undefined) gcPayload.cpf = cpf || '';
+    if (telefone !== undefined) gcPayload.telefone = telefone || '';
+    if (celular !== undefined) gcPayload.celular = celular || '';
+    if (email !== undefined) gcPayload.email = email || '';
+    if (inscricao_estadual !== undefined) gcPayload.inscricao_estadual = inscricao_estadual || '';
+
+    if (contato !== undefined && contato !== null && contato !== '') {
       gcPayload.contatos = [{ contato: { nome: contato } }];
     }
 
-
-    // Build address if provided
     if (endereco || cidade || estado || cep) {
       gcPayload.enderecos = [{
         endereco: {
@@ -71,39 +80,33 @@ Deno.serve(async (req) => {
       }];
     }
 
-    console.log('Creating client in GestãoClick:', JSON.stringify(gcPayload));
+    console.log('Updating client in GestãoClick:', gc_id, JSON.stringify(gcPayload));
 
-    const response = await fetch(`${GC_BASE_URL}/clientes`, {
-      method: 'POST',
-      headers: {
-        'access-token': ACCESS_TOKEN,
-        'secret-access-token': SECRET_TOKEN,
-        'Content-Type': 'application/json',
-      },
+    const response = await fetch(`${GC_BASE_URL}/clientes/${gc_id}`, {
+      method: 'PUT',
+      headers,
       body: JSON.stringify(gcPayload),
     });
 
     const responseData = await response.json();
-    console.log('GC response:', JSON.stringify(responseData));
+    console.log('GC update response:', JSON.stringify(responseData));
 
-    if (!response.ok || responseData.code !== 200) {
+    if (!response.ok || (responseData.code && responseData.code !== 200)) {
       return new Response(
         JSON.stringify({
           sucesso: false,
-          erro: responseData.message || responseData.error || 'Erro ao cadastrar no GestãoClick',
+          erro: responseData.message || responseData.error || 'Erro ao atualizar no GestãoClick',
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const gcId = responseData.data?.id || responseData.id;
-
     return new Response(
-      JSON.stringify({ sucesso: true, gc_id: String(gcId) }),
+      JSON.stringify({ sucesso: true, gc_id }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error creating client in GC:', error);
+    console.error('Error updating client in GC:', error);
     return new Response(
       JSON.stringify({ sucesso: false, erro: error instanceof Error ? error.message : 'Erro interno' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

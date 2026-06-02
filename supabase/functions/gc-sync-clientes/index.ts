@@ -103,6 +103,8 @@ serve(async (req) => {
           razao_social: c.razao_social,
           cnpj: c.cnpj,
           cpf: c.cpf,
+          inscricao_estadual: c.inscricao_estadual ?? null,
+          contato: c?.contatos?.[0]?.contato?.nome ?? c?.contatos?.[0]?.nome ?? null,
           telefone: c.telefone,
           celular: c.celular,
           email: c.email,
@@ -112,6 +114,7 @@ serve(async (req) => {
           ativo: c.ativo !== false,
           gc_synced_at: new Date().toISOString(),
         };
+
       });
 
       const { error } = await supabase
