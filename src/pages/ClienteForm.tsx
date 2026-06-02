@@ -217,6 +217,39 @@ export default function ClienteForm() {
       };
 
       if (isEdit) {
+        // 1) Push update to GestãoClick
+        const gcId = (existing as any)?.gc_id;
+        if (gcId && !String(gcId).startsWith('manual-')) {
+          try {
+            const { data: gcResult, error: gcError } = await supabase.functions.invoke('gc-atualizar-cliente', {
+              body: {
+                gc_id: gcId,
+                tipo_pessoa: tipoPessoa,
+                nome: form.nome,
+                razao_social: form.razao_social || undefined,
+                cnpj: payload.cnpj || undefined,
+                cpf: payload.cpf || undefined,
+                inscricao_estadual: form.inscricao_estadual || undefined,
+                contato: form.contato || undefined,
+                telefone: form.telefone || undefined,
+                celular: form.celular || undefined,
+                email: form.email || undefined,
+                endereco: form.endereco || undefined,
+                cidade: form.cidade || undefined,
+                estado: form.estado || undefined,
+              },
+            });
+            if (gcError || !gcResult?.sucesso) {
+              console.warn('GC update failed:', gcError || gcResult?.erro);
+              toast.warning('Atualizado localmente. Sincronização com GestãoClick falhou.');
+            } else {
+              toast.success('Cliente atualizado no GestãoClick!');
+            }
+          } catch (gcErr) {
+            console.warn('GC update error:', gcErr);
+            toast.warning('Atualizado localmente. Sincronização com GestãoClick falhou.');
+          }
+        }
         await clientesGCApi.update(id!, payload as any);
         toast.success('Cliente atualizado!');
       } else {
