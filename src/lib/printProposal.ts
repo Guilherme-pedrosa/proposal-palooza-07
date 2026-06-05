@@ -78,6 +78,168 @@ async function inlineAllImages(container: HTMLElement): Promise<void> {
   await Promise.all(allImages.map((img) => inlineImage(img)));
 }
 
+function renderProductsNativePages(pdf: jsPDF, proposal: Partial<Proposal>): void {
+  const products = proposal.products ?? [];
+  const margin = 12;
+  const pageW = A4_WIDTH_MM;
+  const pageH = A4_HEIGHT_MM;
+  const contentW = pageW - margin * 2;
+  const tableTop = 34;
+  const footerY = 287;
+  const columns = [
+    { key: 'item', label: 'Item', width: 86, align: 'left' as const },
+    { key: 'unit', label: 'Unid.', width: 14, align: 'center' as const },
+    { key: 'qty', label: 'Qtde', width: 16, align: 'center' as const },
+    { key: 'unitPrice', label: 'Valor unit.', width: 28, align: 'right' as const },
+    { key: 'discount', label: 'Desc.', width: 18, align: 'right' as const },
+    { key: 'total', label: 'Valor total', width: 36, align: 'right' as const },
+  ];
+  const subtotalProdutos = products.reduce((sum, p) => sum + p.totalPrice, 0);
+  const totalValue = proposal.totalValue ?? subtotalProdutos;
+  const hasDescontoGeral = totalValue < subtotalProdutos;
+  const currency = (value: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  const qty = (value: number) => value.toFixed(2).replace('.', ',');
+
+  let y = tableTop;
+  let pageIndex = 0;
+
+  const drawPageHeader = () => {
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(22);
+    pdf.setTextColor(17, 24, 39);
+    pdf.text('Produtos e serviços', margin, 18);
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.setTextColor(75, 85, 99);
+    pdf.text('Lista de itens orçados nesta proposta comercial.', margin, 24);
+
+    pdf.setFillColor(249, 250, 251);
+    pdf.setDrawColor(229, 231, 235);
+    pdf.rect(margin, y, contentW, 10, 'FD');
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(8);
+    pdf.setTextColor(55, 65, 81);
+
+    let x = margin;
+    columns.forEach((column) => {
+      const textX = column.align === 'left' ? x + 2 : column.align === 'center' ? x + column.width / 2 : x + column.width - 2;
+      pdf.text(column.label, textX, y + 6, { align: column.align });
+      x += column.width;
+    });
+
+    y += 10;
+  };
+
+  const drawFooter = () => {
+    if (proposal.number) {
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(9);
+      pdf.setTextColor(156, 163, 175);
+      pdf.text(proposal.number, margin, footerY);
+    }
+  };
+
+  const drawSummary = () => {
+    pdf.setDrawColor(229, 231, 235);
+    pdf.line(margin, y + 2, pageW - margin, y + 2);
+    y += 8;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.setTextColor(75, 85, 99);
+    if (hasDescontoGeral) {
+      pdf.text(`Subtotal: ${currency(subtotalProdutos)}`, pageW - margin, y, { align: 'right' });
+      y += 6;
+      pdf.setTextColor(185, 28, 28);
+      pdf.text(`Desconto: -${currency(subtotalProdutos - totalValue)}`, pageW - margin, y, { align: 'right' });
+      y += 7;
+    }
+
+    pdf.setTextColor(75, 85, 99);
+    pdf.text('Valor total da proposta:', pageW - margin, y, { align: 'right' });
+    y += 8;
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(22);
+    pdf.setTextColor(21, 128, 61);
+    pdf.text(currency(totalValue), pageW - margin, y, { align: 'right' });
+  };
+
+  drawPageHeader();
+
+  products.forEach((product, index) => {
+    const itemWidth = columns[0].width - 4;
+    const itemLines = [
+      ...(pdf.splitTextToSize(product.name || '', itemWidth) as string[]),
+      ...(product.observation ? pdf.splitTextToSize(`Obs.: ${product.observation}`, itemWidth) as string[] : []),
+      ...(product.discountNote ? pdf.splitTextToSize(`* ${product.discountNote}`, itemWidth) as string[] : []),
+    ];
+    const textLines = Math.max(itemLines.length, 1);
+    const rowHeight = Math.max(11, 4 + textLines * 4.4);
+    const needSummarySpace = index === products.length - 1 ? 30 : 0;
+
+    if (y + rowHeight + needSummarySpace > 268) {
+      drawFooter();
+      pdf.addPage();
+      pageIndex += 1;
+      y = tableTop;
+      drawPageHeader();
+    }
+
+    pdf.setFillColor(index % 2 === 0 ? 255 : 249, index % 2 === 0 ? 255 : 250, index % 2 === 0 ? 255 : 251);
+    pdf.setDrawColor(229, 231, 235);
+    pdf.rect(margin, y, contentW, rowHeight, 'FD');
+
+    let x = margin;
+    const rowTop = y + 4.5;
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(8.5);
+    pdf.setTextColor(17, 24, 39);
+    pdf.text(pdf.splitTextToSize(product.name || '', itemWidth), x + 2, rowTop);
+
+    let detailY = rowTop + Math.max(1, (pdf.splitTextToSize(product.name || '', itemWidth) as string[]).length) * 3.8;
+    if (product.observation) {
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8);
+      pdf.setTextColor(75, 85, 99);
+      pdf.text(pdf.splitTextToSize(`Obs.: ${product.observation}`, itemWidth), x + 2, detailY);
+      detailY += (pdf.splitTextToSize(`Obs.: ${product.observation}`, itemWidth) as string[]).length * 3.8;
+    }
+    if (product.discountNote) {
+      pdf.setFont('helvetica', 'italic');
+      pdf.setFontSize(7.5);
+      pdf.setTextColor(156, 163, 175);
+      pdf.text(pdf.splitTextToSize(`* ${product.discountNote}`, itemWidth), x + 2, detailY);
+    }
+    x += columns[0].width;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    pdf.setTextColor(75, 85, 99);
+    pdf.text(product.unit || '-', x + columns[1].width / 2, rowTop, { align: 'center' });
+    x += columns[1].width;
+    pdf.text(qty(product.quantity || 0), x + columns[2].width / 2, rowTop, { align: 'center' });
+    x += columns[2].width;
+    pdf.text(currency(product.unitPrice || 0), x + columns[3].width - 2, rowTop, { align: 'right' });
+    x += columns[3].width;
+
+    pdf.setTextColor(product.discount ? 185 : 75, product.discount ? 28 : 85, product.discount ? 28 : 99);
+    pdf.text(product.discount ? `-${product.discount}%` : '-', x + columns[4].width - 2, rowTop, { align: 'right' });
+    x += columns[4].width;
+
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(17, 24, 39);
+    pdf.text(currency(product.totalPrice || 0), x + columns[5].width - 2, rowTop, { align: 'right' });
+
+    y += rowHeight;
+  });
+
+  drawSummary();
+  drawFooter();
+}
+
 function renderAttachmentsNativePage(pdf: jsPDF, attachments: ProposalAttachment[], proposalNumber?: string): void {
   const pageW = A4_WIDTH_MM;
   const margin = 15;
@@ -472,6 +634,14 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
 
       if (page.dataset.pdfCommercial === 'true') {
         renderCommercialConditionsNativePage(pdf, proposal);
+        continue;
+      }
+
+      if (page.dataset.pdfSection === 'products') {
+        renderProductsNativePages(pdf, proposal);
+        while (page.nextElementSibling instanceof HTMLElement && page.nextElementSibling.dataset.pdfSection === 'products') {
+          index += 1;
+        }
         continue;
       }
 

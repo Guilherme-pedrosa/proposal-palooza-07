@@ -1,4 +1,4 @@
-import { forwardRef, useState } from 'react';
+import { forwardRef, useMemo, useState } from 'react';
 import { Proposal } from '@/types/proposal';
 import { CompanySettings } from '@/types/company';
 import { format } from 'date-fns';
@@ -38,6 +38,49 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
     const isQuimicos = proposal.templateId === 'quimicos';
     const isInstalacao = proposal.templateId === 'instalacao';
     const isLocacao = proposal.templateId === 'locacao';
+    const productPages = useMemo(() => {
+      const products = proposal.products ?? [];
+
+      if (products.length === 0) return [] as typeof products[];
+
+      const estimateLines = (text?: string, charsPerLine = 48) => {
+        if (!text?.trim()) return 0;
+        return text
+          .split('\n')
+          .reduce((sum, part) => sum + Math.max(1, Math.ceil(part.trim().length / charsPerLine)), 0);
+      };
+
+      const estimateRowUnits = (product: typeof products[number]) => {
+        const nameLines = estimateLines(product.name, product.photoUrl ? 34 : 44);
+        const obsLines = estimateLines(product.observation ? `Obs.: ${product.observation}` : '', product.photoUrl ? 34 : 44);
+        const noteLines = estimateLines(product.discountNote ? `* ${product.discountNote}` : '', product.photoUrl ? 34 : 44);
+        return Math.max(4, nameLines + obsLines + noteLines + 1);
+      };
+
+      const pages: typeof products[] = [];
+      let currentPage: typeof products = [];
+      let usedUnits = 0;
+      const pageCapacity = 29;
+
+      products.forEach((product) => {
+        const rowUnits = estimateRowUnits(product);
+        if (currentPage.length > 0 && usedUnits + rowUnits > pageCapacity) {
+          pages.push(currentPage);
+          currentPage = [product];
+          usedUnits = rowUnits;
+          return;
+        }
+
+        currentPage.push(product);
+        usedUnits += rowUnits;
+      });
+
+      if (currentPage.length > 0) {
+        pages.push(currentPage);
+      }
+
+      return pages;
+    }, [proposal.products]);
 
     return (
       <div
@@ -681,103 +724,108 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         )}
 
         {/* Products Page */}
-        {proposal.products && proposal.products.length > 0 && (
-          <div data-pdf-section="products" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
-            {/* Logo no topo */}
-            <div className="absolute top-8 right-12">
-              <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
-            </div>
+        {productPages.length > 0 && productPages.map((productsPage, pageIndex) => {
+          const isLastPage = pageIndex === productPages.length - 1;
 
-            <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Produtos e serviços</h2>
-            <p className="mb-8" style={{ color: '#4b5563' }}>Lista de itens orçados nesta proposta comercial.</p>
-
-            {/* Products Table */}
-            <div className="overflow-hidden rounded-lg" style={{ border: '1px solid #e5e7eb' }}>
-              <table className="w-full" style={{ tableLayout: 'fixed' }}>
-                <colgroup>
-                  <col style={{ width: '42%' }} />
-                  <col style={{ width: '8%' }} />
-                  <col style={{ width: '8%' }} />
-                  <col style={{ width: '14%' }} />
-                  <col style={{ width: '12%' }} />
-                  <col style={{ width: '16%' }} />
-                </colgroup>
-                <thead>
-                  <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                    <th className="px-3 py-3 text-left text-xs font-semibold" style={{ color: '#374151' }}>Item</th>
-                    <th className="px-2 py-3 text-center text-xs font-semibold" style={{ color: '#374151' }}>Unid.</th>
-                    <th className="px-2 py-3 text-center text-xs font-semibold" style={{ color: '#374151' }}>Qtde</th>
-                    <th className="px-2 py-3 text-right text-xs font-semibold" style={{ color: '#374151' }}>Valor unit.</th>
-                    <th className="px-2 py-3 text-right text-xs font-semibold" style={{ color: '#374151' }}>Desconto</th>
-                    <th className="px-3 py-3 text-right text-xs font-semibold" style={{ color: '#374151' }}>Valor total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {proposal.products.map((product, index) => (
-                    <tr key={product.id} style={{ backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9fafb' }}>
-                      <td className="px-3 py-3">
-                        <div className="flex items-start gap-2">
-                          {product.photoUrl && (
-                            <img
-                              src={product.photoUrl}
-                              alt={product.name}
-                              style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0, border: '1px solid #e5e7eb' }}
-                            />
-                          )}
-                          <div style={{ minWidth: 0 }}>
-                            <p className="font-medium text-xs leading-snug" style={{ color: '#111827', wordBreak: 'break-word' }}>{product.name}</p>
-                            {product.observation && (
-                              <p className="mt-0.5 text-xs leading-snug" style={{ color: '#4b5563', wordBreak: 'break-word' }}>
-                                Obs.: {product.observation}
-                              </p>
-                            )}
-                            {product.discountNote && (
-                              <p className="mt-0.5 text-xs italic" style={{ color: '#9ca3af' }}>* {product.discountNote}</p>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-2 py-3 text-center text-xs" style={{ color: '#4b5563' }}>{product.unit}</td>
-                      <td className="px-2 py-3 text-center text-xs" style={{ color: '#4b5563' }}>
-                        {product.quantity.toFixed(2).replace('.', ',')}
-                      </td>
-                      <td className="px-2 py-3 text-right text-xs" style={{ color: '#4b5563' }}>
-                        {formatCurrency(product.unitPrice)}
-                      </td>
-                      <td className="px-2 py-3 text-right text-xs" style={{ color: product.discount ? '#dc2626' : '#4b5563' }}>
-                        {product.discount ? <span>-{product.discount}%</span> : '-'}
-                      </td>
-                      <td className="px-3 py-3 text-right text-xs font-semibold" style={{ color: '#111827' }}>
-                        {formatCurrency(product.totalPrice)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Total */}
-            <div className="mt-6 flex justify-end pt-6" style={{ borderTop: '1px solid #e5e7eb' }}>
-              <div className="text-right">
-                {hasDescontoGeral && (
-                  <>
-                    <p className="text-sm" style={{ color: '#4b5563' }}>Subtotal: {formatCurrency(subtotalProdutos)}</p>
-                    <p className="text-sm" style={{ color: '#dc2626' }}>Desconto: -{formatCurrency(subtotalProdutos - totalValue)}</p>
-                  </>
-                )}
-                <p className="text-sm" style={{ color: '#4b5563' }}>Valor total da proposta:</p>
-                <p className="text-3xl font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue)}</p>
+          return (
+            <div key={`products-page-${pageIndex}`} data-pdf-section="products" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+              <div className="absolute top-8 right-12">
+                <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
               </div>
-            </div>
 
-            {/* Page number and decorative elements */}
-            <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
-              {proposal.number} de {formatDate(proposal.createdAt as Date)}
+              <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Produtos e serviços</h2>
+              <p className="mb-4" style={{ color: '#4b5563' }}>
+                Lista de itens orçados nesta proposta comercial.
+                {productPages.length > 1 ? ` Página ${pageIndex + 1} de ${productPages.length}.` : ''}
+              </p>
+
+              <div className="overflow-hidden rounded-lg" style={{ border: '1px solid #e5e7eb' }}>
+                <table className="w-full" style={{ tableLayout: 'fixed' }}>
+                  <colgroup>
+                    <col style={{ width: '42%' }} />
+                    <col style={{ width: '8%' }} />
+                    <col style={{ width: '8%' }} />
+                    <col style={{ width: '14%' }} />
+                    <col style={{ width: '12%' }} />
+                    <col style={{ width: '16%' }} />
+                  </colgroup>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                      <th className="px-3 py-3 text-left text-xs font-semibold" style={{ color: '#374151' }}>Item</th>
+                      <th className="px-2 py-3 text-center text-xs font-semibold" style={{ color: '#374151' }}>Unid.</th>
+                      <th className="px-2 py-3 text-center text-xs font-semibold" style={{ color: '#374151' }}>Qtde</th>
+                      <th className="px-2 py-3 text-right text-xs font-semibold" style={{ color: '#374151' }}>Valor unit.</th>
+                      <th className="px-2 py-3 text-right text-xs font-semibold" style={{ color: '#374151' }}>Desconto</th>
+                      <th className="px-3 py-3 text-right text-xs font-semibold" style={{ color: '#374151' }}>Valor total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {productsPage.map((product, index) => (
+                      <tr key={product.id} style={{ backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9fafb' }}>
+                        <td className="px-3 py-3 align-top">
+                          <div className="flex items-start gap-2">
+                            {product.photoUrl && (
+                              <img
+                                src={product.photoUrl}
+                                alt={product.name}
+                                style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0, border: '1px solid #e5e7eb' }}
+                              />
+                            )}
+                            <div style={{ minWidth: 0 }}>
+                              <p className="font-medium text-xs leading-snug" style={{ color: '#111827', wordBreak: 'break-word' }}>{product.name}</p>
+                              {product.observation && (
+                                <p className="mt-0.5 text-xs leading-snug" style={{ color: '#4b5563', wordBreak: 'break-word' }}>
+                                  Obs.: {product.observation}
+                                </p>
+                              )}
+                              {product.discountNote && (
+                                <p className="mt-0.5 text-xs italic" style={{ color: '#9ca3af' }}>* {product.discountNote}</p>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-2 py-3 text-center text-xs align-top" style={{ color: '#4b5563' }}>{product.unit}</td>
+                        <td className="px-2 py-3 text-center text-xs align-top" style={{ color: '#4b5563' }}>
+                          {product.quantity.toFixed(2).replace('.', ',')}
+                        </td>
+                        <td className="px-2 py-3 text-right text-xs align-top" style={{ color: '#4b5563' }}>
+                          {formatCurrency(product.unitPrice)}
+                        </td>
+                        <td className="px-2 py-3 text-right text-xs align-top" style={{ color: product.discount ? '#dc2626' : '#4b5563' }}>
+                          {product.discount ? <span>-{product.discount}%</span> : '-'}
+                        </td>
+                        <td className="px-3 py-3 text-right text-xs font-semibold align-top" style={{ color: '#111827' }}>
+                          {formatCurrency(product.totalPrice)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {isLastPage && (
+                <div className="mt-6 flex justify-end pt-6" style={{ borderTop: '1px solid #e5e7eb' }}>
+                  <div className="text-right">
+                    {hasDescontoGeral && (
+                      <>
+                        <p className="text-sm" style={{ color: '#4b5563' }}>Subtotal: {formatCurrency(subtotalProdutos)}</p>
+                        <p className="text-sm" style={{ color: '#dc2626' }}>Desconto: -{formatCurrency(subtotalProdutos - totalValue)}</p>
+                      </>
+                    )}
+                    <p className="text-sm" style={{ color: '#4b5563' }}>Valor total da proposta:</p>
+                    <p className="text-3xl font-bold" style={{ color: '#15803d' }}>{formatCurrency(totalValue)}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
+                {proposal.number} de {formatDate(proposal.createdAt as Date)}
+              </div>
+              <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+              <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
             </div>
-            <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
-            <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
-          </div>
-        )}
+          );
+        })}
 
         {isManutencaoEletricaCivil && (
           <>
