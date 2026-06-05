@@ -809,6 +809,10 @@ export type Database = {
           aberto_em: string | null
           aberto_por_ip: string | null
           anexos: Json | null
+          aprovado_em: string | null
+          aprovado_ip: string | null
+          aprovador_cpf: string | null
+          aprovador_nome: string | null
           cliente_id: string | null
           condicoes_pagamento: string | null
           created_at: string | null
@@ -846,6 +850,10 @@ export type Database = {
           aberto_em?: string | null
           aberto_por_ip?: string | null
           anexos?: Json | null
+          aprovado_em?: string | null
+          aprovado_ip?: string | null
+          aprovador_cpf?: string | null
+          aprovador_nome?: string | null
           cliente_id?: string | null
           condicoes_pagamento?: string | null
           created_at?: string | null
@@ -883,6 +891,10 @@ export type Database = {
           aberto_em?: string | null
           aberto_por_ip?: string | null
           anexos?: Json | null
+          aprovado_em?: string | null
+          aprovado_ip?: string | null
+          aprovador_cpf?: string | null
+          aprovador_nome?: string | null
           cliente_id?: string | null
           condicoes_pagamento?: string | null
           created_at?: string | null

@@ -20,12 +20,19 @@ import {
 } from '@/lib/api/propostas';
 import { supabase } from '@/integrations/supabase/client';
 import logoWedoDefault from '@/assets/logo-wedo.png';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { formatCpf, isValidCpf, onlyDigitsCpf } from '@/lib/cpf';
+import { toast } from 'sonner';
 
 export default function PropostaPublica() {
   const { uuid } = useParams();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [aprovada, setAprovada] = useState(false);
   const [logoError, setLogoError] = useState(false);
+  const [nomeAprov, setNomeAprov] = useState('');
+  const [cpfAprov, setCpfAprov] = useState('');
+  const [aprovando, setAprovando] = useState(false);
 
   // Load company settings directly (works for anon users via public RLS)
   const { data: companyData } = useQuery({
@@ -55,9 +62,24 @@ export default function PropostaPublica() {
 
   const handleAprovar = async () => {
     if (!proposta) return;
-    await aprovarProposta(proposta.id);
-    setAprovada(true);
-    setConfirmOpen(false);
+    const nome = nomeAprov.trim();
+    if (nome.length < 3 || !nome.includes(' ')) {
+      toast.error('Informe seu nome completo');
+      return;
+    }
+    if (!isValidCpf(cpfAprov)) {
+      toast.error('CPF inválido');
+      return;
+    }
+    try {
+      setAprovando(true);
+      await aprovarProposta(proposta.id, { nome, cpf: onlyDigitsCpf(cpfAprov) });
+      setAprovada(true);
+      setConfirmOpen(false);
+      toast.success('Proposta aprovada com sucesso!');
+    } finally {
+      setAprovando(false);
+    }
   };
 
   if (isLoading) {
@@ -476,17 +498,49 @@ export default function PropostaPublica() {
       </div>
 
       {/* Approval dialog */}
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <AlertDialog open={confirmOpen} onOpenChange={(o) => !aprovando && setConfirmOpen(o)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar aprovação</AlertDialogTitle>
             <AlertDialogDescription>
-              Ao aprovar, você confirma o interesse nas condições apresentadas nesta proposta.
+              Para aprovar esta proposta, informe seu nome completo e CPF. Esses dados ficarão registrados como confirmação do aceite.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="aprov-nome">Nome completo</Label>
+              <Input
+                id="aprov-nome"
+                value={nomeAprov}
+                onChange={(e) => setNomeAprov(e.target.value)}
+                placeholder="Seu nome completo"
+                maxLength={120}
+                autoComplete="name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="aprov-cpf">CPF</Label>
+              <Input
+                id="aprov-cpf"
+                value={cpfAprov}
+                onChange={(e) => setCpfAprov(formatCpf(e.target.value))}
+                placeholder="000.000.000-00"
+                inputMode="numeric"
+                autoComplete="off"
+              />
+              {cpfAprov && !isValidCpf(cpfAprov) && (
+                <p className="text-xs text-destructive">CPF inválido</p>
+              )}
+            </div>
+          </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleAprovar}>Confirmar Aprovação</AlertDialogAction>
+            <AlertDialogCancel disabled={aprovando}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleAprovar(); }}
+              disabled={aprovando || !nomeAprov.trim() || !isValidCpf(cpfAprov)}
+            >
+              {aprovando ? 'Aprovando...' : 'Confirmar Aprovação'}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
