@@ -1078,9 +1078,9 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           </div>
         )}
 
-        {/* Attachments (non-image files) Page */}
+        {/* Attachments (non-image files) Page — rendered NATIVELY by jsPDF (clickable links + crisp text). Marked data-pdf-skip so html2canvas ignores it. */}
         {proposal.attachments && proposal.attachments.length > 0 && (
-          <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+          <div data-pdf-skip="true" data-pdf-attachments="true" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
             <div className="absolute top-8 right-12">
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
             </div>
