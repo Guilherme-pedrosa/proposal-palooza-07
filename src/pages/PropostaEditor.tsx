@@ -365,6 +365,9 @@ export default function PropostaEditor() {
         if (cond.descontoGeralTipo) setDescontoGeralTipo(cond.descontoGeralTipo);
         if (cond.texto) setCondicoesPagamento(cond.texto);
         else setCondicoesPagamento('');
+        if (Array.isArray(cond.pdfSections) && cond.pdfSections.length > 0) {
+          setPdfSections(cond.pdfSections);
+        }
       } catch {
         setCondicoesPagamento(proposta.condicoes_pagamento ?? '');
       }
