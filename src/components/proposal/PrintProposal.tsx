@@ -11,7 +11,7 @@ interface PrintProposalProps {
 
 export function usePrintProposal() {
   const printProposal = useCallback(async (proposal: Partial<Proposal>, company: CompanySettings, variant: PdfVariant = 'completo') => {
-    await generateProposalPdf(proposal, company, variant);
+    return await generateProposalPdf(proposal, company, variant);
   }, []);
 
   return { printProposal };

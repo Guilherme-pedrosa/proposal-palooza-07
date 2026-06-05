@@ -663,7 +663,10 @@ export default function PropostaEditor() {
   const handleExportPdf = async (variant: 'completo' | 'resumido' | 'tecnico' | 'comercial' = 'completo') => {
     try {
       const proposalToPrint = await buildPrintProposal();
-      await printProposal(proposalToPrint, company, variant);
+      const ok = await printProposal(proposalToPrint, company, variant);
+      if (!ok) {
+        throw new Error('Não foi possível gerar o PDF.');
+      }
     } catch (err: any) {
       toast({ title: 'Erro ao exportar PDF', description: err?.message, variant: 'destructive' });
     }
