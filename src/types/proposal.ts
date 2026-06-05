@@ -74,6 +74,8 @@ export interface Proposal {
   opcoesPagamento?: PaymentOption[];
   condicoesPagamentoTexto?: string;
   prazoEntrega?: string;
+  /** Sections explicitly enabled for PDF export. Overrides variant defaults when provided. */
+  includedSections?: string[];
   // Legacy fields (backward compat)
   numParcelas?: number;
   formaPagamento?: string;
