@@ -109,16 +109,30 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
     }
 
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    let firstPage = true;
 
     for (let index = 0; index < pages.length; index += 1) {
       const page = pages[index];
-      const bounds = page.getBoundingClientRect();
 
+      if (!firstPage) pdf.addPage();
+      firstPage = false;
+
+      // Native render for attachments page (crisp text + clickable links)
+      if (page.dataset.pdfAttachments === 'true') {
+        renderAttachmentsNativePage(pdf, proposal.attachments || [], proposal.number);
+        continue;
+      }
+
+      if (page.dataset.pdfSkip === 'true') {
+        continue;
+      }
+
+      const bounds = page.getBoundingClientRect();
       await waitForImagesToLoad(page);
       await waitForNextPaint(1);
 
       const canvas = await html2canvas(page, {
-        scale: 2,
+        scale: 2.5,
         useCORS: true,
         allowTaint: false,
         logging: false,
@@ -133,10 +147,6 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
 
       // JPEG q=0.85 reduz o PDF de ~60MB para ~2-5MB sem perda visual perceptível.
       const imgData = canvas.toDataURL('image/jpeg', 0.85);
-      if (index > 0) {
-        pdf.addPage();
-      }
-
       pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
     }
 
