@@ -154,6 +154,7 @@ function renderAttachmentsNativePage(pdf: jsPDF, attachments: ProposalAttachment
     pdf.setTextColor(156, 163, 175);
     pdf.text(proposalNumber, margin, 287);
   }
+}
 
 export async function generateProposalPdf(proposal: Partial<Proposal>, company: CompanySettings): Promise<boolean> {
   const tempContainer = document.createElement('div');
