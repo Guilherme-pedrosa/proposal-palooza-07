@@ -439,7 +439,12 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
     await waitForImagesToLoad(tempContainer);
     await waitForNextPaint(2);
 
-    const allowedSections = new Set(VARIANT_SECTIONS[variant]);
+    // Sections explicitly chosen by the user take precedence over variant defaults.
+    const allowedSections = new Set(
+      proposal.includedSections && proposal.includedSections.length > 0
+        ? proposal.includedSections
+        : VARIANT_SECTIONS[variant]
+    );
     const allPages = Array.from(tempContainer.querySelectorAll('.pdf-page')) as HTMLElement[];
     const pages = allPages.filter((p) => {
       const sec = p.dataset.pdfSection;
@@ -478,8 +483,13 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
       await waitForImagesToLoad(page);
       await waitForNextPaint(1);
 
+      // Cover page has a photo background → JPEG is fine and keeps file small.
+      // All other pages are text-heavy → use PNG + higher scale so text stays razor-sharp.
+      const isCover = page.dataset.pdfSection === 'cover';
+      const scale = isCover ? 2.5 : 4;
+
       const canvas = await html2canvas(page, {
-        scale: 2.5,
+        scale,
         useCORS: true,
         allowTaint: false,
         logging: false,
@@ -492,9 +502,15 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
         scrollY: 0,
       });
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.85);
-      pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
+      if (isCover) {
+        const imgData = canvas.toDataURL('image/jpeg', 0.88);
+        pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
+      } else {
+        const imgData = canvas.toDataURL('image/png');
+        pdf.addImage(imgData, 'PNG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
+      }
     }
+
 
     const clientName = proposal.client?.name?.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30) || 'Cliente';
     const suffix = variant === 'completo' ? '' : `_${variant}`;

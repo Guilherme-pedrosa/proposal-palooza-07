@@ -151,6 +151,30 @@ export default function PropostaEditor() {
   const [versao, setVersao] = useState(1);
   const [linkUuid, setLinkUuid] = useState('');
 
+  // PDF Sections — user controls which sections appear in the PDF
+  const ALL_PDF_SECTIONS = [
+    { id: 'cover', label: 'Capa', icon: '🎨' },
+    { id: 'presentation', label: 'Sobre a empresa', icon: '🏢' },
+    { id: 'clients', label: 'Principais clientes e marcas', icon: '🤝' },
+    { id: 'objectives', label: 'Objetivos (Preventiva)', icon: '🎯' },
+    { id: 'equipment', label: 'Abordagem por equipamento (Preventiva)', icon: '⚙️' },
+    { id: 'results', label: 'Resultados comprovados (Preventiva)', icon: '📊' },
+    { id: 'details', label: 'Escopo e descrição', icon: '📄' },
+    { id: 'products', label: 'Produtos e serviços', icon: '📦' },
+    { id: 'template-extra', label: 'Páginas do template (Manutenção/Locação)', icon: '📝' },
+    { id: 'terms', label: 'Termos e condições', icon: '📚' },
+    { id: 'images', label: 'Imagens', icon: '🖼️' },
+    { id: 'attachments', label: 'Arquivos anexos', icon: '📎' },
+    { id: 'commercial', label: 'Condições comerciais', icon: '💰' },
+    { id: 'signature', label: 'Assinatura', icon: '✍️' },
+  ] as const;
+  const DEFAULT_SECTIONS = ALL_PDF_SECTIONS.map(s => s.id);
+  const [pdfSections, setPdfSections] = useState<string[]>(DEFAULT_SECTIONS);
+  const togglePdfSection = (id: string) => {
+    setPdfSections(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
+  };
+
+
   // Load price tables
   const { data: tabelasPreco = [] } = useQuery({
     queryKey: ['tabelas_preco'],
@@ -341,6 +365,9 @@ export default function PropostaEditor() {
         if (cond.descontoGeralTipo) setDescontoGeralTipo(cond.descontoGeralTipo);
         if (cond.texto) setCondicoesPagamento(cond.texto);
         else setCondicoesPagamento('');
+        if (Array.isArray(cond.pdfSections) && cond.pdfSections.length > 0) {
+          setPdfSections(cond.pdfSections);
+        }
       } catch {
         setCondicoesPagamento(proposta.condicoes_pagamento ?? '');
       }
@@ -546,6 +573,8 @@ export default function PropostaEditor() {
       descontoAVistaTipo,
       condicoesPagamentoTexto: condicoesPagamento || undefined,
       prazoEntrega: prazoEntrega || undefined,
+      includedSections: pdfSections,
+
     };
   };
 
@@ -576,7 +605,7 @@ export default function PropostaEditor() {
         num_parcelas: opcoesPagamento[0]?.parcelas || 1,
         entrada_percent: opcoesPagamento[0]?.entrada || 0,
         taxa_juros: 2.303,
-        condicoes_pagamento: JSON.stringify({ opcoesPagamento, descontoAVista, descontoAVistaTipo, descontoGeral, descontoGeralTipo, texto: condicoesPagamento || '' }),
+        condicoes_pagamento: JSON.stringify({ opcoesPagamento, descontoAVista, descontoAVistaTipo, descontoGeral, descontoGeralTipo, texto: condicoesPagamento || '', pdfSections }),
         prazo_entrega: prazoEntrega || null,
       };
 
@@ -1126,6 +1155,44 @@ export default function PropostaEditor() {
                 ))}
               </div>
             )}
+          </div>
+        </Section>
+
+        <Section title={`Seções do PDF (${pdfSections.length}/${ALL_PDF_SECTIONS.length})`} icon="🗂️" defaultOpen={false}>
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Escolha exatamente quais páginas entram no PDF. Esta configuração é salva junto com a proposta e usada toda vez que você exportar.
+            </p>
+            <div className="flex gap-2">
+              <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={() => setPdfSections(DEFAULT_SECTIONS as string[])}>
+                Selecionar tudo
+              </Button>
+              <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={() => setPdfSections([])}>
+                Limpar
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              {ALL_PDF_SECTIONS.map((s) => {
+                const checked = pdfSections.includes(s.id);
+                return (
+                  <label
+                    key={s.id}
+                    className={`flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors text-sm ${
+                      checked ? 'bg-primary/5 border-primary/40' : 'bg-background border-border hover:bg-accent/40'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => togglePdfSection(s.id)}
+                      className="h-4 w-4 rounded border-input accent-primary"
+                    />
+                    <span className="text-base leading-none">{s.icon}</span>
+                    <span className="flex-1">{s.label}</span>
+                  </label>
+                );
+              })}
+            </div>
           </div>
         </Section>
 
