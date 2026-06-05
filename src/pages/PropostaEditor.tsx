@@ -573,6 +573,8 @@ export default function PropostaEditor() {
       descontoAVistaTipo,
       condicoesPagamentoTexto: condicoesPagamento || undefined,
       prazoEntrega: prazoEntrega || undefined,
+      includedSections: pdfSections,
+
     };
   };
 
