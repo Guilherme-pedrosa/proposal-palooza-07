@@ -20,6 +20,10 @@ import {
 } from '@/lib/api/propostas';
 import { supabase } from '@/integrations/supabase/client';
 import logoWedoDefault from '@/assets/logo-wedo.png';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { formatCpf, isValidCpf, onlyDigitsCpf } from '@/lib/cpf';
+import { toast } from 'sonner';
 
 export default function PropostaPublica() {
   const { uuid } = useParams();
