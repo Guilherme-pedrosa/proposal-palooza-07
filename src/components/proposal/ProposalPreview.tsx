@@ -1131,8 +1131,8 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           </div>
         )}
 
-        {/* Condições Comerciais */}
-        {proposal.templateId && ['rational', 'equipamentos', 'ivario'].includes(proposal.templateId) && totalValue > 0 && (() => {
+        {/* Condições Comerciais — sempre que houver valor total */}
+        {totalValue > 0 && (() => {
           const taxa = 2.303;
           const taxaDecimal = taxa / 100;
           const pmtCalc = (pv: number, n: number) => taxaDecimal === 0 ? pv / n : pv * (taxaDecimal * Math.pow(1 + taxaDecimal, n)) / (Math.pow(1 + taxaDecimal, n) - 1);
