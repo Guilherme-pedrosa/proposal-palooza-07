@@ -33,6 +33,14 @@ export interface ProposalImage {
   name: string;
 }
 
+export interface ProposalAttachment {
+  id: string;
+  name: string;
+  url: string;
+  size?: number;
+  type?: string;
+}
+
 export interface PaymentOption {
   id: string;
   forma: string; // boleto, cartao, leasing, financiamento
