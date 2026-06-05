@@ -46,7 +46,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         style={{ width: '210mm' }}
       >
         {/* Cover Page */}
-        <div className="relative overflow-hidden pdf-page" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid', backgroundColor: '#0A1628' }}>
+        <div data-pdf-section="cover" className="relative overflow-hidden pdf-page" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid', backgroundColor: '#0A1628' }}>
           {/* Background image — full page */}
           <div
             className="absolute inset-0 bg-cover bg-center"
