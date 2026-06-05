@@ -603,7 +603,7 @@ export default function PropostaEditor() {
         num_parcelas: opcoesPagamento[0]?.parcelas || 1,
         entrada_percent: opcoesPagamento[0]?.entrada || 0,
         taxa_juros: 2.303,
-        condicoes_pagamento: JSON.stringify({ opcoesPagamento, descontoAVista, descontoAVistaTipo, descontoGeral, descontoGeralTipo, texto: condicoesPagamento || '' }),
+        condicoes_pagamento: JSON.stringify({ opcoesPagamento, descontoAVista, descontoAVistaTipo, descontoGeral, descontoGeralTipo, texto: condicoesPagamento || '', pdfSections }),
         prazo_entrega: prazoEntrega || null,
       };
 
