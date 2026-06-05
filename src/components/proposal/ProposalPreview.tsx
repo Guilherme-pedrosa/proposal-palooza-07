@@ -46,7 +46,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         style={{ width: '210mm' }}
       >
         {/* Cover Page */}
-        <div className="relative overflow-hidden pdf-page" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid', backgroundColor: '#0A1628' }}>
+        <div data-pdf-section="cover" className="relative overflow-hidden pdf-page" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid', backgroundColor: '#0A1628' }}>
           {/* Background image — full page */}
           <div
             className="absolute inset-0 bg-cover bg-center"
@@ -126,7 +126,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         </div>
 
         {/* Company Presentation Page - Sobre a Empresa */}
-        <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+        <div data-pdf-section="presentation" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
           {/* Logo no topo */}
           <div className="absolute top-8 right-12">
             <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -206,7 +206,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
         {/* Clients & Brands Page - Separate page for better layout */}
         {((company.clients && company.clients.length > 0) || (company.brands && company.brands.length > 0)) && (
-          <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+          <div data-pdf-section="clients" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
             {/* Logo no topo */}
             <div className="absolute top-8 right-12">
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -277,7 +277,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         {isPreventiva && (
           <>
             {/* Objectives Page - Objetivos da Manutenção Preventiva */}
-            <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+            <div data-pdf-section="objectives" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
           {/* Logo no topo */}
           <div className="absolute top-8 right-12">
             <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -353,7 +353,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         </div>
 
         {/* Equipment Details Page - Detalhamento por Equipamento */}
-        <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+        <div data-pdf-section="equipment" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
           {/* Logo no topo */}
           <div className="absolute top-8 right-12">
             <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -494,7 +494,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         </div>
 
         {/* Results Page - Resultados Comprovados */}
-        <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+        <div data-pdf-section="results" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
           {/* Logo no topo */}
           <div className="absolute top-8 right-12">
             <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -624,7 +624,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
         {/* Proposal Details Page */}
         {proposal.title && (
-          <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+          <div data-pdf-section="details" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
             {/* Logo no topo */}
             <div className="absolute top-8 right-12">
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -682,7 +682,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
         {/* Products Page */}
         {proposal.products && proposal.products.length > 0 && (
-          <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+          <div data-pdf-section="products" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
             {/* Logo no topo */}
             <div className="absolute top-8 right-12">
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -781,7 +781,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
         {isManutencaoEletricaCivil && (
           <>
-            <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+            <div data-pdf-section="template-extra" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
               <div className="absolute top-8 right-12">
                 <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
               </div>
@@ -849,7 +849,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               <div className="absolute bottom-0 right-16 h-16 w-16" style={{ backgroundColor: '#ea580c', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.92 }} />
             </div>
 
-            <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+            <div data-pdf-section="template-extra" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
               <div className="absolute top-8 right-12">
                 <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
               </div>
@@ -913,7 +913,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
         {isLocacao && (
           <>
-            <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+            <div data-pdf-section="template-extra" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
               <div className="absolute top-8 right-12">
                 <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
               </div>
@@ -992,7 +992,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           }
 
           return termsPages.map((pageTerms, pageIndex) => (
-            <div key={`terms-page-${pageIndex}`} className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+            <div key={`terms-page-${pageIndex}`} data-pdf-section="terms" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
               {/* Logo no topo */}
               <div className="absolute top-8 right-12">
                 <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -1048,7 +1048,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
         {/* Images Page */}
         {proposal.images && proposal.images.length > 0 && (
-          <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+          <div data-pdf-section="images" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
             {/* Logo no topo */}
             <div className="absolute top-8 right-12">
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
@@ -1080,7 +1080,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 
         {/* Attachments (non-image files) Page — rendered NATIVELY by jsPDF (clickable links + crisp text). Marked data-pdf-skip so html2canvas ignores it. */}
         {proposal.attachments && proposal.attachments.length > 0 && (
-          <div data-pdf-skip="true" data-pdf-attachments="true" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+          <div data-pdf-section="attachments" data-pdf-skip="true" data-pdf-attachments="true" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
             <div className="absolute top-8 right-12">
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
             </div>
@@ -1170,7 +1170,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           const gridCols = opts.length <= 2 ? 'grid-cols-2' : opts.length === 3 ? 'grid-cols-3' : 'grid-cols-2';
 
           return (
-          <div data-pdf-skip="true" data-pdf-commercial="true" className="relative bg-white px-12 pt-10 pb-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+          <div data-pdf-section="commercial" data-pdf-skip="true" data-pdf-commercial="true" className="relative bg-white px-12 pt-10 pb-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
             <div className="absolute top-8 right-12">
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
             </div>
@@ -1330,7 +1330,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
         })()}
 
         {/* Signature Page */}
-        <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakInside: 'avoid' }}>
+        <div data-pdf-section="signature" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakInside: 'avoid' }}>
           {/* Logo no topo */}
           <div className="absolute top-8 right-12">
             <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
