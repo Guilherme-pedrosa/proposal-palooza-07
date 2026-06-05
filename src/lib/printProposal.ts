@@ -17,6 +17,10 @@ async function waitForNextPaint(frames = 2): Promise<void> {
   }
 }
 
+async function yieldToMainThread(): Promise<void> {
+  await new Promise<void>((resolve) => setTimeout(resolve, 0));
+}
+
 async function waitForSingleImage(img: HTMLImageElement): Promise<void> {
   img.loading = 'eager';
   img.decoding = 'sync';
@@ -639,9 +643,10 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
 
       if (page.dataset.pdfSection === 'products') {
         renderProductsNativePages(pdf, proposal);
-        while (page.nextElementSibling instanceof HTMLElement && page.nextElementSibling.dataset.pdfSection === 'products') {
+        while (index + 1 < pages.length && pages[index + 1]?.dataset.pdfSection === 'products') {
           index += 1;
         }
+        await yieldToMainThread();
         continue;
       }
 
@@ -656,7 +661,7 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
       // Cover page has a photo background → JPEG is fine and keeps file small.
       // All other pages are text-heavy → use PNG + higher scale so text stays razor-sharp.
       const isCover = page.dataset.pdfSection === 'cover';
-      const scale = isCover ? 2.5 : 4;
+      const scale = isCover ? 2 : 2.2;
 
       const canvas = await html2canvas(page, {
         scale,
@@ -673,12 +678,12 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
       });
 
       if (isCover) {
-        const imgData = canvas.toDataURL('image/jpeg', 0.88);
-        pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
+        pdf.addImage(canvas, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
       } else {
-        const imgData = canvas.toDataURL('image/png');
-        pdf.addImage(imgData, 'PNG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
+        pdf.addImage(canvas, 'PNG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
       }
+
+      await yieldToMainThread();
     }
 
 
