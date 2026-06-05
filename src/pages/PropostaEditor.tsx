@@ -506,6 +506,15 @@ export default function PropostaEditor() {
     })),
     termsConditions: termos.map((t) => ({ id: t.id, title: t.title, description: t.description })),
     images: imagens.map((img) => ({ id: img.id, url: img.url, name: img.name || 'Imagem' })),
+    attachments: anexos
+      .filter((a: any) => a?.storagePath || a?.url)
+      .map((a: any) => ({
+        id: a.id,
+        name: a.name || 'Anexo',
+        size: a.size,
+        type: a.type,
+        url: a.url || supabase.storage.from('proposals').getPublicUrl(a.storagePath).data.publicUrl,
+      })),
     totalValue: total,
     status: toPrintStatus(status),
     companyName: company.name,
