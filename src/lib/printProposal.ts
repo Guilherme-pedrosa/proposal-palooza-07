@@ -156,6 +156,249 @@ function renderAttachmentsNativePage(pdf: jsPDF, attachments: ProposalAttachment
   }
 }
 
+function renderCommercialConditionsNativePage(pdf: jsPDF, proposal: Partial<Proposal>): void {
+  const margin = 15;
+  const contentW = A4_WIDTH_MM - margin * 2;
+  const totalValue = proposal.totalValue ?? 0;
+  const taxa = proposal.taxaJuros ?? 2.303;
+  const descontoAVista = proposal.descontoAVista ?? 0;
+  const descontoTipo = proposal.descontoAVistaTipo ?? 'percent';
+  const opts = proposal.opcoesPagamento && proposal.opcoesPagamento.length > 0
+    ? proposal.opcoesPagamento
+    : [
+        { id: '1', forma: proposal.formaPagamento || 'boleto', parcelas: proposal.numParcelas || 1, entrada: proposal.entradaPercent || 0, juros: proposal.taxaJurosCartao || 0 },
+        { id: '2', forma: proposal.formaPagamento2 || 'leasing', parcelas: proposal.numParcelas2 || 36, entrada: proposal.entradaPercent2 || 0, juros: proposal.taxaJurosCartao2 || 0 },
+      ];
+  const commercialText = proposal.condicoesPagamentoTexto?.trim();
+  const prazoEntrega = proposal.prazoEntrega?.trim();
+
+  const pmtCalc = (pv: number, rate: number, n: number) => {
+    if (!n || n <= 0) return pv;
+    if (rate === 0) return pv / n;
+    const r = rate / 100;
+    return pv * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+  };
+
+  const valorAVista = descontoTipo === 'percent' ? totalValue * (1 - descontoAVista / 100) : totalValue - descontoAVista;
+  const labelMap: Record<string, string> = {
+    avista: 'À Vista',
+    boleto: 'Boleto',
+    cartao: 'Cartão',
+    leasing: 'Leasing',
+    financiamento: 'Financiamento',
+  };
+  const descMap: Record<string, string> = {
+    avista: 'PIX / Transferência',
+    boleto: 'Boleto Bancário',
+    cartao: 'Cartão de Crédito',
+    leasing: 'Locação de equipamentos',
+    financiamento: 'Financiamento',
+  };
+
+  const getValor = (opt: { forma: string; parcelas: number; entrada: number; juros: number }) => {
+    const base = totalValue * (1 - (opt.entrada || 0) / 100);
+    if (opt.forma === 'leasing') return pmtCalc(totalValue, taxa, opt.parcelas);
+    if (opt.forma === 'cartao' && opt.juros > 0) return pmtCalc(base, opt.juros, opt.parcelas);
+    return base / Math.max(opt.parcelas || 1, 1);
+  };
+
+  let y = 22;
+
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(22);
+  pdf.setTextColor(17, 24, 39);
+  pdf.text('Condições Comerciais', margin, y);
+  y += 8;
+
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(10);
+  pdf.setTextColor(75, 85, 99);
+  pdf.text('Simulação de investimento e modalidades de pagamento desta proposta.', margin, y);
+  y += 12;
+
+  pdf.setDrawColor(229, 231, 235);
+  pdf.setFillColor(249, 250, 251);
+  pdf.roundedRect(margin, y, contentW, 22, 2, 2, 'FD');
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(9);
+  pdf.setTextColor(107, 114, 128);
+  pdf.text('Investimento total', margin + 4, y + 6);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(24);
+  pdf.setTextColor(17, 24, 39);
+  pdf.text(new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalValue), margin + 4, y + 16);
+  y += 30;
+
+  pdf.setFillColor(236, 253, 245);
+  pdf.setDrawColor(167, 243, 208);
+  pdf.roundedRect(margin, y, contentW, 18, 2, 2, 'FD');
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(10);
+  pdf.setTextColor(4, 120, 87);
+  pdf.text('À Vista (PIX / Transferência)', margin + 4, y + 6);
+  pdf.setFontSize(18);
+  pdf.text(new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Math.max(valorAVista, 0)), margin + 4, y + 14);
+  if (descontoAVista > 0) {
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(9);
+    pdf.setTextColor(75, 85, 99);
+    const discountLabel = descontoTipo === 'percent'
+      ? `Desconto: -${descontoAVista}%`
+      : `Desconto: -${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(descontoAVista)}`;
+    pdf.text(discountLabel, A4_WIDTH_MM - margin - 4, y + 10, { align: 'right' });
+  }
+  y += 26;
+
+  const cardW = (contentW - 5) / 2;
+  let currentY = y;
+  opts.filter(Boolean).forEach((opt, idx) => {
+    const col = idx % 2;
+    if (idx > 0 && col === 0) currentY += 30;
+    const x = margin + col * (cardW + 5);
+    const boxY = currentY;
+    const isLeasing = opt.forma === 'leasing';
+    const valor = getValor(opt);
+
+    pdf.setFillColor(isLeasing ? 240 : 250, isLeasing ? 253 : 250, isLeasing ? 244 : 250);
+    pdf.setDrawColor(isLeasing ? 187 : 229, isLeasing ? 247 : 231, isLeasing ? 208 : 235);
+    pdf.roundedRect(x, boxY, cardW, 24, 2, 2, 'FD');
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    pdf.setTextColor(107, 114, 128);
+    pdf.text(`Opção ${idx + 1}`, x + 4, boxY + 5);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(10);
+    pdf.setTextColor(isLeasing ? 21 : 17, isLeasing ? 128 : 24, isLeasing ? 61 : 39);
+    pdf.text(`${labelMap[opt.forma] || opt.forma} ${opt.parcelas}x`, x + cardW / 2, boxY + 10, { align: 'center' });
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(14);
+    pdf.text(new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor), x + cardW / 2, boxY + 17, { align: 'center' });
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    pdf.setTextColor(107, 114, 128);
+    const detail = [descMap[opt.forma] || opt.forma, opt.entrada ? `Entrada ${opt.entrada}%` : '', opt.forma === 'cartao' && opt.juros > 0 ? `${opt.juros.toFixed(2).replace('.', ',')}% a.m.` : '', opt.forma === 'leasing' ? `${taxa.toFixed(3).replace('.', ',')}% a.m.` : '']
+      .filter(Boolean)
+      .join(' • ');
+    pdf.text(detail, x + cardW / 2, boxY + 22, { align: 'center' });
+  });
+
+  y = currentY + (opts.length > 0 ? 34 : 0);
+
+  if (commercialText) {
+    const textLines = pdf.splitTextToSize(commercialText, contentW - 8);
+    const boxHeight = Math.max(16, 8 + textLines.length * 4.5);
+    pdf.setFillColor(249, 250, 251);
+    pdf.setDrawColor(229, 231, 235);
+    pdf.roundedRect(margin, y, contentW, boxHeight, 2, 2, 'FD');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(10);
+    pdf.setTextColor(17, 24, 39);
+    pdf.text('Condições de Pagamento', margin + 4, y + 6);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.setTextColor(55, 65, 81);
+    pdf.text(textLines, margin + 4, y + 12);
+    y += boxHeight + 8;
+  }
+
+  if (prazoEntrega) {
+    const prazoLines = pdf.splitTextToSize(prazoEntrega, contentW - 8);
+    const boxHeight = Math.max(14, 8 + prazoLines.length * 4.5);
+    pdf.setFillColor(249, 250, 251);
+    pdf.setDrawColor(229, 231, 235);
+    pdf.roundedRect(margin, y, contentW, boxHeight, 2, 2, 'FD');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(10);
+    pdf.setTextColor(17, 24, 39);
+    pdf.text('Prazo de Entrega / Execução', margin + 4, y + 6);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.setTextColor(55, 65, 81);
+    pdf.text(prazoLines, margin + 4, y + 12);
+    y += boxHeight + 8;
+  }
+
+  const leasingOpt = opts.find((o) => o.forma === 'leasing');
+  if (leasingOpt) {
+    const parcelaLeasing = pmtCalc(totalValue, taxa, leasingOpt.parcelas || 36);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(11);
+    pdf.setTextColor(21, 128, 61);
+    pdf.text('Benefício fiscal — Leasing', margin, y);
+    y += 7;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(9);
+    pdf.setTextColor(55, 65, 81);
+    const leasingText = pdf.splitTextToSize(
+      'Empresas em Lucro Real podem contabilizar as parcelas de locação como despesa operacional dedutível, com economia potencial de até 43,25% do contrato.',
+      contentW
+    );
+    pdf.text(leasingText, margin, y);
+    y += leasingText.length * 4.3 + 3;
+
+    const tribRows = [
+      ['IRPJ', '25%', totalValue * 0.25],
+      ['CSLL', '9%', totalValue * 0.09],
+      ['PIS', '1,65%', totalValue * 0.0165],
+      ['COFINS', '7,6%', totalValue * 0.076],
+    ];
+
+    pdf.setDrawColor(229, 231, 235);
+    pdf.setFillColor(249, 250, 251);
+    pdf.rect(margin, y, contentW, 8, 'FD');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(8);
+    pdf.setTextColor(107, 114, 128);
+    pdf.text('Tributo', margin + 3, y + 5);
+    pdf.text('Alíquota', margin + 95, y + 5, { align: 'center' });
+    pdf.text('Economia estimada', margin + contentW - 3, y + 5, { align: 'right' });
+    y += 8;
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    tribRows.forEach(([nome, aliq, valor], index) => {
+      pdf.setFillColor(index % 2 === 0 ? 255 : 249, index % 2 === 0 ? 255 : 250, index % 2 === 0 ? 255 : 251);
+      pdf.rect(margin, y, contentW, 7, 'FD');
+      pdf.setTextColor(55, 65, 81);
+      pdf.text(String(nome), margin + 3, y + 4.5);
+      pdf.text(String(aliq), margin + 95, y + 4.5, { align: 'center' });
+      pdf.setTextColor(21, 128, 61);
+      pdf.text(new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(valor)), margin + contentW - 3, y + 4.5, { align: 'right' });
+      y += 7;
+    });
+
+    pdf.setFillColor(240, 253, 244);
+    pdf.rect(margin, y, contentW, 9, 'FD');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(8);
+    pdf.setTextColor(17, 24, 39);
+    pdf.text('Economia potencial total', margin + 3, y + 5.5);
+    pdf.text('43,25%', margin + 95, y + 5.5, { align: 'center' });
+    pdf.setTextColor(21, 128, 61);
+    pdf.text(new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalValue * 0.4325), margin + contentW - 3, y + 5.5, { align: 'right' });
+    y += 14;
+
+    pdf.setFillColor(240, 253, 244);
+    pdf.setDrawColor(134, 239, 172);
+    pdf.roundedRect(margin, y, contentW, 16, 2, 2, 'FD');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(9);
+    pdf.setTextColor(21, 128, 61);
+    pdf.text('Mensalidade após benefícios fiscais', margin + 4, y + 6);
+    pdf.setFontSize(16);
+    pdf.text(new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parcelaLeasing * (1 - 0.4325)), margin + 4, y + 13);
+    y += 21;
+  }
+
+  if (proposal.number) {
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(9);
+    pdf.setTextColor(156, 163, 175);
+    pdf.text(proposal.number, margin, 287);
+  }
+}
+
 export async function generateProposalPdf(proposal: Partial<Proposal>, company: CompanySettings): Promise<boolean> {
   const tempContainer = document.createElement('div');
   tempContainer.style.position = 'fixed';
@@ -198,6 +441,11 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
       // Native render for attachments page (crisp text + clickable links)
       if (page.dataset.pdfAttachments === 'true') {
         renderAttachmentsNativePage(pdf, proposal.attachments || [], proposal.number);
+        continue;
+      }
+
+      if (page.dataset.pdfCommercial === 'true') {
+        renderCommercialConditionsNativePage(pdf, proposal);
         continue;
       }
 
