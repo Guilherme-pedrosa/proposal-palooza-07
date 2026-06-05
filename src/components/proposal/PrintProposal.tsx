@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { Proposal } from '@/types/proposal';
 import { CompanySettings } from '@/types/company';
-import { generateProposalPdf } from '@/lib/printProposal';
+import { generateProposalPdf, PdfVariant } from '@/lib/printProposal';
 
 interface PrintProposalProps {
   proposal: Partial<Proposal>;
@@ -10,18 +10,18 @@ interface PrintProposalProps {
 }
 
 export function usePrintProposal() {
-  const printProposal = useCallback(async (proposal: Partial<Proposal>, company: CompanySettings) => {
-    await generateProposalPdf(proposal, company);
+  const printProposal = useCallback(async (proposal: Partial<Proposal>, company: CompanySettings, variant: PdfVariant = 'completo') => {
+    await generateProposalPdf(proposal, company, variant);
   }, []);
 
   return { printProposal };
 }
 
-export function PrintProposalButton({ 
-  proposal, 
-  company, 
+export function PrintProposalButton({
+  proposal,
+  company,
   className,
-  children 
+  children,
 }: PrintProposalProps & { className?: string; children: React.ReactNode }) {
   const { printProposal } = usePrintProposal();
 

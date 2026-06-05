@@ -630,14 +630,15 @@ export default function PropostaEditor() {
     }
   };
 
-  const handleExportPdf = async () => {
+  const handleExportPdf = async (variant: 'completo' | 'resumido' | 'tecnico' | 'comercial' = 'completo') => {
     try {
       const proposalToPrint = await buildPrintProposal();
-      await printProposal(proposalToPrint, company);
+      await printProposal(proposalToPrint, company, variant);
     } catch (err: any) {
       toast({ title: 'Erro ao exportar PDF', description: err?.message, variant: 'destructive' });
     }
   };
+
 
   const copyLink = () => {
     navigator.clipboard.writeText(shareUrl);
@@ -753,9 +754,42 @@ export default function PropostaEditor() {
             <Button size="sm" className="gap-1.5 shrink-0" onClick={handleSendLink} disabled={saving || uploadingAnexos}>
               <Send className="h-3.5 w-3.5" /> Enviar Link
             </Button>
-            <Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={handleExportPdf} disabled={saving || uploadingAnexos}>
-              <Download className="h-3.5 w-3.5" /> PDF
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" className="gap-1.5 shrink-0" disabled={saving || uploadingAnexos}>
+                  <Download className="h-3.5 w-3.5" /> PDF <ChevronDown className="h-3 w-3 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                <DropdownMenuLabel>Escolha o modelo</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleExportPdf('completo')}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">Completo</span>
+                    <span className="text-xs text-muted-foreground">Capa + apresentação + produtos + condições + termos + anexos</span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportPdf('resumido')}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">Resumido</span>
+                    <span className="text-xs text-muted-foreground">Capa + produtos + condições + assinatura</span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportPdf('tecnico')}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">Técnico</span>
+                    <span className="text-xs text-muted-foreground">Foco em produtos, especificações e termos</span>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportPdf('comercial')}>
+                  <div className="flex flex-col">
+                    <span className="font-medium">Comercial</span>
+                    <span className="text-xs text-muted-foreground">Foco em valor, ROI e condições de pagamento</span>
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {gcOrcamentoUrl ? (
               <Button size="sm" variant="outline" className="gap-1.5 shrink-0" asChild>
                 <a href={gcOrcamentoUrl} target="_blank" rel="noopener">🔗 Ver no GC →</a>
