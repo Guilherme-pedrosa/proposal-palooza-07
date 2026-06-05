@@ -1078,6 +1078,59 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           </div>
         )}
 
+        {/* Attachments (non-image files) Page */}
+        {proposal.attachments && proposal.attachments.length > 0 && (
+          <div className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+            <div className="absolute top-8 right-12">
+              <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
+            </div>
+
+            <h2 className="mb-2 text-3xl font-bold" style={{ color: '#111827' }}>Arquivos Anexos</h2>
+            <p className="mb-8" style={{ color: '#4b5563' }}>
+              Documentos complementares desta proposta. Clique no nome para baixar.
+            </p>
+
+            <div className="space-y-3">
+              {proposal.attachments.map((file, idx) => {
+                const sizeKb = file.size ? `${(file.size / 1024).toFixed(0)} KB` : '';
+                const ext = (file.name.split('.').pop() || '').toUpperCase();
+                return (
+                  <a
+                    key={file.id}
+                    href={file.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-4 rounded-lg p-4 no-underline"
+                    style={{ border: '1px solid #e5e7eb', backgroundColor: '#f9fafb' }}
+                  >
+                    <div
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md text-xs font-bold text-white"
+                      style={{ backgroundColor: '#0066FF' }}
+                    >
+                      {ext || 'FILE'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate" style={{ color: '#0A1628' }}>
+                        {idx + 1}. {file.name}
+                      </p>
+                      <p className="text-xs" style={{ color: '#6b7280' }}>
+                        {sizeKb} {sizeKb && '•'} {file.url}
+                      </p>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+
+            <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
+              {proposal.number} de {formatDate(proposal.createdAt as Date)}
+            </div>
+
+            <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+            <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+          </div>
+        )}
+
         {/* Condições Comerciais */}
         {proposal.templateId && ['rational', 'equipamentos', 'ivario'].includes(proposal.templateId) && totalValue > 0 && (() => {
           const taxa = 2.303;
