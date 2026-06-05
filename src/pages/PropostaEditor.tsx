@@ -1158,6 +1158,44 @@ export default function PropostaEditor() {
           </div>
         </Section>
 
+        <Section title={`Seções do PDF (${pdfSections.length}/${ALL_PDF_SECTIONS.length})`} icon="🗂️" defaultOpen={false}>
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Escolha exatamente quais páginas entram no PDF. Esta configuração é salva junto com a proposta e usada toda vez que você exportar.
+            </p>
+            <div className="flex gap-2">
+              <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={() => setPdfSections(DEFAULT_SECTIONS as string[])}>
+                Selecionar tudo
+              </Button>
+              <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={() => setPdfSections([])}>
+                Limpar
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              {ALL_PDF_SECTIONS.map((s) => {
+                const checked = pdfSections.includes(s.id);
+                return (
+                  <label
+                    key={s.id}
+                    className={`flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer transition-colors text-sm ${
+                      checked ? 'bg-primary/5 border-primary/40' : 'bg-background border-border hover:bg-accent/40'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => togglePdfSection(s.id)}
+                      className="h-4 w-4 rounded border-input accent-primary"
+                    />
+                    <span className="text-base leading-none">{s.icon}</span>
+                    <span className="flex-1">{s.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </Section>
+
         <Section title="Condições Comerciais" icon="💰">
           <div className="space-y-4">
             <div>
