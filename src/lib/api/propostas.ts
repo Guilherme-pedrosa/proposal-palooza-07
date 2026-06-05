@@ -14,6 +14,7 @@ export interface PropostaRow {
   produtos: any[];
   termos_condicoes: any[];
   imagens: any[] | null;
+  anexos?: any[] | null;
   valor_total: number | null;
   desconto_total: number | null;
   validade_ate: string | null;
@@ -144,11 +145,17 @@ export async function createProposta(proposta: Partial<PropostaRow>): Promise<Pr
       produtos: proposta.produtos ?? [],
       termos_condicoes: proposta.termos_condicoes ?? [],
       imagens: proposta.imagens ?? [],
+      anexos: proposta.anexos ?? [],
       valor_total: proposta.valor_total ?? 0,
       desconto_total: proposta.desconto_total ?? 0,
       validade_dias: proposta.validade_dias ?? 10,
       validade_ate: proposta.validade_ate ?? null,
       observacoes_internas: proposta.observacoes_internas ?? null,
+      forma_pagamento: proposta.forma_pagamento ?? null,
+      num_parcelas: proposta.num_parcelas ?? 1,
+      entrada_percent: proposta.entrada_percent ?? 0,
+      condicoes_pagamento: proposta.condicoes_pagamento ?? null,
+      prazo_entrega: proposta.prazo_entrega ?? null,
       link_publico_uuid: uuid,
       versao: 1,
     } as any)

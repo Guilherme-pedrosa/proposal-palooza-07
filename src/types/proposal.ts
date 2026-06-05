@@ -72,6 +72,8 @@ export interface Proposal {
   descontoAVista?: number;
   descontoAVistaTipo?: 'percent' | 'value';
   opcoesPagamento?: PaymentOption[];
+  condicoesPagamentoTexto?: string;
+  prazoEntrega?: string;
   // Legacy fields (backward compat)
   numParcelas?: number;
   formaPagamento?: string;

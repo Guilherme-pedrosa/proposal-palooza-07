@@ -478,54 +478,75 @@ export default function PropostaEditor() {
     return 'draft';
   };
 
-  const buildPrintProposal = (): Partial<ProposalPrintType> => ({
-    number: numero,
-    createdAt: proposta?.created_at ? new Date(proposta.created_at) : new Date(),
-    validUntil: validadeAte,
-    client: {
-      id: clienteSelecionado?.id || clienteId || '',
-      name: clienteSelecionado?.razao_social || clienteSelecionado?.nome || 'Cliente',
-      email: clienteSelecionado?.email || undefined,
-      phone: clienteSelecionado?.telefone || clienteSelecionado?.celular || undefined,
-      address: clienteSelecionado?.endereco || undefined,
-      cnpj: clienteSelecionado?.cnpj || undefined,
-    },
-    title: titulo,
-    description: descricao,
-    products: produtos.map((p) => ({
-      id: p.id,
-      name: p.name,
-      description: p.description,
-      observation: p.observation,
-      unit: p.unit,
-      quantity: p.quantity,
-      unitPrice: p.unitPrice,
-      totalPrice: p.totalPrice,
-      discount: p.discount,
-      photoUrl: p.photoUrl,
-    })),
-    termsConditions: termos.map((t) => ({ id: t.id, title: t.title, description: t.description })),
-    images: imagens.map((img) => ({ id: img.id, url: img.url, name: img.name || 'Imagem' })),
-    attachments: anexos
-      .filter((a: any) => a?.storagePath || a?.url)
-      .map((a: any) => ({
-        id: a.id,
-        name: a.name || 'Anexo',
-        size: a.size,
-        type: a.type,
-        url: a.url || supabase.storage.from('proposals').getPublicUrl(a.storagePath).data.publicUrl,
+  const buildPrintProposal = async (): Promise<Partial<ProposalPrintType>> => {
+    const attachments = await Promise.all(
+      anexos
+        .filter((a: any) => a?.storagePath || a?.url)
+        .map(async (a: any) => {
+          let resolvedUrl = a.url;
+
+          if (!resolvedUrl && a.storagePath) {
+            const { data: signedData } = await supabase.storage
+              .from('proposals')
+              .createSignedUrl(a.storagePath, 60 * 60 * 24 * 30);
+
+            resolvedUrl = signedData?.signedUrl
+              || supabase.storage.from('proposals').getPublicUrl(a.storagePath).data.publicUrl;
+          }
+
+          return {
+            id: a.id,
+            name: a.name || 'Anexo',
+            size: a.size,
+            type: a.type,
+            url: resolvedUrl,
+          };
+        })
+    );
+
+    return {
+      number: numero,
+      createdAt: proposta?.created_at ? new Date(proposta.created_at) : new Date(),
+      validUntil: validadeAte,
+      client: {
+        id: clienteSelecionado?.id || clienteId || '',
+        name: clienteSelecionado?.razao_social || clienteSelecionado?.nome || 'Cliente',
+        email: clienteSelecionado?.email || undefined,
+        phone: clienteSelecionado?.telefone || clienteSelecionado?.celular || undefined,
+        address: clienteSelecionado?.endereco || undefined,
+        cnpj: clienteSelecionado?.cnpj || undefined,
+      },
+      title: titulo,
+      description: descricao,
+      products: produtos.map((p) => ({
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        observation: p.observation,
+        unit: p.unit,
+        quantity: p.quantity,
+        unitPrice: p.unitPrice,
+        totalPrice: p.totalPrice,
+        discount: p.discount,
+        photoUrl: p.photoUrl,
       })),
-    totalValue: total,
-    status: toPrintStatus(status),
-    companyName: company.name,
-    companyPhone: company.phone,
-    companyEmail: company.email || undefined,
-    templateId: templateId || undefined,
-    opcoesPagamento,
-    taxaJuros,
-    descontoAVista,
-    descontoAVistaTipo,
-  });
+      termsConditions: termos.map((t) => ({ id: t.id, title: t.title, description: t.description })),
+      images: imagens.map((img) => ({ id: img.id, url: img.url, name: img.name || 'Imagem' })),
+      attachments,
+      totalValue: total,
+      status: toPrintStatus(status),
+      companyName: company.name,
+      companyPhone: company.phone,
+      companyEmail: company.email || undefined,
+      templateId: templateId || undefined,
+      opcoesPagamento,
+      taxaJuros,
+      descontoAVista,
+      descontoAVistaTipo,
+      condicoesPagamentoTexto: condicoesPagamento || undefined,
+      prazoEntrega: prazoEntrega || undefined,
+    };
+  };
 
   const handleSave = async (newStatus?: string) => {
     if (!titulo.trim()) { toast({ title: 'Informe o título da proposta', variant: 'destructive' }); return; }
@@ -611,7 +632,8 @@ export default function PropostaEditor() {
 
   const handleExportPdf = async () => {
     try {
-      await printProposal(buildPrintProposal(), company);
+      const proposalToPrint = await buildPrintProposal();
+      await printProposal(proposalToPrint, company);
     } catch (err: any) {
       toast({ title: 'Erro ao exportar PDF', description: err?.message, variant: 'destructive' });
     }

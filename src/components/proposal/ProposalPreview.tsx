@@ -1170,7 +1170,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           const gridCols = opts.length <= 2 ? 'grid-cols-2' : opts.length === 3 ? 'grid-cols-3' : 'grid-cols-2';
 
           return (
-          <div className="relative bg-white px-12 pt-10 pb-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
+          <div data-pdf-skip="true" data-pdf-commercial="true" className="relative bg-white px-12 pt-10 pb-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakAfter: 'always', pageBreakInside: 'avoid' }}>
             <div className="absolute top-8 right-12">
               <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
             </div>
