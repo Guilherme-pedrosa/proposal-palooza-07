@@ -30,6 +30,9 @@ export default function PropostaPublica() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [aprovada, setAprovada] = useState(false);
   const [logoError, setLogoError] = useState(false);
+  const [nomeAprov, setNomeAprov] = useState('');
+  const [cpfAprov, setCpfAprov] = useState('');
+  const [aprovando, setAprovando] = useState(false);
 
   // Load company settings directly (works for anon users via public RLS)
   const { data: companyData } = useQuery({
