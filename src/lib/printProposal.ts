@@ -399,7 +399,23 @@ function renderCommercialConditionsNativePage(pdf: jsPDF, proposal: Partial<Prop
   }
 }
 
-export async function generateProposalPdf(proposal: Partial<Proposal>, company: CompanySettings): Promise<boolean> {
+export type PdfVariant = 'completo' | 'resumido' | 'tecnico' | 'comercial';
+
+const VARIANT_SECTIONS: Record<PdfVariant, string[]> = {
+  completo: ['cover', 'presentation', 'clients', 'objectives', 'equipment', 'results', 'details', 'products', 'template-extra', 'terms', 'images', 'attachments', 'commercial', 'signature'],
+  resumido: ['cover', 'products', 'commercial', 'signature'],
+  tecnico: ['cover', 'presentation', 'objectives', 'equipment', 'results', 'details', 'products', 'template-extra', 'images', 'terms', 'signature'],
+  comercial: ['cover', 'presentation', 'clients', 'results', 'products', 'commercial', 'signature'],
+};
+
+export const PDF_VARIANT_LABELS: Record<PdfVariant, string> = {
+  completo: 'Completo (todas as páginas)',
+  resumido: 'Resumido (1-2 páginas)',
+  tecnico: 'Técnico (foco em produtos)',
+  comercial: 'Comercial (foco em valor)',
+};
+
+export async function generateProposalPdf(proposal: Partial<Proposal>, company: CompanySettings, variant: PdfVariant = 'completo'): Promise<boolean> {
   const tempContainer = document.createElement('div');
   tempContainer.style.position = 'fixed';
   tempContainer.style.left = '-200vw';
@@ -423,7 +439,13 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
     await waitForImagesToLoad(tempContainer);
     await waitForNextPaint(2);
 
-    const pages = Array.from(tempContainer.querySelectorAll('.pdf-page')) as HTMLElement[];
+    const allowedSections = new Set(VARIANT_SECTIONS[variant]);
+    const allPages = Array.from(tempContainer.querySelectorAll('.pdf-page')) as HTMLElement[];
+    const pages = allPages.filter((p) => {
+      const sec = p.dataset.pdfSection;
+      return !sec || allowedSections.has(sec);
+    });
+
     if (pages.length === 0) {
       console.error('Nenhuma página PDF encontrada para exportação');
       return false;
@@ -438,7 +460,6 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
       if (!firstPage) pdf.addPage();
       firstPage = false;
 
-      // Native render for attachments page (crisp text + clickable links)
       if (page.dataset.pdfAttachments === 'true') {
         renderAttachmentsNativePage(pdf, proposal.attachments || [], proposal.number);
         continue;
@@ -471,13 +492,13 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
         scrollY: 0,
       });
 
-      // JPEG q=0.85 reduz o PDF de ~60MB para ~2-5MB sem perda visual perceptível.
       const imgData = canvas.toDataURL('image/jpeg', 0.85);
       pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
     }
 
     const clientName = proposal.client?.name?.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30) || 'Cliente';
-    const filename = `${proposal.number || 'Proposta'}_${clientName}.pdf`;
+    const suffix = variant === 'completo' ? '' : `_${variant}`;
+    const filename = `${proposal.number || 'Proposta'}_${clientName}${suffix}.pdf`;
     pdf.save(filename);
 
     return true;
@@ -490,6 +511,7 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
   }
 }
 
-export async function openPrintWindow(proposal: Partial<Proposal>, company: CompanySettings): Promise<boolean> {
-  return generateProposalPdf(proposal, company);
+export async function openPrintWindow(proposal: Partial<Proposal>, company: CompanySettings, variant: PdfVariant = 'completo'): Promise<boolean> {
+  return generateProposalPdf(proposal, company, variant);
 }
+
