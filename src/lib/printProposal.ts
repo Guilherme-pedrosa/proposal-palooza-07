@@ -2,7 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { Proposal } from '@/types/proposal';
+import { Proposal, ProposalAttachment } from '@/types/proposal';
 import { CompanySettings } from '@/types/company';
 import industrialKitchenBg from '@/assets/industrial-kitchen-bg.jpg';
 import { ProposalPreview } from '@/components/proposal/ProposalPreview';
