@@ -248,9 +248,18 @@ export async function registrarVisualizacao(id: string, proposta: PropostaRow) {
   } as any).eq('id', id);
 }
 
-export async function aprovarProposta(id: string) {
+export async function aprovarProposta(id: string, dados?: { nome: string; cpf: string }) {
+  let ip: string | null = null;
+  try {
+    const r = await fetch('https://api.ipify.org?format=json');
+    ip = (await r.json()).ip;
+  } catch {}
   await supabase.from('propostas').update({
     status: 'aprovada',
+    aprovador_nome: dados?.nome ?? null,
+    aprovador_cpf: dados?.cpf ?? null,
+    aprovado_em: new Date().toISOString(),
+    aprovado_ip: ip,
     updated_at: new Date().toISOString(),
   } as any).eq('id', id);
 }
