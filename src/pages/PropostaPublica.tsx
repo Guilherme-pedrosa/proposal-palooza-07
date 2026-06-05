@@ -62,9 +62,24 @@ export default function PropostaPublica() {
 
   const handleAprovar = async () => {
     if (!proposta) return;
-    await aprovarProposta(proposta.id);
-    setAprovada(true);
-    setConfirmOpen(false);
+    const nome = nomeAprov.trim();
+    if (nome.length < 3 || !nome.includes(' ')) {
+      toast.error('Informe seu nome completo');
+      return;
+    }
+    if (!isValidCpf(cpfAprov)) {
+      toast.error('CPF inválido');
+      return;
+    }
+    try {
+      setAprovando(true);
+      await aprovarProposta(proposta.id, { nome, cpf: onlyDigitsCpf(cpfAprov) });
+      setAprovada(true);
+      setConfirmOpen(false);
+      toast.success('Proposta aprovada com sucesso!');
+    } finally {
+      setAprovando(false);
+    }
   };
 
   if (isLoading) {
