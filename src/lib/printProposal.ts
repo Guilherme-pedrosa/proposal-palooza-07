@@ -821,34 +821,8 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
         continue;
       }
 
-      const bounds = page.getBoundingClientRect();
-      await waitForImagesToLoad(page);
-      await waitForNextPaint(1);
-
-      // Cover page has a photo background → JPEG is fine and keeps file small.
-      // All other pages are text-heavy → use PNG + higher scale so text stays razor-sharp.
       const isCover = page.dataset.pdfSection === 'cover';
-      const scale = isCover ? 2 : 2.2;
-
-      const canvas = await html2canvas(page, {
-        scale,
-        useCORS: true,
-        allowTaint: false,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width: Math.ceil(bounds.width),
-        height: Math.ceil(bounds.height),
-        windowWidth: Math.ceil(bounds.width),
-        windowHeight: Math.ceil(bounds.height),
-        scrollX: 0,
-        scrollY: 0,
-      });
-
-      if (isCover) {
-        pdf.addImage(canvas, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
-      } else {
-        pdf.addImage(canvas, 'PNG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
-      }
+      await renderMixedPdfPage(pdf, page, isCover);
 
       await yieldToMainThread();
     }
