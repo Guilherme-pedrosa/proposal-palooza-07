@@ -151,6 +151,30 @@ export default function PropostaEditor() {
   const [versao, setVersao] = useState(1);
   const [linkUuid, setLinkUuid] = useState('');
 
+  // PDF Sections — user controls which sections appear in the PDF
+  const ALL_PDF_SECTIONS = [
+    { id: 'cover', label: 'Capa', icon: '🎨' },
+    { id: 'presentation', label: 'Sobre a empresa', icon: '🏢' },
+    { id: 'clients', label: 'Principais clientes e marcas', icon: '🤝' },
+    { id: 'objectives', label: 'Objetivos (Preventiva)', icon: '🎯' },
+    { id: 'equipment', label: 'Abordagem por equipamento (Preventiva)', icon: '⚙️' },
+    { id: 'results', label: 'Resultados comprovados (Preventiva)', icon: '📊' },
+    { id: 'details', label: 'Escopo e descrição', icon: '📄' },
+    { id: 'products', label: 'Produtos e serviços', icon: '📦' },
+    { id: 'template-extra', label: 'Páginas do template (Manutenção/Locação)', icon: '📝' },
+    { id: 'terms', label: 'Termos e condições', icon: '📚' },
+    { id: 'images', label: 'Imagens', icon: '🖼️' },
+    { id: 'attachments', label: 'Arquivos anexos', icon: '📎' },
+    { id: 'commercial', label: 'Condições comerciais', icon: '💰' },
+    { id: 'signature', label: 'Assinatura', icon: '✍️' },
+  ] as const;
+  const DEFAULT_SECTIONS = ALL_PDF_SECTIONS.map(s => s.id);
+  const [pdfSections, setPdfSections] = useState<string[]>(DEFAULT_SECTIONS);
+  const togglePdfSection = (id: string) => {
+    setPdfSections(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
+  };
+
+
   // Load price tables
   const { data: tabelasPreco = [] } = useQuery({
     queryKey: ['tabelas_preco'],
