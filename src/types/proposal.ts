@@ -60,6 +60,7 @@ export interface Proposal {
   products: Product[];
   termsConditions: TermCondition[];
   images: ProposalImage[];
+  attachments?: ProposalAttachment[];
   totalValue: number;
   status: 'draft' | 'sent' | 'approved' | 'rejected';
   companyName: string;
