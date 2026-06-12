@@ -272,6 +272,7 @@ export default function ClienteForm() {
               endereco: form.endereco || undefined,
               cidade: form.cidade || undefined,
               estado: form.estado || undefined,
+              cep: form.cep?.replace(/\D/g, '') || undefined,
             },
           });
 
