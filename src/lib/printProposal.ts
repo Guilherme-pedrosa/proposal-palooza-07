@@ -1,6 +1,5 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { Proposal, ProposalAttachment } from '@/types/proposal';
 import { CompanySettings } from '@/types/company';
@@ -10,6 +9,61 @@ import { getImageAsBase64 } from '@/lib/pdfImageUtils';
 
 const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
+
+type PdfRgb = [number, number, number];
+
+function parseCssColor(color: string): PdfRgb | null {
+  if (!color || color === 'transparent') return null;
+
+  const rgba = color.match(/rgba?\(([^)]+)\)/i);
+  if (rgba) {
+    const parts = rgba[1].split(',').map((part) => part.trim());
+    const alpha = parts[3] === undefined ? 1 : Number(parts[3]);
+    if (Number.isFinite(alpha) && alpha <= 0.02) return null;
+    return [Number(parts[0]) || 0, Number(parts[1]) || 0, Number(parts[2]) || 0];
+  }
+
+  const hex = color.trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (!hex) return null;
+  const raw = hex[1].length === 3
+    ? hex[1].split('').map((char) => `${char}${char}`).join('')
+    : hex[1];
+  return [parseInt(raw.slice(0, 2), 16), parseInt(raw.slice(2, 4), 16), parseInt(raw.slice(4, 6), 16)];
+}
+
+function isVisibleElement(element: Element): element is HTMLElement {
+  if (!(element instanceof HTMLElement)) return false;
+  const style = window.getComputedStyle(element);
+  const rect = element.getBoundingClientRect();
+  return style.display !== 'none'
+    && style.visibility !== 'hidden'
+    && Number(style.opacity) > 0.02
+    && rect.width > 0
+    && rect.height > 0;
+}
+
+function getPdfFontFamily(cssFamily: string): 'helvetica' | 'times' {
+  return /georgia|times|serif/i.test(cssFamily) ? 'times' : 'helvetica';
+}
+
+function getPdfFontStyle(style: CSSStyleDeclaration): 'normal' | 'bold' | 'italic' | 'bolditalic' {
+  const weight = Number(style.fontWeight);
+  const isBold = style.fontWeight === 'bold' || (!Number.isNaN(weight) && weight >= 600);
+  const isItalic = style.fontStyle.includes('italic');
+  if (isBold && isItalic) return 'bolditalic';
+  if (isBold) return 'bold';
+  if (isItalic) return 'italic';
+  return 'normal';
+}
+
+function getImageFormat(source: string): 'PNG' | 'JPEG' {
+  return source.startsWith('data:image/png') || source.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
+}
+
+function extractCssUrl(backgroundImage: string): string | null {
+  const match = backgroundImage.match(/url\(["']?(.+?)["']?\)/i);
+  return match?.[1] || null;
+}
 
 async function waitForNextPaint(frames = 2): Promise<void> {
   for (let index = 0; index < frames; index += 1) {
@@ -82,26 +136,122 @@ async function inlineAllImages(container: HTMLElement): Promise<void> {
   await Promise.all(allImages.map((img) => inlineImage(img)));
 }
 
-async function renderMixedPdfPage(pdf: jsPDF, page: HTMLElement, isCover: boolean): Promise<void> {
-  const bounds = page.getBoundingClientRect();
+async function renderNativePdfPage(pdf: jsPDF, page: HTMLElement): Promise<void> {
+  const pageRect = page.getBoundingClientRect();
+  const scaleX = A4_WIDTH_MM / pageRect.width;
+  const scaleY = A4_HEIGHT_MM / pageRect.height;
+  const toMmX = (px: number) => (px - pageRect.left) * scaleX;
+  const toMmY = (px: number) => (px - pageRect.top) * scaleY;
+  const toMmW = (px: number) => px * scaleX;
+  const toMmH = (px: number) => px * scaleY;
 
-  const canvas = await html2canvas(page, {
-    scale: 1.75,
-    useCORS: true,
-    allowTaint: false,
-    logging: false,
-    backgroundColor: '#ffffff',
-    width: Math.ceil(bounds.width),
-    height: Math.ceil(bounds.height),
-    windowWidth: Math.ceil(bounds.width),
-    windowHeight: Math.ceil(bounds.height),
-    scrollX: 0,
-    scrollY: 0,
-    imageTimeout: 0,
+  const drawElementBackground = async (element: HTMLElement) => {
+    const style = window.getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
+    const x = toMmX(rect.left);
+    const y = toMmY(rect.top);
+    const w = toMmW(rect.width);
+    const h = toMmH(rect.height);
+    if (w <= 0 || h <= 0) return;
+
+    const bg = parseCssColor(style.backgroundColor);
+    if (bg) {
+      pdf.setFillColor(...bg);
+      pdf.rect(x, y, w, h, 'F');
+    }
+
+    const source = extractCssUrl(style.backgroundImage);
+    if (source) {
+      const base64 = await getImageAsBase64(source);
+      if (base64) {
+        pdf.addImage(base64, getImageFormat(base64 || source), x, y, w, h, undefined, 'FAST');
+      }
+    }
+
+    const borderColor = parseCssColor(style.borderTopColor);
+    const borderWidth = parseFloat(style.borderTopWidth || '0');
+    if (borderColor && borderWidth > 0) {
+      pdf.setDrawColor(...borderColor);
+      pdf.setLineWidth(Math.max(0.1, toMmH(borderWidth)));
+      pdf.rect(x, y, w, h, 'S');
+    }
+  };
+
+  const elements = Array.from(page.querySelectorAll('*')).filter(isVisibleElement);
+  await drawElementBackground(page);
+  for (const element of elements) {
+    await drawElementBackground(element);
+  }
+
+  for (const img of Array.from(page.querySelectorAll('img'))) {
+    if (!isVisibleElement(img)) continue;
+    const rect = img.getBoundingClientRect();
+    const source = img.currentSrc || img.src;
+    const base64 = await getImageAsBase64(source);
+    if (base64) {
+      pdf.addImage(base64, getImageFormat(base64 || source), toMmX(rect.left), toMmY(rect.top), toMmW(rect.width), toMmH(rect.height), undefined, 'FAST');
+    }
+  }
+
+  const walker = document.createTreeWalker(page, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      if (!node.textContent?.trim()) return NodeFilter.FILTER_REJECT;
+      const parent = node.parentElement;
+      if (!parent || !isVisibleElement(parent)) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    },
   });
 
-  const jpeg = canvas.toDataURL('image/jpeg', 0.85);
-  pdf.addImage(jpeg, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
+  while (walker.nextNode()) {
+    const textNode = walker.currentNode as Text;
+    const parent = textNode.parentElement;
+    if (!parent) continue;
+
+    const style = window.getComputedStyle(parent);
+    const color = parseCssColor(style.color);
+    if (!color) continue;
+
+    const range = document.createRange();
+    range.selectNodeContents(textNode);
+    const rects = Array.from(range.getClientRects()).filter((rect) => rect.width > 0 && rect.height > 0);
+    if (rects.length === 0) continue;
+
+    const text = textNode.textContent?.replace(/\s+/g, ' ').trim();
+    if (!text) continue;
+
+    pdf.setFont(getPdfFontFamily(style.fontFamily), getPdfFontStyle(style));
+    pdf.setFontSize(parseFloat(style.fontSize || '12') * 0.72);
+    pdf.setTextColor(...color);
+
+    if (rects.length === 1) {
+      const rect = rects[0];
+      pdf.text(text, toMmX(rect.left), toMmY(rect.top) + toMmH(rect.height) * 0.78, {
+        baseline: 'alphabetic',
+        maxWidth: toMmW(rect.width) + 0.5,
+      });
+      continue;
+    }
+
+    const words = text.split(' ');
+    let wordIndex = 0;
+    rects.forEach((rect) => {
+      const lineWords: string[] = [];
+      while (wordIndex < words.length) {
+        const next = [...lineWords, words[wordIndex]].join(' ');
+        if (lineWords.length > 0 && pdf.getTextWidth(next) > toMmW(rect.width) + 1) break;
+        lineWords.push(words[wordIndex]);
+        wordIndex += 1;
+      }
+      const line = lineWords.join(' ');
+      if (line) {
+        pdf.text(line, toMmX(rect.left), toMmY(rect.top) + toMmH(rect.height) * 0.78, {
+          baseline: 'alphabetic',
+          maxWidth: toMmW(rect.width) + 0.5,
+        });
+      }
+    });
+    range.detach();
+  }
 }
 
 function renderProductsNativePages(pdf: jsPDF, proposal: Partial<Proposal>): void {
@@ -653,8 +803,7 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
       if (!firstPage) pdf.addPage();
       firstPage = false;
 
-      const isCover = page.dataset.pdfSection === 'cover';
-      await renderMixedPdfPage(pdf, page, isCover);
+      await renderNativePdfPage(pdf, page);
 
       await yieldToMainThread();
     }
