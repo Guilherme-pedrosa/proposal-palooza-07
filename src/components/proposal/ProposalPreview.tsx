@@ -1275,7 +1275,8 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                     )}
                     <p className="text-xl font-bold" style={{ color: isLeasing ? '#15803d' : '#111827' }}>
                       {formatCurrency(valor)}
-                      <span className="text-sm font-normal">/mês</span>
+                      {((opt.parcelas || 1) > 1 || isLeasing) && <span className="text-sm font-normal">/{(opt as any).periodicidade || 'mês'}</span>}
+                      {(opt.parcelas || 1) === 1 && !isLeasing && (opt as any).periodicidade && <span className="text-sm font-normal">/{(opt as any).periodicidade}</span>}
                     </p>
                     <p className="text-xs mt-1" style={{ color: isLeasing ? '#16a34a' : '#9ca3af' }}>
                       {descMap[opt.forma] || opt.forma}
