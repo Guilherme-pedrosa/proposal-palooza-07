@@ -3,6 +3,7 @@ import { Proposal } from '@/types/proposal';
 import { CompanySettings } from '@/types/company';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Flame, Snowflake, Refrigerator, Utensils, Wrench, BarChart3, Sparkles, TrendingUp, Zap } from 'lucide-react';
 import logoWedoDefault from '@/assets/logo-wedo.png';
 import industrialKitchenBg from '@/assets/industrial-kitchen-bg.jpg';
 
@@ -414,7 +415,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             {/* Fogões Industriais */}
             <div className="py-3" style={{ borderBottom: '1px solid #f3f4f6' }}>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-base">🔥</span>
+                <Flame size={16} style={{ color: '#f97316' }} strokeWidth={2.2} />
                 <h3 className="text-sm font-semibold" style={{ color: '#111827' }}>Fogões Industriais</h3>
               </div>
               <ul className="text-xs space-y-1 pl-6" style={{ color: '#4b5563' }}>
@@ -428,7 +429,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             {/* Sistemas de Refrigeração */}
             <div className="py-3" style={{ borderBottom: '1px solid #f3f4f6' }}>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-base">❄️</span>
+                <Snowflake size={16} style={{ color: '#0ea5e9' }} strokeWidth={2.2} />
                 <h3 className="text-sm font-semibold" style={{ color: '#111827' }}>Refrigeração</h3>
               </div>
               <ul className="text-xs space-y-1 pl-6" style={{ color: '#4b5563' }}>
@@ -442,7 +443,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             {/* Câmaras Frias */}
             <div className="py-3" style={{ borderBottom: '1px solid #f3f4f6' }}>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-base">🧊</span>
+                <Refrigerator size={16} style={{ color: '#0284c7' }} strokeWidth={2.2} />
                 <h3 className="text-sm font-semibold" style={{ color: '#111827' }}>Câmaras Frias</h3>
               </div>
               <ul className="text-xs space-y-1 pl-6" style={{ color: '#4b5563' }}>
@@ -456,7 +457,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             {/* Lava-Louças */}
             <div className="py-3" style={{ borderBottom: '1px solid #f3f4f6' }}>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-base">🍽️</span>
+                <Utensils size={16} style={{ color: '#0066FF' }} strokeWidth={2.2} />
                 <h3 className="text-sm font-semibold" style={{ color: '#111827' }}>Lava-Louças</h3>
               </div>
               <ul className="text-xs space-y-1 pl-6" style={{ color: '#4b5563' }}>
@@ -470,7 +471,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             {/* Fornos e Estufas */}
             <div className="py-3" style={{ borderBottom: '1px solid #f3f4f6' }}>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-base">🔥</span>
+                <Flame size={16} style={{ color: '#dc2626' }} strokeWidth={2.2} />
                 <h3 className="text-sm font-semibold" style={{ color: '#111827' }}>Fornos e Estufas</h3>
               </div>
               <ul className="text-xs space-y-1 pl-6" style={{ color: '#4b5563' }}>
@@ -484,7 +485,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
             {/* Equipamentos de Bancada */}
             <div className="py-3" style={{ borderBottom: '1px solid #f3f4f6' }}>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-base">🔧</span>
+                <Wrench size={16} style={{ color: '#475569' }} strokeWidth={2.2} />
                 <h3 className="text-sm font-semibold" style={{ color: '#111827' }}>Equipamentos de Bancada</h3>
               </div>
               <ul className="text-xs space-y-1 pl-6" style={{ color: '#4b5563' }}>
@@ -573,7 +574,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           {/* Case Study - Minimal */}
           <div className="mb-6 p-5 rounded-xl" style={{ backgroundColor: '#fafafa' }}>
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-lg">📊</span>
+              <BarChart3 size={18} style={{ color: '#0066FF' }} strokeWidth={2.2} />
               <h3 className="text-base font-semibold" style={{ color: '#111827' }}>Case de Sucesso: Rede de Restaurantes</h3>
             </div>
             <div className="grid grid-cols-2 gap-8">
@@ -618,13 +619,13 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           {/* Benefits - Clean icons */}
           <div className="p-5 rounded-xl" style={{ border: '1px solid #e5e7eb' }}>
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-lg">✨</span>
+              <Sparkles size={18} style={{ color: '#0066FF' }} strokeWidth={2.2} />
               <h3 className="text-base font-semibold" style={{ color: '#111827' }}>Benefícios Além da Economia</h3>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f0fdf4' }}>
-                  <span className="text-lg">📈</span>
+                  <TrendingUp size={18} style={{ color: '#16a34a' }} strokeWidth={2.2} />
                 </div>
                 <div>
                   <p className="text-sm font-medium" style={{ color: '#111827' }}>Previsibilidade Financeira</p>
@@ -633,7 +634,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#fef3c7' }}>
-                  <span className="text-lg">⚡</span>
+                  <Zap size={18} style={{ color: '#d97706' }} strokeWidth={2.2} />
                 </div>
                 <div>
                   <p className="text-sm font-medium" style={{ color: '#111827' }}>Menos Emergências</p>
@@ -642,7 +643,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#dbeafe' }}>
-                  <span className="text-lg">🔧</span>
+                  <Wrench size={18} style={{ color: '#0066FF' }} strokeWidth={2.2} />
                 </div>
                 <div>
                   <p className="text-sm font-medium" style={{ color: '#111827' }}>Maior Durabilidade</p>
@@ -1230,7 +1231,7 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 <h2 className="text-2xl font-semibold tracking-tight" style={{ color: '#111827' }}>Condições Comerciais</h2>
               </div>
               <p className="text-xs mt-1 pl-4" style={{ color: '#4b5563' }}>
-                Simulação de investimento e modalidades de pagamento para os equipamentos desta proposta.
+                Simulação de investimento e modalidades de pagamento para os serviços desta proposta.
               </p>
             </div>
 
