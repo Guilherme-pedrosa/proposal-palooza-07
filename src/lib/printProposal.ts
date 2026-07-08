@@ -803,8 +803,7 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
       if (!firstPage) pdf.addPage();
       firstPage = false;
 
-      const isCover = page.dataset.pdfSection === 'cover';
-      await renderMixedPdfPage(pdf, page, isCover);
+      await renderNativePdfPage(pdf, page);
 
       await yieldToMainThread();
     }
