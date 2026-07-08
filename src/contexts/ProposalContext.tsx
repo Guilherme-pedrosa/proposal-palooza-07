@@ -364,6 +364,154 @@ const equipamentosTerms: SavedTermCondition[] = [
   },
 ];
 
+// Termos específicos para Locação de Equipamentos
+const locacaoTerms: SavedTermCondition[] = [
+  {
+    id: 'loc-1',
+    title: '1. Uso conforme manual do equipamento',
+    description: 'O equipamento locado deverá ser utilizado exclusivamente para a finalidade a que se destina, respeitando integralmente as orientações constantes no manual do equipamento, manual do fabricante, etiquetas técnicas, instruções de operação, orientações de segurança e recomendações fornecidas pela LOCADORA.\n\nO uso em desacordo com o manual do equipamento será considerado mau uso, podendo gerar cobrança de peças, mão de obra, deslocamento, danos ao equipamento e demais custos necessários para restabelecimento das condições adequadas de funcionamento.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-2',
+    title: '2. Responsabilidade pela operação',
+    description: 'A LOCATÁRIA será responsável por operar o equipamento somente por pessoas devidamente orientadas e aptas, observando os procedimentos descritos no manual do equipamento.\n\nA LOCADORA poderá fornecer orientações iniciais de uso, porém tais orientações não substituem a leitura, observância e cumprimento integral do manual do equipamento pela LOCATÁRIA e sua equipe.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-3',
+    title: '3. Instalação e infraestrutura',
+    description: 'A LOCATÁRIA será responsável por disponibilizar infraestrutura adequada para instalação e funcionamento do equipamento, incluindo, quando aplicável, ponto elétrico, disjuntores, tensão correta, aterramento, ponto hidráulico, pressão de água, drenagem, exaustão, ventilação, espaço físico, nivelamento, acesso técnico e demais condições exigidas no manual do equipamento.\n\nCaso a infraestrutura local esteja em desacordo com o manual do equipamento, a LOCADORA poderá suspender a instalação, limitar o funcionamento, recomendar adequações ou recusar a operação do equipamento até a regularização das condições necessárias.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-4',
+    title: '4. Condições de energia elétrica',
+    description: 'A LOCATÁRIA deverá garantir alimentação elétrica compatível com as especificações técnicas do equipamento, conforme manual do equipamento, placa de identificação e orientações da LOCADORA.\n\nOscilações de tensão, ausência de aterramento, uso de extensões inadequadas, sobrecarga elétrica, ligação em tensão incorreta, alteração de plugues, ausência de proteção elétrica ou qualquer condição em desacordo com o manual do equipamento serão considerados fatores externos à responsabilidade da LOCADORA.\n\nDanos causados por problemas elétricos serão de responsabilidade da LOCATÁRIA.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-5',
+    title: '5. Condições hidráulicas, qualidade da água e drenagem',
+    description: 'Quando o equipamento depender de água, a LOCATÁRIA deverá garantir ponto hidráulico, pressão, vazão, filtragem, dureza, drenagem e qualidade da água conforme especificado no manual do equipamento.\n\nA utilização de água fora dos padrões recomendados no manual do equipamento poderá causar incrustações, entupimentos, falhas em válvulas, resistências, bombas, boilers, sensores e demais componentes, sendo tais danos considerados decorrentes de condição inadequada de uso.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-6',
+    title: '6. Limpeza, higienização e conservação',
+    description: 'A LOCATÁRIA deverá realizar a limpeza, higienização e conservação diária do equipamento conforme instruções do manual do equipamento, utilizando apenas produtos, utensílios e métodos compatíveis com o equipamento.\n\nÉ vedado o uso de produtos abrasivos, corrosivos, inflamáveis, inadequados, não autorizados ou incompatíveis com os materiais do equipamento, conforme manual do equipamento.\n\nDanos causados por limpeza inadequada, ausência de higienização, acúmulo de resíduos, gordura, calcário, incrustações ou obstruções serão considerados responsabilidade da LOCATÁRIA.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-7',
+    title: '7. Insumos, produtos químicos e consumíveis',
+    description: 'Quando o equipamento exigir uso de insumos, detergentes, secantes, filtros, cartuchos, pastilhas, lubrificantes ou produtos químicos específicos, a LOCATÁRIA deverá utilizar somente produtos compatíveis com o manual do equipamento e previamente autorizados pela LOCADORA.\n\nO uso de insumos inadequados, adulterados, diluídos incorretamente, vencidos ou não recomendados no manual do equipamento poderá gerar perda de garantia operacional e cobrança dos custos de reparo.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-8',
+    title: '8. Manutenção preventiva',
+    description: 'A manutenção preventiva será realizada conforme periodicidade definida na proposta, contrato ou plano técnico da LOCADORA, observadas as recomendações do manual do equipamento e as condições reais de uso.\n\nA manutenção preventiva não substitui as rotinas diárias de limpeza, operação correta, inspeção visual, conservação e cuidados operacionais previstos no manual do equipamento, que permanecem sob responsabilidade da LOCATÁRIA.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-9',
+    title: '9. Manutenção corretiva',
+    description: 'A LOCADORA prestará suporte técnico para correção de falhas do equipamento, observadas as condições comerciais e operacionais previstas na proposta.\n\nQuando a falha decorrer de desgaste natural, defeito interno ou condição não atribuível à LOCATÁRIA, o atendimento seguirá as condições de garantia ou suporte previstas.\n\nQuando a falha decorrer de mau uso, operação incorreta, infraestrutura inadequada, ausência de limpeza, uso de insumos incompatíveis, intervenção de terceiros ou descumprimento do manual do equipamento, os custos de atendimento, peças, deslocamento e mão de obra poderão ser cobrados da LOCATÁRIA.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-10',
+    title: '10. Intervenção de terceiros',
+    description: 'A LOCATÁRIA não poderá abrir, desmontar, alterar, reparar, deslocar internamente, adaptar, modificar ou permitir intervenção de terceiros no equipamento sem autorização prévia e por escrito da LOCADORA.\n\nQualquer intervenção não autorizada, especialmente quando em desacordo com o manual do equipamento, poderá gerar perda da garantia operacional e responsabilização da LOCATÁRIA por danos, falhas, custos técnicos e substituição de componentes.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-11',
+    title: '11. Alteração de configuração e parâmetros',
+    description: 'A LOCATÁRIA não poderá alterar parâmetros técnicos, programação, regulagens, sensores, proteções, sistemas de segurança, pressão, temperatura, dosagem química, ciclos de operação ou qualquer configuração técnica do equipamento sem autorização da LOCADORA.\n\nAlterações realizadas em desacordo com o manual do equipamento serão consideradas mau uso e poderão gerar cobrança dos custos de correção.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-12',
+    title: '12. Segurança operacional',
+    description: 'A LOCATÁRIA deverá observar todas as orientações de segurança previstas no manual do equipamento, incluindo cuidados com partes quentes, partes móveis, eletricidade, vapor, pressão, produtos químicos, superfícies cortantes, cargas, abertura de portas, ciclos de operação e procedimentos de parada.\n\nA LOCATÁRIA será responsável por orientar seus colaboradores quanto ao uso seguro do equipamento e por impedir o uso por pessoas não autorizadas ou não treinadas.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-13',
+    title: '13. Acessórios, peças removíveis e componentes',
+    description: 'Todos os acessórios, cestos, racks, filtros, bandejas, suportes, mangueiras, cabos, conexões, bicos, tampas, proteções e demais componentes entregues com o equipamento integram a locação e deverão ser conservados conforme manual do equipamento.\n\nPerda, quebra, extravio, mau uso, desgaste anormal ou dano causado a acessórios e componentes poderá ser cobrado da LOCATÁRIA.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-14',
+    title: '14. Comunicação de falhas',
+    description: 'A LOCATÁRIA deverá comunicar imediatamente à LOCADORA qualquer falha, ruído anormal, vazamento, aquecimento excessivo, erro no painel, mau funcionamento, cheiro incomum, oscilação elétrica, travamento, queda de desempenho ou qualquer condição diferente do funcionamento normal previsto no manual do equipamento.\n\nA continuidade de uso do equipamento após identificação de falha, sem autorização da LOCADORA, poderá agravar o dano e caracterizar mau uso.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-15',
+    title: '15. Proibição de uso em condições inadequadas',
+    description: 'A LOCATÁRIA deverá interromper o uso do equipamento sempre que houver condição insegura, falha aparente, vazamento, curto, cheiro de queimado, superaquecimento, obstrução, ausência de água, erro crítico, ruído anormal ou qualquer situação não prevista como operação normal no manual do equipamento.\n\nO uso do equipamento em condição inadequada poderá transferir à LOCATÁRIA a responsabilidade pelos danos decorrentes.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-16',
+    title: '16. Realocação do equipamento',
+    description: 'A LOCATÁRIA não poderá transferir, mudar de local, remover, transportar ou reinstalar o equipamento sem autorização prévia e por escrito da LOCADORA.\n\nA movimentação, transporte ou reinstalação em desacordo com o manual do equipamento poderá causar danos estruturais, elétricos, hidráulicos ou funcionais, sendo a LOCATÁRIA responsável pelos custos decorrentes.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-17',
+    title: '17. Garantia operacional',
+    description: 'A garantia operacional da locação está condicionada ao uso correto do equipamento, cumprimento do manual do equipamento, manutenção das condições adequadas de infraestrutura, limpeza, conservação e utilização de insumos compatíveis.\n\nNão haverá cobertura para danos decorrentes de mau uso, negligência, imperícia, falta de limpeza, intervenção de terceiros, infraestrutura inadequada, variação elétrica, água fora do padrão, queda, impacto, transporte indevido, violação de lacres, alteração de parâmetros ou descumprimento do manual do equipamento.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-18',
+    title: '18. Laudo técnico',
+    description: 'Em caso de falha, dano ou divergência quanto à causa do problema, a LOCADORA poderá emitir laudo técnico indicando as condições encontradas, registros fotográficos, evidências de uso, estado de conservação, eventual descumprimento do manual do equipamento e responsabilidade técnica pelo ocorrido.\n\nO laudo técnico poderá servir como base para cobrança de peças, mão de obra, deslocamento, substituição de componentes, indenização ou demais providências previstas na proposta.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-19',
+    title: '19. Devolução do equipamento',
+    description: 'Ao término da locação, rescisão, substituição ou retirada do equipamento, a LOCATÁRIA deverá devolver o bem limpo, higienizado, completo, com seus acessórios, em bom estado de conservação e funcionamento, ressalvado o desgaste natural decorrente do uso regular conforme manual do equipamento.\n\nCaso o equipamento seja devolvido sujo, incompleto, danificado, com avarias, peças faltantes, acessórios extraviados ou em desacordo com o manual do equipamento, a LOCADORA poderá cobrar os custos de limpeza técnica, reparo, reposição, transporte, peças e mão de obra.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-20',
+    title: '20. Prevalência do manual do equipamento',
+    description: 'O manual do equipamento integra as condições comerciais da locação, ainda que não esteja fisicamente anexado à proposta.\n\nEm caso de dúvida sobre instalação, operação, limpeza, conservação, segurança, insumos, infraestrutura ou manutenção, deverão prevalecer as orientações constantes no manual do equipamento, no manual do fabricante e nas orientações técnicas formalizadas pela LOCADORA.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-21',
+    title: '21. Atualizações do fabricante',
+    description: 'Caso o fabricante atualize recomendações técnicas, procedimentos de segurança, parâmetros de operação, insumos compatíveis ou rotinas de manutenção, a LOCATÁRIA deverá adequar o uso do equipamento às novas orientações, desde que comunicada pela LOCADORA ou disponibilizado o manual atualizado do equipamento.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-22',
+    title: '22. Responsabilidade por perda, roubo, furto ou dano',
+    description: 'Durante todo o período da locação, a LOCATÁRIA será responsável pela guarda, zelo e conservação do equipamento, devendo adotar medidas para evitar perda, roubo, furto, extravio, avarias, uso indevido ou acesso por pessoas não autorizadas.\n\nEm caso de perda, roubo, furto, dano irreversível ou impossibilidade de recuperação do equipamento, a LOCATÁRIA deverá indenizar a LOCADORA pelo valor de reposição do bem, acessórios e componentes, sem prejuízo de demais custos necessários.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-23',
+    title: 'Acessórios e bandejas não inclusos',
+    description: 'Acessórios, bandejas, GNs, cestos, racks, utensílios de apoio e demais itens complementares NÃO estão inclusos no valor da locação e deverão ser adquiridos separadamente pela LOCATÁRIA.\n\nA LOCADORA disponibiliza tais itens por preço de mercado, com condições facilitadas de pagamento, mediante orçamento específico.',
+    templateIds: ['locacao'],
+  },
+  {
+    id: 'loc-short',
+    title: 'Condições de uso do equipamento locado (versão resumida)',
+    description: 'O equipamento deverá ser instalado, operado, higienizado e conservado pela LOCATÁRIA em estrita conformidade com o manual do equipamento, manual do fabricante, etiquetas técnicas e orientações formais da LOCADORA. A LOCATÁRIA será responsável por garantir infraestrutura adequada, uso correto, limpeza diária, utilização de insumos compatíveis, guarda do equipamento e comunicação imediata de falhas.\n\nDanos, falhas ou custos decorrentes de mau uso, limpeza inadequada, infraestrutura incompatível, variação elétrica, água fora dos padrões recomendados, uso de produtos ou insumos não autorizados, intervenção de terceiros, movimentação indevida ou descumprimento do manual do equipamento serão de responsabilidade da LOCATÁRIA, podendo ser cobrados separadamente pela LOCADORA mediante laudo técnico.\n\nAo final da locação, o equipamento deverá ser devolvido limpo, higienizado, completo, com seus acessórios e em bom estado de conservação, ressalvado o desgaste natural decorrente do uso regular conforme manual do equipamento.\n\nAcessórios, bandejas e itens de apoio não estão inclusos na locação e deverão ser adquiridos pela LOCATÁRIA por preço de mercado, com condições facilitadas de pagamento.',
+    templateIds: ['locacao'],
+  },
+];
+
 // Combina todos os termos padrão
 const defaultTerms: SavedTermCondition[] = [
   ...generalTerms,
@@ -375,7 +523,11 @@ const defaultTerms: SavedTermCondition[] = [
   ...instalacaoTerms,
   ...rationalTerms,
   ...equipamentosTerms,
+  ...locacaoTerms,
 ];
+
+
+
 
 export function ProposalProvider({ children }: { children: ReactNode }) {
   const [proposals, setProposals] = useState<Proposal[]>([]);
