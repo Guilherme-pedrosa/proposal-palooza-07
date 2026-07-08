@@ -373,7 +373,11 @@ export default function PropostaPublica() {
                         )}
                         <div className="flex justify-between font-bold text-lg">
                           <span>{op.parcelas}x de</span>
-                          <span className="text-primary">{formatBRL(parcela)}</span>
+                          <span className="text-primary">
+                            {formatBRL(parcela)}
+                            {(op.parcelas || 1) > 1 && <span className="text-sm font-normal">/{(op as any).periodicidade || 'mês'}</span>}
+                            {(op.parcelas || 1) === 1 && (op as any).periodicidade && <span className="text-sm font-normal">/{(op as any).periodicidade}</span>}
+                          </span>
                         </div>
                         {juros > 0 && (
                           <p className="text-[10px] text-muted-foreground">
