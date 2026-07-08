@@ -804,7 +804,18 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
       if (!firstPage) pdf.addPage();
       firstPage = false;
 
-      await renderNativePdfPage(pdf, page);
+      const canvas = await html2canvas(page, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+        windowWidth: page.scrollWidth,
+        windowHeight: page.scrollHeight,
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.92);
+      pdf.addImage(imgData, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
 
       await yieldToMainThread();
     }
