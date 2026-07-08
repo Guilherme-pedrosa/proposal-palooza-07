@@ -85,11 +85,8 @@ async function inlineAllImages(container: HTMLElement): Promise<void> {
 async function renderMixedPdfPage(pdf: jsPDF, page: HTMLElement, isCover: boolean): Promise<void> {
   const bounds = page.getBoundingClientRect();
 
-  await waitForImagesToLoad(page);
-  await waitForNextPaint(1);
-
   const canvas = await html2canvas(page, {
-    scale: isCover ? 2 : 2.2,
+    scale: 1.75,
     useCORS: true,
     allowTaint: false,
     logging: false,
@@ -100,9 +97,11 @@ async function renderMixedPdfPage(pdf: jsPDF, page: HTMLElement, isCover: boolea
     windowHeight: Math.ceil(bounds.height),
     scrollX: 0,
     scrollY: 0,
+    imageTimeout: 0,
   });
 
-  pdf.addImage(canvas, isCover ? 'JPEG' : 'PNG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
+  const jpeg = canvas.toDataURL('image/jpeg', 0.85);
+  pdf.addImage(jpeg, 'JPEG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
 }
 
 function renderProductsNativePages(pdf: jsPDF, proposal: Partial<Proposal>): void {
