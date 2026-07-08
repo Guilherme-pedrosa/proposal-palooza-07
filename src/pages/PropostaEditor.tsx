@@ -1277,7 +1277,7 @@ export default function PropostaEditor() {
                     )}
                   </div>
                   {opt.forma !== 'leasing' && (
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       <div>
                         <Label className="text-xs">Entrada (%)</Label>
                         <Input type="number" min={0} max={100} value={opt.entrada || ''} onChange={(e) => updateOpt('entrada', parseFloat(e.target.value) || 0)} className="h-8" />
@@ -1285,6 +1285,10 @@ export default function PropostaEditor() {
                       <div>
                         <Label className="text-xs">Nº Parcelas</Label>
                         <Input type="number" min={1} max={120} value={opt.parcelas} onChange={(e) => updateOpt('parcelas', parseInt(e.target.value) || 1)} className="h-8" />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Periodicidade</Label>
+                        <Input type="text" value={opt.periodicidade || ''} onChange={(e) => updateOpt('periodicidade', e.target.value)} className="h-8" placeholder={opt.parcelas > 1 ? 'mês' : '(única)'} />
                       </div>
                     </div>
                   )}
@@ -1296,7 +1300,9 @@ export default function PropostaEditor() {
                       </div>
                       <div className="flex items-end">
                         <p className="text-sm font-bold text-primary">
-                          {formatBRL(opt.juros > 0 ? calcPMT(total * (1 - (opt.entrada || 0) / 100), opt.juros, opt.parcelas || 1) : (total * (1 - (opt.entrada || 0) / 100)) / (opt.parcelas || 1))}/mês
+                          {formatBRL(opt.juros > 0 ? calcPMT(total * (1 - (opt.entrada || 0) / 100), opt.juros, opt.parcelas || 1) : (total * (1 - (opt.entrada || 0) / 100)) / (opt.parcelas || 1))}
+                          {(opt.parcelas || 1) > 1 && `/${opt.periodicidade || 'mês'}`}
+                          {(opt.parcelas || 1) === 1 && opt.periodicidade && `/${opt.periodicidade}`}
                         </p>
                       </div>
                     </div>
@@ -1305,7 +1311,9 @@ export default function PropostaEditor() {
                     <div className="flex items-end">
                       <p className="text-sm font-bold text-primary">
                         {opt.entrada > 0 && <span className="text-xs font-normal text-muted-foreground mr-1">Entrada: {formatBRL(total * opt.entrada / 100)} + </span>}
-                        {formatBRL((total * (1 - (opt.entrada || 0) / 100)) / (opt.parcelas || 1))}/mês
+                        {formatBRL((total * (1 - (opt.entrada || 0) / 100)) / (opt.parcelas || 1))}
+                        {(opt.parcelas || 1) > 1 && `/${opt.periodicidade || 'mês'}`}
+                        {(opt.parcelas || 1) === 1 && opt.periodicidade && `/${opt.periodicidade}`}
                       </p>
                     </div>
                   )}
