@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { Proposal, ProposalAttachment } from '@/types/proposal';
 import { CompanySettings } from '@/types/company';
 import industrialKitchenBg from '@/assets/industrial-kitchen-bg.jpg';
