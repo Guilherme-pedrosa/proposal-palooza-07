@@ -3,6 +3,7 @@ import { Proposal } from '@/types/proposal';
 import { CompanySettings } from '@/types/company';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Flame, Snowflake, Refrigerator, Utensils, Wrench, BarChart3, Sparkles, TrendingUp, Zap } from 'lucide-react';
 import logoWedoDefault from '@/assets/logo-wedo.png';
 import industrialKitchenBg from '@/assets/industrial-kitchen-bg.jpg';
 

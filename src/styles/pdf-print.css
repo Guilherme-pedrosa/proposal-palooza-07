@@ -1,0 +1,71 @@
+/* CSS dedicado à impressão em PDF via Chromium headless (Browserless). */
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  color-adjust: exact;
+}
+
+body,
+.pdf-page,
+.pdf-page * {
+  font-family: 'Inter', 'Segoe UI', Arial, Helvetica, sans-serif !important;
+  letter-spacing: normal;
+  word-spacing: normal;
+}
+
+.pdf-page h1,
+.pdf-page h2,
+.pdf-page h3,
+.pdf-page h4,
+.pdf-page h5,
+.pdf-title,
+.pdf-heading {
+  font-family: 'Montserrat', 'Inter', 'Segoe UI', Arial, Helvetica, sans-serif !important;
+  font-weight: 700;
+}
+
+.pdf-page p,
+.pdf-page div,
+.pdf-page span,
+.pdf-page li,
+.pdf-page td,
+.pdf-page th {
+  text-align: left;
+}
+
+.pdf-page .text-center { text-align: center !important; }
+.pdf-page .text-right { text-align: right !important; }
+
+.pdf-page {
+  width: 210mm;
+  height: 297mm;
+  overflow: hidden;
+  box-sizing: border-box;
+  position: relative;
+  page-break-after: always;
+  break-after: page;
+  background: #ffffff;
+}
+
+.pdf-page:last-of-type {
+  page-break-after: auto;
+  break-after: auto;
+}
+
+/* Evita quebras internas indesejadas */
+.pdf-page img,
+.pdf-page svg,
+.pdf-page table {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
