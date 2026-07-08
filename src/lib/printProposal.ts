@@ -654,29 +654,6 @@ export async function generateProposalPdf(proposal: Partial<Proposal>, company: 
       if (!firstPage) pdf.addPage();
       firstPage = false;
 
-      if (page.dataset.pdfAttachments === 'true') {
-        renderAttachmentsNativePage(pdf, proposal.attachments || [], proposal.number);
-        continue;
-      }
-
-      if (page.dataset.pdfCommercial === 'true') {
-        renderCommercialConditionsNativePage(pdf, proposal);
-        continue;
-      }
-
-      if (page.dataset.pdfSection === 'products') {
-        renderProductsNativePages(pdf, proposal);
-        while (index + 1 < pages.length && pages[index + 1]?.dataset.pdfSection === 'products') {
-          index += 1;
-        }
-        await yieldToMainThread();
-        continue;
-      }
-
-      if (page.dataset.pdfSkip === 'true') {
-        continue;
-      }
-
       const isCover = page.dataset.pdfSection === 'cover';
       await renderMixedPdfPage(pdf, page, isCover);
 
