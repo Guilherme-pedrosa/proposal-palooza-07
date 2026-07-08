@@ -1,6 +1,5 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { Proposal, ProposalAttachment } from '@/types/proposal';
 import { CompanySettings } from '@/types/company';
@@ -10,6 +9,61 @@ import { getImageAsBase64 } from '@/lib/pdfImageUtils';
 
 const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
+
+type PdfRgb = [number, number, number];
+
+function parseCssColor(color: string): PdfRgb | null {
+  if (!color || color === 'transparent') return null;
+
+  const rgba = color.match(/rgba?\(([^)]+)\)/i);
+  if (rgba) {
+    const parts = rgba[1].split(',').map((part) => part.trim());
+    const alpha = parts[3] === undefined ? 1 : Number(parts[3]);
+    if (Number.isFinite(alpha) && alpha <= 0.02) return null;
+    return [Number(parts[0]) || 0, Number(parts[1]) || 0, Number(parts[2]) || 0];
+  }
+
+  const hex = color.trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (!hex) return null;
+  const raw = hex[1].length === 3
+    ? hex[1].split('').map((char) => `${char}${char}`).join('')
+    : hex[1];
+  return [parseInt(raw.slice(0, 2), 16), parseInt(raw.slice(2, 4), 16), parseInt(raw.slice(4, 6), 16)];
+}
+
+function isVisibleElement(element: Element): element is HTMLElement {
+  if (!(element instanceof HTMLElement)) return false;
+  const style = window.getComputedStyle(element);
+  const rect = element.getBoundingClientRect();
+  return style.display !== 'none'
+    && style.visibility !== 'hidden'
+    && Number(style.opacity) > 0.02
+    && rect.width > 0
+    && rect.height > 0;
+}
+
+function getPdfFontFamily(cssFamily: string): 'helvetica' | 'times' {
+  return /georgia|times|serif/i.test(cssFamily) ? 'times' : 'helvetica';
+}
+
+function getPdfFontStyle(style: CSSStyleDeclaration): 'normal' | 'bold' | 'italic' | 'bolditalic' {
+  const weight = Number(style.fontWeight);
+  const isBold = style.fontWeight === 'bold' || (!Number.isNaN(weight) && weight >= 600);
+  const isItalic = style.fontStyle.includes('italic');
+  if (isBold && isItalic) return 'bolditalic';
+  if (isBold) return 'bold';
+  if (isItalic) return 'italic';
+  return 'normal';
+}
+
+function getImageFormat(source: string): 'PNG' | 'JPEG' {
+  return source.startsWith('data:image/png') || source.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
+}
+
+function extractCssUrl(backgroundImage: string): string | null {
+  const match = backgroundImage.match(/url\(["']?(.+?)["']?\)/i);
+  return match?.[1] || null;
+}
 
 async function waitForNextPaint(frames = 2): Promise<void> {
   for (let index = 0; index < frames; index += 1) {
