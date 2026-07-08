@@ -364,18 +364,6 @@ const equipamentosTerms: SavedTermCondition[] = [
   },
 ];
 
-// Combina todos os termos padrão
-const defaultTerms: SavedTermCondition[] = [
-  ...generalTerms,
-  ...preventivaTerms,
-  ...manutencaoEletricaCivilTerms,
-  ...coifaTerms,
-  ...climatizacaoTerms,
-  ...quimicosTerms,
-  ...instalacaoTerms,
-  ...rationalTerms,
-  ...equipamentosTerms,
-];
 
 export function ProposalProvider({ children }: { children: ReactNode }) {
   const [proposals, setProposals] = useState<Proposal[]>([]);
