@@ -47,6 +47,7 @@ export interface PaymentOption {
   parcelas: number;
   entrada: number; // percent
   juros: number; // for cartao (% a.m.)
+  periodicidade?: string; // ex: mês, semana, semestre, ano — usado quando parcelas > 1 ou como sufixo customizado
 }
 
 export interface Proposal {
