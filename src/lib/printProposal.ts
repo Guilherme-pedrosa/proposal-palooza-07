@@ -82,135 +82,8 @@ async function inlineAllImages(container: HTMLElement): Promise<void> {
   await Promise.all(allImages.map((img) => inlineImage(img)));
 }
 
-type NativeTextBlock = {
-  align: 'left' | 'center' | 'right';
-  color: [number, number, number];
-  fontFamily: 'helvetica' | 'times';
-  fontSizePt: number;
-  fontStyle: 'normal' | 'bold' | 'italic' | 'bolditalic';
-  lineHeightFactor: number;
-  text: string;
-  widthMm: number;
-  xMm: number;
-  yMm: number;
-};
-
-function parseCssColor(colorValue: string): [number, number, number] {
-  const normalized = colorValue.trim().toLowerCase();
-
-  if (normalized.startsWith('#')) {
-    const hex = normalized.slice(1);
-    const value = hex.length === 3
-      ? hex.split('').map((char) => `${char}${char}`).join('')
-      : hex;
-
-    if (value.length === 6) {
-      return [
-        Number.parseInt(value.slice(0, 2), 16),
-        Number.parseInt(value.slice(2, 4), 16),
-        Number.parseInt(value.slice(4, 6), 16),
-      ];
-    }
-  }
-
-  const match = normalized.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-  if (match) {
-    return [Number(match[1]), Number(match[2]), Number(match[3])];
-  }
-
-  return [17, 24, 39];
-}
-
-function isTextVisible(element: HTMLElement): boolean {
-  const style = window.getComputedStyle(element);
-  return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || '1') > 0 && element.getClientRects().length > 0;
-}
-
-function collectNativeTextBlocks(page: HTMLElement): NativeTextBlock[] {
-  const selector = 'h1,h2,h3,h4,h5,h6,p,li,th,td,div';
-  const pageRect = page.getBoundingClientRect();
-  const mmPerPxX = A4_WIDTH_MM / pageRect.width;
-  const mmPerPxY = A4_HEIGHT_MM / pageRect.height;
-
-  return Array.from(page.querySelectorAll(selector))
-    .filter((node): node is HTMLElement => node instanceof HTMLElement)
-    .filter((element) => {
-      if (!isTextVisible(element)) return false;
-      if (element.closest('[data-pdf-skip="true"]')) return false;
-
-      const text = element.innerText.replace(/\s+/g, ' ').trim();
-      if (!text) return false;
-
-      if (element.matches('div')) {
-        const hasStructuredDescendants = Array.from(element.children).some((child) =>
-          child instanceof HTMLElement && child.matches(selector)
-        );
-        if (hasStructuredDescendants) return false;
-      }
-
-      if (element.matches('p,li,th,td') && element.querySelector('p,li,th,td')) {
-        return false;
-      }
-
-      return true;
-    })
-    .map((element) => {
-      element.dataset.pdfNativeText = 'true';
-
-      const style = window.getComputedStyle(element);
-      const rect = element.getBoundingClientRect();
-      const fontSizePx = Number.parseFloat(style.fontSize || '16') || 16;
-      const lineHeightPx = style.lineHeight === 'normal'
-        ? fontSizePx * 1.25
-        : Number.parseFloat(style.lineHeight || `${fontSizePx * 1.25}`) || fontSizePx * 1.25;
-      const fontWeight = Number.parseInt(style.fontWeight || '400', 10);
-      const isItalic = style.fontStyle.includes('italic');
-      const fontStyle: NativeTextBlock['fontStyle'] = fontWeight >= 600
-        ? (isItalic ? 'bolditalic' : 'bold')
-        : (isItalic ? 'italic' : 'normal');
-      const align = style.textAlign === 'center' || style.textAlign === 'right' ? style.textAlign : 'left';
-      const text = `${element.tagName === 'LI' ? '• ' : ''}${element.innerText.replace(/\s+/g, ' ').trim()}`;
-      const fontFamily = /(georgia|times)/i.test(style.fontFamily) ? 'times' : 'helvetica';
-
-      return {
-        align,
-        color: parseCssColor(style.color),
-        fontFamily,
-        fontSizePt: fontSizePx * 0.75,
-        fontStyle,
-        lineHeightFactor: Math.max(1, lineHeightPx / fontSizePx),
-        text,
-        widthMm: Math.max(rect.width * mmPerPxX, 8),
-        xMm: (rect.left - pageRect.left) * mmPerPxX,
-        yMm: ((rect.top - pageRect.top) * mmPerPxY) + (fontSizePx * mmPerPxY * 0.8),
-      } satisfies NativeTextBlock;
-    })
-    .sort((a, b) => (a.yMm === b.yMm ? a.xMm - b.xMm : a.yMm - b.yMm));
-}
-
-function renderNativeTextOverlay(pdf: jsPDF, blocks: NativeTextBlock[]): void {
-  blocks.forEach((block) => {
-    pdf.setFont(block.fontFamily, block.fontStyle);
-    pdf.setFontSize(block.fontSizePt);
-    pdf.setTextColor(...block.color);
-    pdf.setLineHeightFactor(block.lineHeightFactor);
-
-    const x = block.align === 'center'
-      ? block.xMm + (block.widthMm / 2)
-      : block.align === 'right'
-        ? block.xMm + block.widthMm
-        : block.xMm;
-
-    pdf.text(block.text, x, block.yMm, {
-      align: block.align,
-      maxWidth: block.widthMm,
-    });
-  });
-}
-
 async function renderMixedPdfPage(pdf: jsPDF, page: HTMLElement, isCover: boolean): Promise<void> {
   const bounds = page.getBoundingClientRect();
-  const nativeTextBlocks = collectNativeTextBlocks(page);
 
   await waitForImagesToLoad(page);
   await waitForNextPaint(1);
@@ -227,26 +100,9 @@ async function renderMixedPdfPage(pdf: jsPDF, page: HTMLElement, isCover: boolea
     windowHeight: Math.ceil(bounds.height),
     scrollX: 0,
     scrollY: 0,
-    onclone: (clonedDocument) => {
-      clonedDocument.querySelectorAll('[data-pdf-native-text="true"]').forEach((node) => {
-        if (!(node instanceof HTMLElement)) return;
-
-        node.style.color = 'transparent';
-        node.style.webkitTextFillColor = 'transparent';
-        node.style.textShadow = 'none';
-
-        node.querySelectorAll('*').forEach((child) => {
-          if (!(child instanceof HTMLElement)) return;
-          child.style.color = 'transparent';
-          child.style.webkitTextFillColor = 'transparent';
-          child.style.textShadow = 'none';
-        });
-      });
-    },
   });
 
   pdf.addImage(canvas, isCover ? 'JPEG' : 'PNG', 0, 0, A4_WIDTH_MM, A4_HEIGHT_MM, undefined, 'FAST');
-  renderNativeTextOverlay(pdf, nativeTextBlocks);
 }
 
 function renderProductsNativePages(pdf: jsPDF, proposal: Partial<Proposal>): void {
