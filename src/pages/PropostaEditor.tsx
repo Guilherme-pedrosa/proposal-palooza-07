@@ -166,6 +166,7 @@ export default function PropostaEditor() {
     { id: 'images', label: 'Imagens', icon: '🖼️' },
     { id: 'attachments', label: 'Arquivos anexos', icon: '📎' },
     { id: 'commercial', label: 'Condições comerciais', icon: '💰' },
+    { id: 'tax-benefits', label: 'Benefício fiscal / tributos (Leasing)', icon: '🧾' },
     { id: 'signature', label: 'Assinatura', icon: '✍️' },
   ] as const;
   const DEFAULT_SECTIONS = ALL_PDF_SECTIONS.map(s => s.id);
