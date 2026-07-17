@@ -1216,6 +1216,11 @@ export default function PropostaEditor() {
               <p className="text-xs text-muted-foreground mt-1">Válida até: {format(validadeAte, 'dd/MM/yyyy')}</p>
             </div>
 
+            <div>
+              <Label>Prazo de Entrega / Execução</Label>
+              <Input value={prazoEntrega} onChange={(e) => setPrazoEntrega(e.target.value)} placeholder="Ex: 15 dias após aprovação e entrada" />
+            </div>
+
             <Separator />
 
             {/* À Vista — sempre visível */}
@@ -1390,10 +1395,6 @@ export default function PropostaEditor() {
             <div>
               <Label>Condições de Pagamento (texto livre)</Label>
               <Textarea value={condicoesPagamento} onChange={(e) => setCondicoesPagamento(e.target.value)} placeholder="Ex: 30% entrada, 70% na entrega. Boleto ou PIX." rows={2} />
-            </div>
-            <div>
-              <Label>Prazo de Entrega / Execução</Label>
-              <Input value={prazoEntrega} onChange={(e) => setPrazoEntrega(e.target.value)} placeholder="Ex: 15 dias após aprovação e entrada" />
             </div>
             <div>
               <Label>Observações Internas (não aparece no PDF)</Label>
