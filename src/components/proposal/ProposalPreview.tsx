@@ -1424,9 +1424,3 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
 );
 
 ProposalPreview.displayName = 'ProposalPreview';
-      </div>
-    );
-  }
-);
-
-ProposalPreview.displayName = 'ProposalPreview';
