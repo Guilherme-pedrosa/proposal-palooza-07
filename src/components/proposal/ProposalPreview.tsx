@@ -1369,6 +1369,36 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                 </div>
               </>
             )}
+
+            <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
+              {proposal.number} de {formatDate(proposal.createdAt as Date)}
+            </div>
+            <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+            <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
+          </div>
+          );
+        })()}
+
+        {/* Signature Page */}
+        <div data-pdf-section="signature" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakInside: 'avoid' }}>
+          {/* Logo no topo */}
+          <div className="absolute top-8 right-12">
+            <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
+          </div>
+
+          <div className="mt-24">
+            <p className="text-lg leading-relaxed" style={{ color: '#374151' }}>
+              Estando de acordo com os produtos, valores e termos relatados nesta proposta e por estarem assim justos e contratados, 
+              <strong> {company.name}</strong> e o(a) <strong>{proposal.client?.name || 'Cliente'}</strong> firmam a proposta.
+            </p>
+
+            <div className="mt-16 grid grid-cols-2 gap-12">
+              <div className="text-center">
+                <div className="border-t pt-4" style={{ borderColor: '#374151' }}>
+                  <p className="font-medium" style={{ color: '#111827' }}>{company.name}</p>
+                  <p className="text-sm" style={{ color: '#6b7280' }}>Contratada</p>
+                </div>
+              </div>
               <div className="text-center">
                 <div className="border-t pt-4" style={{ borderColor: '#374151' }}>
                   <p className="font-medium" style={{ color: '#111827' }}>{proposal.client?.name || 'Cliente'}</p>
@@ -1388,6 +1418,12 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
           <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
           <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
         </div>
+      </div>
+    );
+  }
+);
+
+ProposalPreview.displayName = 'ProposalPreview';
       </div>
     );
   }
