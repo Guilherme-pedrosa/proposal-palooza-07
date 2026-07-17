@@ -1106,8 +1106,12 @@ export default function PropostaEditor() {
                 ))}
               </div>
             )}
+
+            {/* Manual term */}
+            <ManualTermAdder onAdd={(t) => setTermos(prev => [...prev, t])} />
           </div>
         </Section>
+
 
         {/* Section 7: Images */}
         <Section title={`Imagens (${imagens.length})`} icon="🖼️" defaultOpen={false}>
@@ -1488,3 +1492,40 @@ export default function PropostaEditor() {
     </MainLayout>
   );
 }
+
+function ManualTermAdder({ onAdd }: { onAdd: (t: PropostaTermo) => void }) {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+
+  if (!open) {
+    return (
+      <Button size="sm" variant="outline" className="gap-1" onClick={() => setOpen(true)}>
+        <Plus className="h-3 w-3" /> Adicionar termo manual
+      </Button>
+    );
+  }
+
+  return (
+    <div className="space-y-2 border rounded-lg p-3 bg-muted/30">
+      <Input placeholder="Título do termo" value={title} onChange={(e) => setTitle(e.target.value)} />
+      <Textarea placeholder="Descrição do termo..." value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          onClick={() => {
+            if (!title.trim() || !description.trim()) return;
+            onAdd({ id: crypto.randomUUID(), title: title.trim(), description: description.trim() });
+            setTitle(''); setDescription(''); setOpen(false);
+          }}
+        >
+          Adicionar
+        </Button>
+        <Button size="sm" variant="ghost" onClick={() => { setTitle(''); setDescription(''); setOpen(false); }}>
+          Cancelar
+        </Button>
+      </div>
+    </div>
+  );
+}
+
