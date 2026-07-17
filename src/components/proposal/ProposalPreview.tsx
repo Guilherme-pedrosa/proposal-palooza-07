@@ -1288,8 +1288,8 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
               })}
             </div>
 
-            {/* Leasing section — only if one option is leasing */}
-            {hasLeasing && (
+            {/* Leasing section — only if one option is leasing AND section is enabled */}
+            {hasLeasing && (proposal.includedSections === undefined || proposal.includedSections.length === 0 || proposal.includedSections.includes('tax-benefits')) && (
               <>
                 {/* Separador */}
                 <div className="flex items-center gap-4 mb-3">
@@ -1355,50 +1355,20 @@ export const ProposalPreview = forwardRef<HTMLDivElement, ProposalPreviewProps>(
                     Parcela de {formatCurrency(parcelaLeasing)} com aproveitamento de créditos de PIS e COFINS (9,25%) e deduções de IRPJ (25%) e CSLL (9%) sobre a despesa de locação.
                   </p>
                 </div>
+
+                {/* Disclaimer após benefícios */}
+                <p className="text-xs italic mt-2" style={{ color: '#6b7280', lineHeight: '1.4' }}>
+                  Estimativa de economia tributária potencial, sujeita ao regime tributário, existência de lucro tributável, enquadramento da operação, uso do bem na atividade e validação contábil/fiscal.
+                </p>
+
+                {/* Base legal */}
+                <div className="mt-1">
+                  <p className="text-xs" style={{ color: '#9ca3af' }}>
+                    <strong style={{ color: '#6b7280' }}>Base legal:</strong> Art. 249 e 250 do RIR — Decreto 3.000/1999 · Art. 3º, IV da Lei 10.833/2003 · Art. 15, IV da Lei 10.865/2002
+                  </p>
+                </div>
               </>
             )}
-
-            {/* Disclaimer após benefícios */}
-            <p className="text-xs italic mt-2" style={{ color: '#6b7280', lineHeight: '1.4' }}>
-              Estimativa de economia tributária potencial, sujeita ao regime tributário, existência de lucro tributável, enquadramento da operação, uso do bem na atividade e validação contábil/fiscal.
-            </p>
-
-            {/* Base legal */}
-            <div className="mt-1">
-              <p className="text-xs" style={{ color: '#9ca3af' }}>
-                <strong style={{ color: '#6b7280' }}>Base legal:</strong> Art. 249 e 250 do RIR — Decreto 3.000/1999 · Art. 3º, IV da Lei 10.833/2003 · Art. 15, IV da Lei 10.865/2002
-              </p>
-            </div>
-
-            <div className="absolute bottom-8 left-12 text-sm" style={{ color: '#9ca3af' }}>
-              {proposal.number} de {formatDate(proposal.createdAt as Date)}
-            </div>
-            <div className="absolute bottom-0 right-0 h-32 w-32" style={{ backgroundColor: '#22c55e', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
-            <div className="absolute bottom-0 right-16 h-20 w-20" style={{ backgroundColor: '#16a34a', clipPath: 'polygon(100% 0, 100% 100%, 0 100%)', opacity: 0.9 }} />
-          </div>
-          );
-        })()}
-
-        {/* Signature Page */}
-        <div data-pdf-section="signature" className="relative bg-white p-12 pdf-page overflow-hidden" style={{ width: '210mm', height: '297mm', pageBreakInside: 'avoid' }}>
-          {/* Logo no topo */}
-          <div className="absolute top-8 right-12">
-            <img src={companyLogo} alt={company.name} className="h-12 w-auto" />
-          </div>
-
-          <div className="mt-24">
-            <p className="text-lg leading-relaxed" style={{ color: '#374151' }}>
-              Estando de acordo com os produtos, valores e termos relatados nesta proposta e por estarem assim justos e contratados, 
-              <strong> {company.name}</strong> e o(a) <strong>{proposal.client?.name || 'Cliente'}</strong> firmam a proposta.
-            </p>
-
-            <div className="mt-16 grid grid-cols-2 gap-12">
-              <div className="text-center">
-                <div className="border-t pt-4" style={{ borderColor: '#374151' }}>
-                  <p className="font-medium" style={{ color: '#111827' }}>{company.name}</p>
-                  <p className="text-sm" style={{ color: '#6b7280' }}>Contratada</p>
-                </div>
-              </div>
               <div className="text-center">
                 <div className="border-t pt-4" style={{ borderColor: '#374151' }}>
                   <p className="font-medium" style={{ color: '#111827' }}>{proposal.client?.name || 'Cliente'}</p>
