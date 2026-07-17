@@ -1397,10 +1397,6 @@ export default function PropostaEditor() {
               <Textarea value={condicoesPagamento} onChange={(e) => setCondicoesPagamento(e.target.value)} placeholder="Ex: 30% entrada, 70% na entrega. Boleto ou PIX." rows={2} />
             </div>
             <div>
-              <Label>Prazo de Entrega / Execução</Label>
-              <Input value={prazoEntrega} onChange={(e) => setPrazoEntrega(e.target.value)} placeholder="Ex: 15 dias após aprovação e entrada" />
-            </div>
-            <div>
               <Label>Observações Internas (não aparece no PDF)</Label>
               <Textarea value={observacoesInternas} onChange={(e) => setObservacoesInternas(e.target.value)} placeholder="Notas para uso interno..." rows={2} />
             </div>
