@@ -1216,6 +1216,11 @@ export default function PropostaEditor() {
               <p className="text-xs text-muted-foreground mt-1">Válida até: {format(validadeAte, 'dd/MM/yyyy')}</p>
             </div>
 
+            <div>
+              <Label>Prazo de Entrega / Execução</Label>
+              <Input value={prazoEntrega} onChange={(e) => setPrazoEntrega(e.target.value)} placeholder="Ex: 15 dias após aprovação e entrada" />
+            </div>
+
             <Separator />
 
             {/* À Vista — sempre visível */}
