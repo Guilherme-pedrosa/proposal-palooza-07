@@ -1106,8 +1106,12 @@ export default function PropostaEditor() {
                 ))}
               </div>
             )}
+
+            {/* Manual term */}
+            <ManualTermAdder onAdd={(t) => setTermos(prev => [...prev, t])} />
           </div>
         </Section>
+
 
         {/* Section 7: Images */}
         <Section title={`Imagens (${imagens.length})`} icon="🖼️" defaultOpen={false}>
